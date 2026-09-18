@@ -24,7 +24,7 @@ Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
 4. **Interactive Learning & Assessment Engine**:
    - Interactive prerequisites checklists that remember completed steps across sessions.
    - Native collapsible accordions (`<details>`) for "Discussion & Thought Questions" hiding hints and answers.
-   - End-of-lab interactive quizzes featuring multiple-choice questions and live terminal command input validation with instant feedback (`[+] Access Granted!` or `[-] Exploit Failed!`) and local XP tracking.
+   - End-of-lab interactive quizzes featuring multiple-choice questions and live terminal command input validation with instant feedback (`[+] Access Granted!` or `[-] Exploit Failed!`).
    - Global command and topic search dialog (`Ctrl+K` or `/`).
 
 ---
@@ -70,7 +70,7 @@ Open `http://localhost:8000` in your browser.
 │   └── js/
 │       ├── site.js       # Dynamic Nav Injection, Theme & Projector State, Search Modal
 │       ├── lab-common.js # Dynamic TOC, ScrollSpy, Checklist Persistence, Copy Code
-│       └── quiz.js       # Interactive Quiz Engine & Student XP Tracker
+│       └── quiz.js       # Interactive Quiz Engine & Answer Validation
 └── README.md
 ```
 

@@ -1,37 +1,18 @@
 /**
  * CCY4202: Ethical Hacking Labs — Interactive Quiz Engine
- * Multiple-choice & terminal command challenge validation with explanatory feedback and XP scoring.
+ * Multiple-choice & terminal command challenge validation with explanatory feedback.
  */
 (function () {
   'use strict';
 
   var QuizEngine = {
-    getXP: function () {
-      return parseInt(localStorage.getItem('ccy_user_xp') || '0', 10);
-    },
-
-    addXP: function (amount) {
-      var current = this.getXP();
-      var updated = current + amount;
-      localStorage.setItem('ccy_user_xp', updated.toString());
-      this.updateXPBadges();
-    },
-
-    updateXPBadges: function () {
-      var xp = this.getXP();
-      document.querySelectorAll('[data-user-xp]').forEach(function (el) {
-        el.textContent = xp + ' XP';
-      });
-    },
-
     isQuestionSolved: function (qId) {
       return localStorage.getItem('ccy_solved_' + qId) === '1';
     },
 
-    markQuestionSolved: function (qId, xpAward) {
+    markQuestionSolved: function (qId) {
       if (!this.isQuestionSolved(qId)) {
         localStorage.setItem('ccy_solved_' + qId, '1');
-        this.addXP(xpAward || 10);
       }
     },
 
@@ -41,7 +22,6 @@
       var qId = card.dataset.questionId;
       var isCorrect = btn.dataset.correct === 'true';
       var feedbackBox = card.querySelector('.quiz-feedback');
-      var xpAward = parseInt(card.dataset.xp || '10', 10);
 
       // Deselect siblings
       card.querySelectorAll('.quiz-option').forEach(function (opt) {
@@ -56,10 +36,10 @@
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--correct';
           var rationale = btn.dataset.feedback || 'Correct! Concept masterfully demonstrated.';
-          feedbackBox.innerHTML = '<strong>[+] ACCESS GRANTED:</strong> ' + rationale + ' <span class="badge" style="background:var(--color-accent);color:#000;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">+' + xpAward + ' XP</span>';
+          feedbackBox.innerHTML = '<strong>[+] ACCESS GRANTED:</strong> ' + rationale;
         }
 
-        this.markQuestionSolved(qId, xpAward);
+        this.markQuestionSolved(qId);
       } else {
         btn.classList.add('is-selected-incorrect');
         card.classList.remove('is-passed');
@@ -79,7 +59,6 @@
       var input = card.querySelector('.quiz-input');
       var feedbackBox = card.querySelector('.quiz-feedback');
       var expectedRegexStr = card.dataset.expectedRegex;
-      var xpAward = parseInt(card.dataset.xp || '15', 10);
 
       if (!input || !expectedRegexStr) return;
 
@@ -95,10 +74,10 @@
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--correct';
           var rationale = card.dataset.solutionRationale || 'Command executed successfully! Target shell secured.';
-          feedbackBox.innerHTML = '<strong>[+] PAYLOAD DELIVERED:</strong> ' + rationale + ' <span class="badge" style="background:var(--color-accent);color:#000;font-weight:700;padding:2px 6px;border-radius:4px;margin-left:6px;">+' + xpAward + ' XP</span>';
+          feedbackBox.innerHTML = '<strong>[+] PAYLOAD DELIVERED:</strong> ' + rationale;
         }
 
-        this.markQuestionSolved(qId, xpAward);
+        this.markQuestionSolved(qId);
       } else {
         card.classList.remove('is-passed');
         card.classList.add('is-failed');
@@ -158,8 +137,6 @@
           }
         }
       });
-
-      this.updateXPBadges();
     }
   };
 
