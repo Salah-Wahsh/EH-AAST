@@ -426,12 +426,28 @@
       <section>
         <h2>3. Transport Protocols &amp; Deep Handshake Analysis</h2>
         <p class="lab-lead">
-          Understanding Layer 4 state machines (TCP vs. UDP) is the single most critical prerequisite for penetration testing. Every port scan, reverse shell, and network evasion technique relies directly on how these two protocols establish or omit state.
+          Layer 4 transport protocols (TCP vs. UDP) are not just networking trivia — they are the <strong>physics of the internet</strong>. Every port scan, reverse shell, and evasion technique you will execute in this course relies directly on how these protocols handle state.
         </p>
 
-        <!-- Transport Protocols Visual Header -->
-        <h3>The TCP 3-Way Handshake: Sequence &amp; Mechanics</h3>
-        <p>Before transmitting a single byte of application data (HTTP, SSH), TCP synchronizes sequence numbers between Client and Target:</p>
+        <!-- Mental Anchor: The Analogy -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid var(--color-accent);border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">📞 TCP: A CERTIFIED PHONE CALL</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+              You dial, the other person answers, you both say "Hello? Can you hear me? Yes!", and you confirm every sentence. If static garbles a word, you ask them to repeat it.
+            </p>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:4px solid var(--color-cyan);border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-xs);">📢 UDP: A MEGAPHONE IN A STADIUM</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+              You shout a message into a crowded room and walk away. You don't know who heard it, you don't wait for a reply, and you can wear a disguise so nobody knows who shouted.
+            </p>
+          </div>
+        </div>
+
+        <!-- The 3-Way Handshake in Human Dialogue -->
+        <h3>The TCP 3-Way Handshake: Translated into Human Dialogue</h3>
+        <p>Before transferring a single byte of web data or terminal commands, TCP synchronizes byte counters through three mandatory packets:</p>
 
         <!-- SVG Sequence Diagram: TCP Handshake -->
         <div class="diagram-card">
@@ -464,94 +480,115 @@
 
             <!-- Step 1: SYN -->
             <line x1="140" y1="70" x2="610" y2="95" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
-            <rect x="290" y="60" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
-            <text x="380" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. [SYN] Seq = 0 (Init)</text>
+            <rect x="260" y="60" width="240" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
+            <text x="380" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. [SYN] "Can you hear me? My Seq=100"</text>
 
             <!-- Step 2: SYN-ACK -->
             <line x1="620" y1="115" x2="150" y2="140" stroke="var(--color-cyan)" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
-            <rect x="250" y="110" width="260" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="1" />
-            <text x="380" y="126" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. [SYN-ACK] Seq = 0, Ack = 1</text>
+            <rect x="230" y="110" width="300" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="1" />
+            <text x="380" y="126" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. [SYN-ACK] "Yes! My Seq=300, Send byte 101"</text>
 
             <!-- Step 3: ACK -->
             <line x1="140" y1="160" x2="610" y2="185" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
-            <rect x="290" y="155" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
-            <text x="380" y="171" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. [ACK] Ack = 1 (Established)</text>
+            <rect x="250" y="155" width="260" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
+            <text x="380" y="171" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. [ACK] "Got it! Send byte 301. Established!"</text>
           </svg>
         </div>
 
-        <!-- WHY We Need the Handshake: Deep Conceptual Breakdown -->
-        <h3>Why Do We Need the Handshake? (State &amp; Integrity)</h3>
+        <!-- WHY We Need It (Pedagogical Root Cause) -->
+        <h3>Why Do Computers Need This Handshake? (The "Why")</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-3) 0 var(--space-6);">
           <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
             <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
-              <span style="font-size:1.25rem;">🔢</span>
-              <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Initial Sequence Number (ISN) Sync</strong>
+              <span style="font-size:1.25rem;">🧩</span>
+              <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Preventing Scrambled Data (Sequence Sync)</strong>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.6;">
-              Both client and server generate random Initial Sequence Numbers (ISNs). The handshake ensures both sides agree on byte offsets so packets arriving out of order or across multiple routes can be reassembled flawlessly.
+              The internet is unpredictable: packets take different paths through routers and arrive out of order. Without agreeing on starting sequence numbers (ISNs), a reverse shell command like <code>rm -rf /tmp/test</code> could arrive as <code>rm -rf /</code>, destroying the machine! Sequence numbers allow the kernel to reassemble fragments in the exact right order.
             </p>
           </div>
           <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
             <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
               <span style="font-size:1.25rem;">🛡️</span>
-              <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Bidirectional Consent &amp; Buffer Allocation</strong>
+              <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Proof of Existence (Resource Protection)</strong>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.6;">
-              Before opening kernel socket buffers, the server verifies that the client's IP actually exists and is actively requesting communication, preventing trivial socket starvation and ensuring delivery receipts.
+              Opening a network socket consumes real RAM in the server's kernel. The 3-way handshake prevents trivial exhaustion: the server does not allocate full application buffers until the client proves its IP address actually exists and is able to send the final <code>ACK</code>.
             </p>
           </div>
         </div>
 
-        <!-- WHY Pentesters Must Know This: Offensive Reality -->
-        <h3>Why Pentesters Care: Port Scanning via TCP Flags</h3>
-        <p>A port scanner (like Nmap) does not guess: it sends TCP probes and infers port states directly from kernel responses:</p>
+        <!-- HOW HACKERS WEAPONIZE THIS: Port State Deduction -->
+        <h3>How Ethical Hackers Weaponize the Handshake: Knocking on 3 Doors</h3>
+        <p>
+          When you run a port scan in Nmap, Nmap does not have magical x-ray vision. <strong>It simply knocks on ports and listens to how the target's operating system reacts:</strong>
+        </p>
 
-        <div class="cheat-table-container">
-          <table class="cheat-table">
-            <thead>
-              <tr>
-                <th style="width:20%;">Probe Sent</th>
-                <th style="width:25%;">Target Kernel Response</th>
-                <th style="width:20%;">Deducted State</th>
-                <th style="width:35%;">What It Means to an Attacker</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><code>[SYN]</code></td>
-                <td><strong style="color:var(--color-accent);">[SYN-ACK]</strong></td>
-                <td><span class="comparison-badge" style="color:var(--color-accent);">OPEN</span></td>
-                <td>Service is listening and accepting incoming sockets. Immediate exploit target!</td>
-              </tr>
-              <tr>
-                <td><code>[SYN]</code></td>
-                <td><strong style="color:var(--color-danger);">[RST] (Reset)</strong></td>
-                <td><span class="comparison-badge" style="color:var(--color-danger);">CLOSED</span></td>
-                <td>Host is alive, but no process is bound to this port. Operating system actively rejects connection.</td>
-              </tr>
-              <tr>
-                <td><code>[SYN]</code></td>
-                <td><strong>No Response / Timeout</strong> (or ICMP Unreachable)</td>
-                <td><span class="comparison-badge" style="color:var(--color-warn);">FILTERED</span></td>
-                <td>A firewall or packet filter dropped the SYN packet. Probe never reached the host application.</td>
-              </tr>
-            </tbody>
-          </table>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
+          <!-- Door 1: Open -->
+          <div style="background:var(--color-surface);border:1px solid rgba(0,255,102,0.4);border-radius:var(--radius-md);padding:var(--space-4);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-accent);font-family:var(--font-mono);">🚪 1. THE DOOR OPENS</strong>
+              <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.4);">PORT OPEN</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">
+              Kali sends: <code>[SYN]</code> ➔ Target replies: <code style="color:var(--color-accent);">[SYN-ACK]</code>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
+              <strong>The Reaction:</strong> The target smiled and said *"Welcome, I'm listening!"*
+              <br /><strong>Offensive Meaning:</strong> An active software daemon (Apache, SSH, MySQL) is waiting for clients. <em>This is your primary entry point for exploitation!</em>
+            </p>
+          </div>
+
+          <!-- Door 2: Closed -->
+          <div style="background:var(--color-surface);border:1px solid rgba(255,51,102,0.4);border-radius:var(--radius-md);padding:var(--space-4);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-danger);font-family:var(--font-mono);">🚪 2. THE DOOR SLAMS</strong>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">PORT CLOSED</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">
+              Kali sends: <code>[SYN]</code> ➔ Target replies: <code style="color:var(--color-danger);">[RST] (Reset)</code>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
+              <strong>The Reaction:</strong> The kernel slammed the door: *"Nobody lives here, go away!"*
+              <br /><strong>Offensive Meaning:</strong> The machine is alive, but no program is bound to this port. Don't waste exploit payloads here.
+            </p>
+          </div>
+
+          <!-- Door 3: Filtered -->
+          <div style="background:var(--color-surface);border:1px solid rgba(255,170,0,0.4);border-radius:var(--radius-md);padding:var(--space-4);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-warn);font-family:var(--font-mono);">🚪 3. TOTAL SILENCE</strong>
+              <span class="comparison-badge" style="color:var(--color-warn);border-color:rgba(255,170,0,0.4);">PORT FILTERED</span>
+            </div>
+            <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:var(--space-2);">
+              Kali sends: <code>[SYN]</code> ➔ Target replies: <code style="color:var(--color-warn);">[No Response / Timeout]</code>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
+              <strong>The Reaction:</strong> Deafening silence. You wait 3 seconds... nothing.
+              <br /><strong>Offensive Meaning:</strong> A firewall or packet filter (iptables, AWS Security Group) intercepted your packet and threw it in the trash.
+            </p>
+          </div>
         </div>
 
         <!-- The SYN Stealth Scan Exploit Callout -->
-        <div class="callout callout--tip" style="margin:var(--space-4) 0;">
+        <div class="callout callout--tip" style="margin:var(--space-6) 0;">
           <span class="callout__icon">💡</span>
           <div class="callout__content">
-            <div class="callout__title">The SYN Stealth Scan ("Half-Open" Scan)</div>
+            <div class="callout__title">The Hacker's "Ding-Dong Ditch": The SYN Stealth Scan (Half-Open Scan)</div>
             <p style="font-size:var(--font-size-xs);margin:var(--space-1) 0 0;line-height:1.6;">
-              In a normal TCP connection, completing the 3-way handshake causes the target application (e.g. Apache, Nginx) to create a session and log the client's IP in <code>access.log</code>. Pentesters execute <strong>SYN Stealth Scans</strong>: Kali sends <code>SYN</code>, receives <code>SYN-ACK</code> (confirming the port is open), and immediately transmits a <code>RST</code> packet instead of the final <code>ACK</code>. The connection is aborted before the application layer ever logs the session!
+              <strong>The Problem:</strong> When you complete the 3rd step of the handshake (sending the final <code>ACK</code>), the target web server (Apache/Nginx) marks you as a connected visitor and writes: <code>192.168.56.1 connected at 10:45 AM</code> into <code>/var/log/apache2/access.log</code>. The blue team immediately sees you!
+            </p>
+            <p style="font-size:var(--font-size-xs);margin:var(--space-2) 0 0;line-height:1.6;">
+              <strong>The Hacker's Trick (SYN Stealth):</strong> Kali sends <code>SYN</code>. The target answers <code>SYN-ACK</code>. <em>At this exact moment, you have your answer — the port is OPEN!</em> Instead of sending the final <code>ACK</code>, Kali abruptly fires a <code>RST</code> (Reset) packet and tears down the connection! Because the handshake was never completed, the operating system never alerts the web server. <strong>You verified the port with zero application-layer log footprint!</strong>
             </p>
           </div>
         </div>
 
-        <!-- TCP vs UDP: The Pentester's Trade-Off -->
-        <h3>TCP vs. UDP: The Offensive &amp; Defensive Trade-off</h3>
+        <!-- TCP vs UDP: The Pentester's Tactical Dilemma -->
+        <h3>TCP vs. UDP: The Pentester's Tactical Dilemma</h3>
+        <p>Every penetration tester chooses between TCP and UDP based on what the operation requires:</p>
+
         <div class="comparison-grid">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
@@ -561,10 +598,10 @@
               <span class="comparison-badge" style="color:var(--color-accent);">STATEFUL</span>
             </div>
             <ul class="comparison-list">
-              <li><strong>Reliability:</strong> Guaranteed in-order delivery; dropped packets are automatically retransmitted.</li>
-              <li><strong>Attacker Advantage:</strong> Essential for interactive command shells (reverse shells) where lost bytes corrupt shell execution.</li>
-              <li><strong>Attacker Drawback:</strong> Strict 3-way handshake makes IP spoofing impossible for interactive sessions.</li>
-              <li><strong>Audit Footprint:</strong> Completed connections are logged in web server and firewall state tables.</li>
+              <li><strong>Reliability:</strong> 100% guaranteed delivery. Dropped packets are automatically re-requested.</li>
+              <li><strong>Why Attackers Must Use It:</strong> Essential for <strong>Interactive Reverse Shells</strong>. If packets dropped while typing <code>rm -rf /tmp/test</code>, you could accidentally wipe the server!</li>
+              <li><strong>The Attacker's Limit:</strong> You <em>cannot spoof your IP address</em>. If you fake your IP, the target's <code>SYN-ACK</code> goes to someone else, and your connection dies.</li>
+              <li><strong>Blue Team Detection:</strong> Easy to detect in firewall state tables and connection logs.</li>
             </ul>
           </div>
 
@@ -576,101 +613,102 @@
               <span class="comparison-badge" style="color:var(--color-cyan);">STATELESS</span>
             </div>
             <ul class="comparison-list">
-              <li><strong>Reliability:</strong> Fire-and-forget; zero handshake, zero verification, zero guarantee of receipt.</li>
-              <li><strong>Attacker Advantage:</strong> Trivial IP address spoofing (used in DNS/NTP reflection amplification attacks).</li>
-              <li><strong>Attacker Drawback:</strong> Extremely difficult to scan: open ports rarely reply (silent), while closed ports generate rate-limited ICMP errors.</li>
-              <li><strong>Audit Footprint:</strong> No session state maintained; harder for firewalls to track bidirectional flows.</li>
+              <li><strong>Reliability:</strong> Fire-and-forget. Zero handshakes, zero delivery receipts, zero state.</li>
+              <li><strong>Why Attackers Exploit It:</strong> <strong>Trivial IP Address Spoofing!</strong> Because UDP has no handshake, you can put the victim's IP on the packet and trick DNS/NTP servers into blasting amplification traffic at them (DDoS).</li>
+              <li><strong>The Attacker's Pain:</strong> <em>Scanning UDP is agonizingly slow.</em> Open ports don't say anything (silent), while closed ports return ICMP errors that operating systems rate-limit to ~1 per second. Full UDP scans can take hours!</li>
+              <li><strong>Blue Team Detection:</strong> No session state; hard for stateless firewalls to track bidirectional flows.</li>
             </ul>
           </div>
         </div>
 
         <!-- HTTP Anatomy & GET vs POST -->
-        <h3>Web Protocol Anatomy: GET vs. POST</h3>
+        <h3>Web Protocol Anatomy: GET vs. POST (Postcard vs. Envelope)</h3>
         
         <div class="comparison-grid">
           <div class="comparison-card">
             <div class="comparison-card__header">
               <span class="http-badge http-badge--get">HTTP GET</span>
-              <span class="comparison-badge">Read-Only Query</span>
+              <span class="comparison-badge">The Postcard</span>
             </div>
             <ul class="comparison-list">
-              <li><strong>Payload Location:</strong> Appended to URL as query parameters (<code>?user=admin&amp;id=1</code>).</li>
-              <li><strong>Visibility:</strong> Logged in browser history, proxy logs &amp; server access logs.</li>
-              <li><strong>Idempotent:</strong> Multiple identical requests produce the exact same server state.</li>
-              <li><strong>Cacheability:</strong> Cached by default by browsers and CDN edges.</li>
+              <li><strong>Mental Model:</strong> A <strong>Postcard</strong>. The message is written on the outside for all postal workers, proxies, browser history, and shoulder surfers to see.</li>
+              <li><strong>Payload Location:</strong> Appended to the URL bar as query parameters (<code>?user=admin&amp;pass=123</code>).</li>
+              <li><strong>Security Risk:</strong> Passwords, session tokens, or API keys in GET requests get saved in browser history, proxy caches, and web server access logs!</li>
+              <li><strong>Idempotent:</strong> Safe to repeat 1,000 times; does not alter database state.</li>
             </ul>
           </div>
 
           <div class="comparison-card">
             <div class="comparison-card__header">
               <span class="http-badge http-badge--post">HTTP POST</span>
-              <span class="comparison-badge">State Mutation</span>
+              <span class="comparison-badge">The Sealed Envelope</span>
             </div>
             <ul class="comparison-list">
-              <li><strong>Payload Location:</strong> Transmitted privately within the HTTP Request Body.</li>
-              <li><strong>Visibility:</strong> Hidden from browser URL bar and standard web server access logs.</li>
-              <li><strong>Non-Idempotent:</strong> Submitting twice executes two operations (e.g. 2 credit charges).</li>
-              <li><strong>Cacheability:</strong> Never cached by default.</li>
+              <li><strong>Mental Model:</strong> A <strong>Sealed Envelope</strong>. The message is tucked safely inside the envelope body.</li>
+              <li><strong>Payload Location:</strong> Transmitted privately in the HTTP Request Body, hidden from the browser URL bar.</li>
+              <li><strong>Security Reality:</strong> Much safer for authentication data. Never logged in default server URL logs.</li>
+              <li><strong>Non-Idempotent:</strong> Submitting twice executes the action twice (e.g. charging a credit card or transferring funds twice).</li>
             </ul>
           </div>
         </div>
 
         <!-- HTTP Header Cheat Cards -->
-        <h3>Critical HTTP Headers for Pentesters</h3>
+        <h3>Critical HTTP Headers: The Hacker's Leaks</h3>
+        <p>When auditing web applications, headers disclose the backend architecture and security posture:</p>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
           <!-- Request Headers -->
           <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
             <h4 style="margin:0 0 var(--space-3);color:var(--color-accent);font-size:var(--font-size-sm);font-family:var(--font-mono);">
-              REQUEST HEADERS (Client ➔ Server)
+              REQUEST HEADERS (What Kali Sends)
             </h4>
             <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-xs);">
-              <div><code style="color:var(--color-accent);">Host</code>: Target virtual host domain (Crucial for VHost routing).</div>
-              <div><code style="color:var(--color-accent);">User-Agent</code>: Browser fingerprint (Spoofable to bypass filters).</div>
-              <div><code style="color:var(--color-accent);">Cookie</code>: Session tokens (Target for session hijacking).</div>
-              <div><code style="color:var(--color-accent);">Authorization</code>: Base64 credentials for Basic HTTP Auth.</div>
+              <div><code style="color:var(--color-accent);">Host</code>: Tells the server which domain you want (essential for virtual host routing).</div>
+              <div><code style="color:var(--color-accent);">User-Agent</code>: Your browser fingerprint (pentesters change this to evade bot blockers).</div>
+              <div><code style="color:var(--color-accent);">Cookie</code>: Your session passport (the primary target for session hijacking).</div>
+              <div><code style="color:var(--color-accent);">Authorization</code>: Credentials encoded in Base64 for Basic HTTP Auth.</div>
             </div>
           </div>
 
           <!-- Response Headers -->
           <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
             <h4 style="margin:0 0 var(--space-3);color:var(--color-cyan);font-size:var(--font-size-sm);font-family:var(--font-mono);">
-              RESPONSE HEADERS (Server ➔ Client)
+              RESPONSE HEADERS (What the Target Leaks)
             </h4>
             <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-xs);">
-              <div><code style="color:var(--color-cyan);">Server</code>: <strong>Banner Leak!</strong> Discloses web server software &amp; version.</div>
-              <div><code style="color:var(--color-cyan);">Set-Cookie</code>: Assigns sessions; audit for missing <code>HttpOnly</code> &amp; <code>Secure</code>.</div>
-              <div><code style="color:var(--color-cyan);">X-Powered-By</code>: Discloses backend frameworks (e.g. PHP/5.3, Express).</div>
-              <div><code style="color:var(--color-cyan);">Location</code>: Redirection destination on 301/302 responses.</div>
+              <div><code style="color:var(--color-cyan);">Server</code>: <strong>Banner Leak!</strong> Discloses software and exact version (e.g. <code>Apache/2.2.8</code> ➔ instant CVE exploit search!).</div>
+              <div><code style="color:var(--color-cyan);">Set-Cookie</code>: Sets session tokens. Look closely for missing <code>HttpOnly</code> (XSS theft risk) or <code>Secure</code> (HTTPS-only) flags!</div>
+              <div><code style="color:var(--color-cyan);">X-Powered-By</code>: Leaks backend framework (e.g. <code>PHP/5.3.10</code>, <code>Express</code>).</div>
+              <div><code style="color:var(--color-cyan);">Location</code>: The destination URL when redirected (301/302).</div>
             </div>
           </div>
         </div>
 
-        <!-- Status Codes -->
-        <h3>HTTP Status Code Reference</h3>
+        <!-- Status Codes: Server Moods -->
+        <h3>HTTP Status Codes: Reading the Server's Mind</h3>
         <div class="status-badge-grid">
           <div class="status-chip status-chip--2xx">
             <span class="status-chip__code">200 OK</span>
-            <span class="status-chip__desc">Request Succeeded</span>
+            <span class="status-chip__desc">"Success, here is your data."</span>
           </div>
           <div class="status-chip status-chip--3xx">
             <span class="status-chip__code">302 Found</span>
-            <span class="status-chip__desc">Redirect (New URL)</span>
+            <span class="status-chip__desc">"Not here, look over there!" (Redirect)</span>
           </div>
           <div class="status-chip status-chip--4xx">
             <span class="status-chip__code">401 Unauthorized</span>
-            <span class="status-chip__desc">Missing / Invalid Auth</span>
+            <span class="status-chip__desc">"Who are you? Show authentication."</span>
           </div>
           <div class="status-chip status-chip--4xx">
             <span class="status-chip__code">403 Forbidden</span>
-            <span class="status-chip__desc">Access Denied by ACL</span>
+            <span class="status-chip__desc">"I know who you are, but access is denied."</span>
           </div>
           <div class="status-chip status-chip--4xx">
             <span class="status-chip__code">404 Not Found</span>
-            <span class="status-chip__desc">Resource Missing</span>
+            <span class="status-chip__desc">"Never heard of this URL."</span>
           </div>
           <div class="status-chip status-chip--5xx">
             <span class="status-chip__code">500 Server Error</span>
-            <span class="status-chip__desc">Backend Crash / Flaw</span>
+            <span class="status-chip__desc">"You broke my backend code!" (Exploit indicator)</span>
           </div>
         </div>
       </section>
@@ -679,9 +717,6 @@
       <section>
         <h2>4. Interactive Hands-on: Browser DevTools Guide</h2>
         <p>
-          Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
-        </p>
-
           Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
         </p>
 
