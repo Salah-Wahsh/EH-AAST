@@ -52,6 +52,10 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
   letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 55%;
 }
 
 .terminal-copy-btn {
@@ -67,6 +71,7 @@
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--trans-fast);
+  flex-shrink: 0;
 }
 
 .terminal-copy-btn:hover {
@@ -84,6 +89,7 @@
 .terminal-window__body {
   padding: var(--space-4);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   font-family: var(--font-mono);
   font-size: var(--font-size-sm);
   line-height: 1.6;
@@ -688,4 +694,56 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
   background: var(--color-bg-alt);
+}
+
+/* ==========================================================================
+   Mobile Adaptations for Components
+   ========================================================================== */
+@media (max-width: 640px) {
+  .quiz-section {
+    padding: var(--space-4);
+    margin-top: var(--space-8);
+  }
+
+  .quiz-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .quiz-card {
+    padding: var(--space-4);
+  }
+
+  .quiz-question {
+    font-size: 0.95rem;
+  }
+
+  .quiz-input-group {
+    flex-direction: column;
+  }
+
+  .quiz-submit-btn {
+    width: 100%;
+    text-align: center;
+    padding: var(--space-3);
+  }
+
+  .bento-card {
+    padding: var(--space-4);
+  }
+
+  .bento-card__title {
+    font-size: 1.25rem;
+  }
+
+  .callout {
+    padding: var(--space-4);
+    gap: var(--space-3);
+  }
+
+  .thought-accordion summary {
+    padding: var(--space-3);
+    font-size: 0.85rem;
+  }
 }

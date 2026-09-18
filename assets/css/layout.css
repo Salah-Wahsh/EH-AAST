@@ -515,6 +515,116 @@
 }
 
 /* ==========================================================================
+   Mobile Off-Canvas Navigation Drawer
+   ========================================================================== */
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(320px, 85vw);
+  background-color: var(--color-bg-alt);
+  border-right: 1px solid var(--color-border);
+  box-shadow: var(--shadow-card), 0 0 32px rgba(0, 0, 0, 0.6);
+  z-index: 2000;
+  transform: translateX(-100%);
+  transition: transform var(--trans-normal);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobile-drawer.is-open {
+  transform: translateX(0);
+}
+
+.mobile-drawer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.mobile-drawer__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+}
+
+.mobile-drawer__close:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-accent);
+}
+
+.mobile-drawer__body {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.mobile-drawer__section-label {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-2);
+  padding: 0 var(--space-2);
+}
+
+.mobile-nav-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: all var(--trans-fast);
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-link.is-active {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  text-decoration: none;
+}
+
+.mobile-drawer-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1950;
+}
+
+.mobile-drawer-backdrop.is-open {
+  display: block;
+}
+
+/* ==========================================================================
    Responsive Adaptations
    ========================================================================== */
 @media (max-width: 1200px) {
@@ -533,49 +643,60 @@
   }
 
   .sidebar {
-    position: fixed;
-    top: var(--header-height);
-    left: 0;
-    bottom: 0;
-    z-index: 900;
-    transform: translateX(-100%);
-    box-shadow: var(--shadow-md);
-    background-color: var(--color-bg);
-  }
-
-  .sidebar.is-open {
-    transform: translateX(0);
+    display: none;
   }
 
   .main-content {
     padding: var(--space-6) var(--space-4);
   }
-
-  .sidebar-backdrop {
-    display: none;
-    position: fixed;
-    inset: 0;
-    top: var(--header-height);
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 850;
-  }
-
-  .sidebar.is-open + .sidebar-backdrop {
-    display: block;
-  }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .site-nav {
+    padding: 0 var(--space-2);
+    gap: var(--space-2);
+  }
+
+  .nav-brand {
+    font-size: var(--font-size-sm);
+    gap: var(--space-2);
+  }
+
   .nav-brand__badge {
     display: none;
   }
 
+  .nav-search-btn {
+    padding: var(--space-2) var(--space-2);
+  }
+
+  .nav-search-text,
   .nav-search-kbd {
     display: none;
   }
 
-  .nav-btn--projector span {
+  .nav-btn {
+    padding: var(--space-2) var(--space-2);
+    min-height: 36px;
+  }
+
+  .nav-btn span {
     display: none;
+  }
+
+  .page-full {
+    padding: var(--space-6) var(--space-3);
+  }
+
+  .main-content {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .lab-header__title {
+    font-size: 1.65rem;
+  }
+
+  .lab-header__lead {
+    font-size: 1rem;
   }
 }

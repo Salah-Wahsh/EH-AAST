@@ -223,6 +223,7 @@ body.projector-mode .callout {
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-height) + 1.5rem);
+  overflow-x: hidden;
 }
 
 body {
@@ -232,6 +233,7 @@ body {
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
   background-color: var(--color-bg);
+  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color var(--trans-normal), color var(--trans-normal);

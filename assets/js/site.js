@@ -111,7 +111,8 @@
 
           '<div class="nav-controls">' +
             '<button class="nav-search-btn" id="nav-search-trigger" aria-label="Open command search dialog">' +
-              '<span>🔍 Search</span>' +
+              '<span class="nav-search-icon">🔍</span>' +
+              '<span class="nav-search-text">Search</span>' +
               '<kbd class="nav-search-kbd">Ctrl+K</kbd>' +
             '</button>' +
             '<button class="nav-btn nav-btn--projector" id="projector-toggle-btn" onclick="ThemeManager.toggleProjector()" title="Toggle 18px+ Classroom Projector Mode">' +
@@ -123,6 +124,34 @@
           '</div>' +
         '</div>' +
       '</header>' +
+      '<div class="mobile-drawer" id="mobile-nav-drawer" aria-label="Navigation Menu">' +
+        '<div class="mobile-drawer__header">' +
+          '<div class="nav-brand">' +
+            '<span class="nav-brand__icon">⚡</span>' +
+            '<span>CCY4202</span>' +
+          '</div>' +
+          '<button type="button" class="mobile-drawer__close" id="mobile-drawer-close" aria-label="Close menu">✕</button>' +
+        '</div>' +
+        '<nav class="mobile-drawer__body">' +
+          '<div class="mobile-drawer__section-label">Navigation</div>' +
+          '<ul class="mobile-nav-list" role="list">' +
+            '<li><a class="mobile-nav-link ' + (activeNav === 'home' ? 'is-active' : '') + '" data-site-href="index.html"><span>🏠</span> Portal Home</a></li>' +
+            '<li><a class="mobile-nav-link ' + (activeNav === 'labs' ? 'is-active' : '') + '" data-site-href="labs/lab01.html"><span>🧪</span> Lab 01: Lab Setup</a></li>' +
+            '<li><a class="mobile-nav-link ' + (activeNav === 'cheatsheets' ? 'is-active' : '') + '" data-site-href="cheatsheets.html"><span>📄</span> Cheat Sheets</a></li>' +
+            '<li><a class="mobile-nav-link ' + (activeNav === 'tools' ? 'is-active' : '') + '" data-site-href="tools.html"><span>🛠️</span> Tools Setup</a></li>' +
+          '</ul>' +
+          '<div class="mobile-drawer__section-label" style="margin-top:1.5rem;">Display Mode</div>' +
+          '<div style="display:flex;flex-direction:column;gap:0.5rem;padding:0 0.5rem;">' +
+            '<button type="button" class="nav-btn" onclick="ThemeManager.toggleProjector()" style="justify-content:flex-start;width:100%;padding:0.6rem 0.75rem;">' +
+              '🖥️ Projector Mode (18px+)' +
+            '</button>' +
+            '<button type="button" class="nav-btn" onclick="ThemeManager.toggleTheme()" style="justify-content:flex-start;width:100%;padding:0.6rem 0.75rem;">' +
+              '☀️ / 🌙 Toggle Light / Dark Mode' +
+            '</button>' +
+          '</div>' +
+        '</nav>' +
+      '</div>' +
+      '<div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop"></div>' +
       '<dialog class="search-dialog" id="search-dialog" aria-label="Course Search">' +
         '<div class="search-dialog__header">' +
           '<span>🔍</span>' +
@@ -254,19 +283,45 @@
 
   function wireMobileDrawer() {
     var toggle = document.getElementById('mobile-sidebar-toggle');
-    var sidebar = document.getElementById('site-sidebar');
-    if (!toggle || !sidebar) return;
+    var drawer = document.getElementById('mobile-nav-drawer');
+    var backdrop = document.getElementById('mobile-drawer-backdrop');
+    var closeBtn = document.getElementById('mobile-drawer-close');
+
+    if (!toggle || !drawer) return;
+
+    function openDrawer() {
+      drawer.classList.add('is-open');
+      if (backdrop) backdrop.classList.add('is-open');
+      toggle.setAttribute('aria-expanded', 'true');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('is-open');
+      if (backdrop) backdrop.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded', 'false');
+      document.body.style.overflow = '';
+    }
 
     toggle.addEventListener('click', function () {
-      sidebar.classList.toggle('is-open');
+      if (drawer.classList.contains('is-open')) closeDrawer();
+      else openDrawer();
     });
 
-    var backdrop = document.querySelector('.sidebar-backdrop');
-    if (backdrop) {
-      backdrop.addEventListener('click', function () {
-        sidebar.classList.remove('is-open');
-      });
-    }
+    if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+    if (backdrop) backdrop.addEventListener('click', closeDrawer);
+
+    // Close when clicking links inside drawer
+    drawer.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', closeDrawer);
+    });
+
+    // Close on Escape key
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && drawer.classList.contains('is-open')) {
+        closeDrawer();
+      }
+    });
   }
 
   function initApp() {
