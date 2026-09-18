@@ -421,13 +421,291 @@
         </div>
       </section>
 
-      <!-- Section 3 -->
-      <!-- Section 3 -->
-      <section>
-        <h2>3. Transport Protocols &amp; Deep Handshake Analysis</h2>
+      <!-- Section 3: Networking Architecture, Ports & Handshake Dynamics -->
+      <section id="section-3">
+        <h2>3. Networking Architecture, Ports &amp; Deep Handshake Analysis</h2>
         <p class="lab-lead">
-          Layer 4 transport protocols (TCP vs. UDP) are not just networking trivia — they are the <strong>physics of the internet</strong>. Every port scan, reverse shell, and evasion technique you will execute in this course relies directly on how these protocols handle state.
+          Networking is not abstract theory — it is the <strong>battlefield terrain</strong> of offensive security. Every port scan, reverse shell, exploit payload, and evasion technique operates directly on specific network layers and ports. Master this model, and you will navigate targets with surgical precision.
         </p>
+
+        <!-- Subsection 3.1: Demystifying the Network Stack -->
+        <h3>3.1 The Hacker's Mental Model: Demystifying the Network Stack</h3>
+        <p>
+          Textbooks force students to memorize 7 abstract OSI layers with historical trivia. In offensive operations, the internet runs on <strong>TCP/IP</strong> — where Layers 5 &amp; 6 (Session &amp; Presentation) are handled directly inside Layer 7 (TLS encryption and web sessions). Here is the 5-layer stack ethical hackers actually target:
+        </p>
+
+        <!-- Visual Layer Stack -->
+        <div class="layer-stack">
+          <!-- Layer 7 -->
+          <div class="layer-row layer-row--l7">
+            <div class="layer-tag">
+              <span class="layer-id">LAYER 7</span>
+              <span class="layer-name">Application</span>
+            </div>
+            <div class="layer-meaning">
+              <strong>The Message &amp; Payload</strong>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);">Human-readable software data</div>
+            </div>
+            <div class="layer-protocols">
+              <code>HTTP, HTTPS, SSH, DNS, SMB</code>
+            </div>
+            <div class="layer-target">
+              <strong>Attacker Target:</strong> Web flaws (SQLi, XSS), Command Injection, auth bypass, RCE payloads.
+            </div>
+          </div>
+
+          <!-- Layer 4 -->
+          <div class="layer-row layer-row--l4">
+            <div class="layer-tag">
+              <span class="layer-id">LAYER 4</span>
+              <span class="layer-name">Transport</span>
+            </div>
+            <div class="layer-meaning">
+              <strong>The Apartment Door &amp; Delivery</strong>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);">Port numbers &amp; transmission state</div>
+            </div>
+            <div class="layer-protocols">
+              <code>TCP (Stateful), UDP (Stateless)</code>
+            </div>
+            <div class="layer-target">
+              <strong>Attacker Target:</strong> Port scanning, interactive reverse shells, SYN stealth scans, connection resets.
+            </div>
+          </div>
+
+          <!-- Layer 3 -->
+          <div class="layer-row layer-row--l3">
+            <div class="layer-tag">
+              <span class="layer-id">LAYER 3</span>
+              <span class="layer-name">Network</span>
+            </div>
+            <div class="layer-meaning">
+              <strong>The Building Street Address</strong>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);">Global IP addressing &amp; packet routing</div>
+            </div>
+            <div class="layer-protocols">
+              <code>IPv4, IPv6, ICMP, IPsec</code>
+            </div>
+            <div class="layer-target">
+              <strong>Attacker Target:</strong> Host discovery (ping sweeps <code>nmap -sn</code>), subnet pivoting, IP spoofing.
+            </div>
+          </div>
+
+          <!-- Layer 2 -->
+          <div class="layer-row layer-row--l2">
+            <div class="layer-tag">
+              <span class="layer-id">LAYER 2</span>
+              <span class="layer-name">Data Link</span>
+            </div>
+            <div class="layer-meaning">
+              <strong>The Local Roommates</strong>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);">Physical frame delivery on same switch/LAN</div>
+            </div>
+            <div class="layer-protocols">
+              <code>MAC Addresses, ARP, 802.3 Ethernet</code>
+            </div>
+            <div class="layer-target">
+              <strong>Attacker Target:</strong> ARP cache poisoning (MITM), MAC address spoofing, local LAN traffic sniffing.
+            </div>
+          </div>
+
+          <!-- Layer 1 -->
+          <div class="layer-row layer-row--l1">
+            <div class="layer-tag">
+              <span class="layer-id">LAYER 1</span>
+              <span class="layer-name">Physical</span>
+            </div>
+            <div class="layer-meaning">
+              <strong>The Wire &amp; Radio Waves</strong>
+              <div style="font-size:0.75rem;color:var(--color-text-muted);">Electrical voltages, radio frequencies, pulses</div>
+            </div>
+            <div class="layer-protocols">
+              <code>Cat6 Cables, Wi-Fi 802.11, Fiber</code>
+            </div>
+            <div class="layer-target">
+              <strong>Attacker Target:</strong> Rogue Wi-Fi APs ("Evil Twin"), deauthentication jamming, physical network taps.
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--info" style="margin:var(--space-3) 0 var(--space-5);">
+          <span class="callout__icon">💡</span>
+          <div class="callout__content">
+            <div class="callout__title">Where did OSI Layers 5 &amp; 6 go?</div>
+            <p style="font-size:var(--font-size-xs);margin:var(--space-1) 0 0;line-height:1.5;">
+              In modern computing, <strong>Layer 5 (Session)</strong> and <strong>Layer 6 (Presentation)</strong> are handled directly inside Layer 7 application code. For example, TLS/SSL encryption and JSON serialization happen right inside HTTPS! Ethical hackers focus on the layers where vulnerabilities and firewalls live.
+            </p>
+          </div>
+        </div>
+
+        <!-- Subsection 3.2: The Systematic Triage Checklist -->
+        <h3>3.2 Why Ethical Hackers Know This by Heart: The Systematic Triage Checklist</h3>
+        <p>
+          When an exploit fails or a target won't connect, novices guess and panic. Ethical hackers diagnose down the stack systematically — <strong>which layer broke?</strong>
+        </p>
+
+        <div class="triage-grid">
+          <!-- Card 1 -->
+          <div class="triage-card">
+            <div class="triage-card__header">
+              <span>🔍 1. TARGET UNREACHABLE?</span>
+              <span style="color:#3b82f6;">LAYER 3 (NETWORK)</span>
+            </div>
+            <div class="triage-card__symptom">
+              <code>ping 192.168.56.101</code> ➔ Host Unreachable / 100% loss
+            </div>
+            <p class="triage-card__cause">
+              <strong>Root Cause:</strong> Wrong IP, mismatched subnet mask (<code>/24</code>), dead gateway, or firewall dropping ICMP echo.
+            </p>
+            <div class="triage-card__fix">
+              <strong>Triage Action:</strong> Check route with <code>ip route</code> or sweep local MACs with <code>arp-scan -l</code>.
+            </div>
+          </div>
+
+          <!-- Card 2 -->
+          <div class="triage-card">
+            <div class="triage-card__header">
+              <span>🚫 2. CONNECTION REFUSED?</span>
+              <span style="color:var(--color-cyan);">LAYER 4 (TRANSPORT)</span>
+            </div>
+            <div class="triage-card__symptom">
+              <code>nc -zv 192.168.56.101 80</code> ➔ Connection Refused / RST
+            </div>
+            <p class="triage-card__cause">
+              <strong>Root Cause:</strong> Layer 3 is alive, but no service daemon is running on that port, or host firewall dropped the <code>SYN</code>.
+            </p>
+            <div class="triage-card__fix">
+              <strong>Triage Action:</strong> Scan all ports via <code>nmap -sS -p- 192.168.56.101</code> to locate custom listening ports.
+            </div>
+          </div>
+
+          <!-- Card 3 -->
+          <div class="triage-card">
+            <div class="triage-card__header">
+              <span>🔒 3. EXPLOIT RETURNS 403 / BLANK?</span>
+              <span style="color:var(--color-accent);">LAYER 7 (APPLICATION)</span>
+            </div>
+            <div class="triage-card__symptom">
+              <code>curl http://192.168.56.101/app</code> ➔ HTTP 403 / 500
+            </div>
+            <p class="triage-card__cause">
+              <strong>Root Cause:</strong> Transport connection is fine, but the web app or WAF rejected the payload, bad Host header, or missing auth token.
+            </p>
+            <div class="triage-card__fix">
+              <strong>Triage Action:</strong> Inspect raw headers via <code>curl -I -v</code> or proxy through Burp Suite to tweak parameters.
+            </div>
+          </div>
+
+          <!-- Card 4 -->
+          <div class="triage-card">
+            <div class="triage-card__header">
+              <span>👻 4. INVISIBLE TO LOCAL LAB?</span>
+              <span style="color:#a855f7;">LAYER 2 (DATA LINK)</span>
+            </div>
+            <div class="triage-card__symptom">
+              <code>ip neigh</code> ➔ FAILED / Incomplete ARP entry
+            </div>
+            <p class="triage-card__cause">
+              <strong>Root Cause:</strong> VirtualBox Host-Only adapter is down, duplicate MAC addresses on cloned VMs, or hypervisor isolation.
+            </p>
+            <div class="triage-card__fix">
+              <strong>Triage Action:</strong> Verify Host-Only network settings (<code>vboxnet0</code>) and regenerate VM MAC addresses.
+            </div>
+          </div>
+        </div>
+
+        <!-- Subsection 3.3: What is a Port? (The Apartment Building Analogy) -->
+        <h3>3.3 What is a Port? (The Apartment Building Analogy)</h3>
+        <p>
+          Students often ask: <em>"If a server has only one IP address, how can it run a web server, an SSH terminal, and a database all at the same time without them colliding?"</em>
+        </p>
+
+        <div class="port-card">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);align-items:center;margin-bottom:var(--space-4);">
+            <div style="background:var(--color-bg);border:1px solid var(--color-border-subtle);border-left:4px solid #3b82f6;border-radius:var(--radius-md);padding:var(--space-3);">
+              <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:#3b82f6;font-weight:700;margin-bottom:var(--space-1);">
+                🏢 IP ADDRESS = THE BUILDING STREET ADDRESS
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
+                <code>192.168.56.101</code> gets the delivery truck (packet) to the correct building in the city. There is only <strong>one IP</strong> for the entire server.
+              </p>
+            </div>
+
+            <div style="background:var(--color-bg);border:1px solid var(--color-border-subtle);border-left:4px solid var(--color-cyan);border-radius:var(--radius-md);padding:var(--space-3);">
+              <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-cyan);font-weight:700;margin-bottom:var(--space-1);">
+                🚪 PORT NUMBER (0–65,535) = THE APARTMENT DOOR NUMBER
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
+                Inside the building, there are <strong>65,536 doors</strong>. The OS kernel delivers the packet to whichever software program is listening behind that specific door!
+              </p>
+            </div>
+          </div>
+
+          <!-- Common Doors Strip -->
+          <strong style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-primary);text-transform:uppercase;letter-spacing:0.05em;">
+            Common Pentesting Doors to Memorize:
+          </strong>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:var(--space-2);margin:var(--space-2) 0 var(--space-4);">
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:var(--color-accent);font-family:var(--font-mono);font-weight:700;">Port 80</span>: HTTP (Public Web Lobby)
+            </div>
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:var(--color-accent);font-family:var(--font-mono);font-weight:700;">Port 443</span>: HTTPS (Encrypted Web)
+            </div>
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:var(--color-cyan);font-family:var(--font-mono);font-weight:700;">Port 22</span>: SSH (Admin Backdoor)
+            </div>
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:#ffb000;font-family:var(--font-mono);font-weight:700;">Port 445</span>: SMB (File Storage Locker)
+            </div>
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:#a855f7;font-family:var(--font-mono);font-weight:700;">Port 3306</span>: MySQL (Database Vault)
+            </div>
+            <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:var(--space-2);font-size:var(--font-size-xs);">
+              <span style="color:#3b82f6;font-family:var(--font-mono);font-weight:700;">Port 53</span>: DNS (Building Directory)
+            </div>
+          </div>
+
+          <!-- Port Ranges Grid -->
+          <div class="port-range-grid">
+            <div class="port-range-item">
+              <div class="port-range-item__title">
+                <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">SYSTEM PORTS</strong>
+                <span class="comparison-badge" style="color:var(--color-accent);">0 – 1023</span>
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.4;">
+                Privileged doors. On Linux, only <code>root</code> can bind to these. Reserved for core services (HTTP, SSH, DNS).
+              </p>
+            </div>
+
+            <div class="port-range-item">
+              <div class="port-range-item__title">
+                <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-xs);">REGISTERED PORTS</strong>
+                <span class="comparison-badge" style="color:var(--color-cyan);">1024 – 49151</span>
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.4;">
+                User-space software, custom dev servers, and databases (e.g. MySQL 3306, Tomcat 8080, Burp Proxy 8080).
+              </p>
+            </div>
+
+            <div class="port-range-item">
+              <div class="port-range-item__title">
+                <strong style="color:var(--color-text-muted);font-family:var(--font-mono);font-size:var(--font-size-xs);">DYNAMIC / EPHEMERAL</strong>
+                <span class="comparison-badge">49152 – 65535</span>
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.4;">
+                Temporary return addresses assigned by your OS when your browser makes an outbound request.
+              </p>
+            </div>
+          </div>
+
+          <div style="margin-top:var(--space-3);padding-top:var(--space-3);border-top:1px solid var(--color-border-subtle);font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+            🎯 <strong>The Golden Offensive Rule:</strong> You cannot hack an IP address alone. An IP address only delivers you to the doorstep. <em>You exploit the vulnerable software program listening on an open port!</em>
+          </div>
+        </div>
+
+        <!-- Subsection 3.4: Transport Protocols (TCP vs. UDP) -->
+        <h3>3.4 Transport Protocols: TCP vs. UDP</h3>
+        <p>Now that you know how packets reach an apartment door, how do they communicate? That depends on the protocol:</p>
 
         <!-- Mental Anchor: The Analogy -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
@@ -445,8 +723,8 @@
           </div>
         </div>
 
-        <!-- The 3-Way Handshake in Human Dialogue -->
-        <h3>The TCP 3-Way Handshake: Translated into Human Dialogue</h3>
+        <!-- Subsection 3.5: The TCP 3-Way Handshake -->
+        <h3>3.5 The TCP 3-Way Handshake: Translated into Human Dialogue</h3>
         <p>Before transferring a single byte of web data or terminal commands, TCP synchronizes byte counters through three mandatory packets:</p>
 
         <!-- SVG Sequence Diagram: TCP Handshake -->
@@ -518,8 +796,8 @@
           </div>
         </div>
 
-        <!-- HOW HACKERS WEAPONIZE THIS: Port State Deduction -->
-        <h3>How Ethical Hackers Weaponize the Handshake: Knocking on 3 Doors</h3>
+        <!-- Subsection 3.6: Port State Deduction -->
+        <h3>3.6 Weaponizing the Handshake: Knocking on 3 Doors (Port State Deduction)</h3>
         <p>
           When you run a port scan in Nmap, Nmap does not have magical x-ray vision. <strong>It simply knocks on ports and listens to how the target's operating system reacts:</strong>
         </p>
@@ -585,8 +863,8 @@
           </div>
         </div>
 
-        <!-- TCP vs UDP: The Pentester's Tactical Dilemma -->
-        <h3>TCP vs. UDP: The Pentester's Tactical Dilemma</h3>
+        <!-- Subsection 3.7: TCP vs UDP -->
+        <h3>3.7 TCP vs. UDP: The Pentester's Tactical Dilemma</h3>
         <p>Every penetration tester chooses between TCP and UDP based on what the operation requires:</p>
 
         <div class="comparison-grid">
@@ -621,8 +899,8 @@
           </div>
         </div>
 
-        <!-- HTTP Anatomy & GET vs POST -->
-        <h3>Web Protocol Anatomy: GET vs. POST (Postcard vs. Envelope)</h3>
+        <!-- Subsection 3.8: HTTP Anatomy & GET vs POST -->
+        <h3>3.8 Web Protocol Anatomy: GET vs. POST (Postcard vs. Envelope)</h3>
         
         <div class="comparison-grid">
           <div class="comparison-card">
@@ -944,6 +1222,28 @@
           <div class="quiz-input-group">
             <input type="text" class="quiz-input" placeholder="root@kali-lab:~# curl -I..." spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 5: Multiple Choice (Network Layer Triage) -->
+        <div class="quiz-card" data-question-id="lab01-q5">
+          <div class="quiz-question">
+            Q5: A ping to <code>192.168.56.101</code> returns 0% packet loss, but a connection to port 80 replies with an immediate <code>[RST] (Connection Refused)</code>. What does this tell you about the network layers?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="If ping replies, Layer 3 routing is working perfectly; the issue is not at the network or IP layer.">
+              A) Layer 3 (Network) routing is broken and the packet never reached the physical host.
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! Layer 3 (IP routing) reached the target host, but at Layer 4 (Transport), the OS kernel confirmed that no web server daemon is bound to port 80.">
+              B) Layer 3 (IP routing) is alive, but Layer 4 (Transport) confirms no daemon is currently listening on port 80.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="RST packets are sent by Layer 4 (TCP) in the kernel, not by Layer 7 web applications.">
+              C) Layer 7 (Application) returned an HTTP 403 Forbidden response.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A firewall drop produces a timeout (Silence / Filtered), not an active RST packet from the kernel.">
+              D) An external stateful firewall dropped the packet silently.
+            </button>
           </div>
           <div class="quiz-feedback"></div>
         </div>

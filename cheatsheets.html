@@ -133,7 +133,73 @@
       </div>
     </section>
 
-    <!-- Category 3: Transport Layer & Handshake State Probing -->
+    <!-- Category 3: Network Diagnostics & Layer Triage -->
+    <section class="cheat-section" id="network-triage">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🛠️</span>
+        <h2 class="cheat-section__title">Network Diagnostics &amp; Layer Triage</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">Command / Primitive</th>
+              <th style="width:25%;">Diagnostic Action</th>
+              <th style="width:30%;">Target Layer &amp; Flags</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>ip route</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('ip route')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Verify Subnet Routing Table</strong></td>
+              <td><span class="flag-pill">Layer 3</span> Inspect default gateway and routing interfaces</td>
+              <td><a href="./labs/lab01.html#section-3" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>ip neigh</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('ip neigh')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Check Local ARP / MAC Cache</strong></td>
+              <td><span class="flag-pill">Layer 2</span> Verify local MAC resolution for host-only VM neighbors</td>
+              <td><a href="./labs/lab01.html#section-3" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nc -zv 192.168.56.101 80</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -zv 192.168.56.101 80')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Single Port TCP Banner Probe</strong></td>
+              <td><span class="flag-pill">Layer 4</span> <span class="flag-pill">-z</span> Zero-I/O scan mode, <span class="flag-pill">-v</span> Verbose status</td>
+              <td><a href="./labs/lab01.html#section-3" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -I -v http://192.168.56.101</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -I -v http://192.168.56.101')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Verbose HTTP Handshake &amp; Header Grab</strong></td>
+              <td><span class="flag-pill">Layer 7</span> <span class="flag-pill">-I</span> Head request, <span class="flag-pill">-v</span> Print raw socket &amp; TLS handshake</td>
+              <td><a href="./labs/lab01.html#section-3" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
         <span style="font-size:1.25rem;">⚡</span>

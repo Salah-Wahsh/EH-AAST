@@ -1295,3 +1295,174 @@
   color: var(--color-text-muted);
 }
 
+/* ==========================================================================
+   Network Layer Stack & Diagnostic Triage Components
+   ========================================================================== */
+.layer-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.layer-row {
+  display: grid;
+  grid-template-columns: 160px 1.1fr 1fr 1.3fr;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition: all var(--trans-fast);
+}
+
+.layer-row:hover {
+  border-color: var(--color-accent);
+  background: var(--color-surface-hover, var(--color-surface));
+  transform: translateX(3px);
+}
+
+.layer-row--l7 { border-left: 4px solid var(--color-accent); }
+.layer-row--l4 { border-left: 4px solid var(--color-cyan); }
+.layer-row--l3 { border-left: 4px solid #3b82f6; }
+.layer-row--l2 { border-left: 4px solid #a855f7; }
+.layer-row--l1 { border-left: 4px solid #64748b; }
+
+.layer-tag {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.layer-id {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: var(--font-size-xs);
+  letter-spacing: 0.04em;
+}
+
+.layer-row--l7 .layer-id { color: var(--color-accent); }
+.layer-row--l4 .layer-id { color: var(--color-cyan); }
+.layer-row--l3 .layer-id { color: #3b82f6; }
+.layer-row--l2 .layer-id { color: #a855f7; }
+.layer-row--l1 .layer-id { color: #94a3b8; }
+
+.layer-name {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.layer-meaning {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.layer-protocols {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.layer-target {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+.layer-target strong {
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 860px) {
+  .layer-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+  }
+}
+
+.port-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  margin: var(--space-4) 0;
+}
+
+.port-range-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.port-range-item {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+
+.port-range-item__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-1);
+}
+
+.triage-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.triage-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.triage-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+}
+
+.triage-card__symptom {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  background: rgba(255, 51, 102, 0.08);
+  border: 1px solid rgba(255, 51, 102, 0.2);
+  color: var(--color-danger);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+.triage-card__cause {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.triage-card__fix {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  margin-top: auto;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+}
+
+
