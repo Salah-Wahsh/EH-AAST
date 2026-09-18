@@ -23,10 +23,13 @@ The user has explicitly commanded the following constraints across all sessions.
    - Do not use academic bibliography reference brackets (e.g. `[1-4]`, `[5, 6]`). Keep explanations direct, technical, and immediately usable.
 6. **❌ NO "Pre-Engagement & Legal Rules of Engagement (RoE)" Section**:
    - The user explicitly removed this section. Do not include RoE modules in lab curricula.
-7. **❌ NO Fabricated Filler in Cheat Sheets or Tools**:
-   - `cheatsheets.html` and `tools.html` are deliberately kept clean placeholders until the user provides specific content. Do not generate unrequested filler content for them.
+7. **🔄 Auto-Harvesting for Cheat Sheets & Tools (Zero User Overhead)**:
+   - The instructor explicitly instructed: *Do not ask the user to manually write or maintain `cheatsheets.html` and `tools.html`*.
+   - Whenever any lab is created or updated, the agent MUST automatically extract every new tool, service, command, and flag introduced in that lab and add them to `cheatsheets.html` (categorized command tables) and `tools.html` (installation & verification cards).
+   - Only include tools and commands actually introduced and taught in the course labs.
 
 ---
+
 
 ## 🎨 Visual-First & Content Presentation Standards
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tools Setup — CCY4202: Ethical Hacking</title>
+  <title>Tools &amp; Environment Setup — CCY4202: Ethical Hacking</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -23,24 +23,185 @@
 
     <header style="margin-bottom:var(--space-8);padding-bottom:var(--space-6);border-bottom:1px solid var(--color-border);">
       <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-2);">
-        <span class="lab-badge lab-badge--time">Environment</span>
+        <span class="lab-badge lab-badge--time">Environment Setup</span>
+        <span class="lab-badge lab-badge--difficulty">Automated Catalog</span>
       </div>
       <h1 style="font-family:var(--font-mono);font-size:clamp(2rem, 4vw + 1rem, 3rem);font-weight:800;color:var(--color-text-primary);">
         Tools &amp; Environment Setup
       </h1>
-      <p style="font-size:var(--font-size-lg);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
-        Tooling specifications and environment configuration guidelines will be published here.
+      <p style="font-size:var(--font-size-base);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
+        Automated catalog of security testing utilities, attack rigs, and verification commands utilized across CCY4202 labs.
       </p>
     </header>
 
-    <div style="text-align:center;padding:var(--space-16) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);color:var(--color-text-muted);">
-      <div style="font-size:2.5rem;margin-bottom:var(--space-3);">🛠️</div>
-      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-lg);color:var(--color-text-primary);margin-bottom:var(--space-2);">
-        Tools guide currently empty
-      </h2>
-      <p style="font-size:var(--font-size-sm);max-width:50ch;margin:0 auto;">
-        Laboratory setup instructions are being updated. Check back soon or proceed to <a href="./labs/lab01.html">Lab 01</a>.
-      </p>
+    <!-- Lab Subnet Architecture Callout -->
+    <div class="callout callout--tip" style="margin-bottom:var(--space-8);">
+      <span class="callout__icon">🌐</span>
+      <div class="callout__content">
+        <div class="callout__title">Authorized Laboratory Subnet: 192.168.56.0/24</div>
+        <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+          All offensive scans, exploits, and proxies must be bound to your isolated VirtualBox/VMware Host-Only network adapter (<code>vboxnet0</code> / <code>vmnet1</code>).
+        </p>
+      </div>
+    </div>
+
+    <!-- Tool Setup Cards Grid -->
+    <div class="tool-grid">
+      <!-- Kali Linux -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🐉</span>
+            <h2 class="tool-setup-card__title">Kali Linux Rolling</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">BASE PLATFORM</span>
+        </div>
+        <p class="tool-setup-card__desc">Debian-derived distribution pre-configured with 600+ offensive penetration testing tools.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Host Verification</span>
+            <code>cat /etc/os-release &amp;&amp; uname -r</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Network Interface Check</span>
+            <code>ip a show eth0</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Virtual Machine / WSL2</span>
+        </div>
+      </article>
+
+      <!-- Nmap -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">📡</span>
+            <h2 class="tool-setup-card__title">Nmap</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">PORT SCANNER</span>
+        </div>
+        <p class="tool-setup-card__desc">Industry-standard network exploration, host discovery, port scanner, and OS detection engine.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install Package</span>
+            <code>sudo apt update &amp;&amp; sudo apt install -y nmap</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify Version</span>
+            <code>nmap --version</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Standard CLI</span>
+        </div>
+      </article>
+
+      <!-- Wireshark -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🦈</span>
+            <h2 class="tool-setup-card__title">Wireshark &amp; TShark</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">PACKET DISSECTOR</span>
+        </div>
+        <p class="tool-setup-card__desc">Interactive deep packet inspection, TCP 3-way handshake dissector, and credential sniffer.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install Package</span>
+            <code>sudo apt install -y wireshark tshark</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify Version</span>
+            <code>tshark -v</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>GUI &amp; CLI Sniffer</span>
+        </div>
+      </article>
+
+      <!-- Burp Suite -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🟠</span>
+            <h2 class="tool-setup-card__title">Burp Suite Community</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-warn);border-color:rgba(255,170,0,0.3);">WEB PROXY</span>
+        </div>
+        <p class="tool-setup-card__desc">HTTP/HTTPS interception proxy for capturing, inspecting, and modifying web traffic in real time.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Default Listener</span>
+            <code>127.0.0.1:8080 (Loopback Proxy)</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Launch Command</span>
+            <code>burpsuite &amp;</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Desktop GUI Proxy</span>
+        </div>
+      </article>
+
+      <!-- Metasploit Framework -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🎯</span>
+            <h2 class="tool-setup-card__title">Metasploit Framework</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">EXPLOIT ENGINE</span>
+        </div>
+        <p class="tool-setup-card__desc">Comprehensive offensive framework for vulnerability verification, payload delivery, and reverse shells.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install Package</span>
+            <code>sudo apt install -y metasploit-framework</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify Console</span>
+            <code>msfconsole -v</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Framework CLI</span>
+        </div>
+      </article>
+
+      <!-- Netcat -->
+      <article class="tool-setup-card">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🐱</span>
+            <h2 class="tool-setup-card__title">Netcat (nc)</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">SOCKET UTILITY</span>
+        </div>
+        <p class="tool-setup-card__desc">TCP/UDP socket handler for port connectivity checks, raw banners, and reverse shell listener catching.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install Package</span>
+            <code>sudo apt install -y netcat-traditional</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify Installation</span>
+            <code>nc -h</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Lightweight CLI</span>
+        </div>
+      </article>
     </div>
   </main>
 

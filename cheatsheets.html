@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cheat Sheets — CCY4202: Ethical Hacking</title>
+  <title>Command Cheat Sheets — CCY4202: Ethical Hacking</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -23,25 +23,170 @@
 
     <header style="margin-bottom:var(--space-8);padding-bottom:var(--space-6);border-bottom:1px solid var(--color-border);">
       <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-2);">
-        <span class="lab-badge lab-badge--time">Reference</span>
+        <span class="lab-badge lab-badge--time">Automated Reference</span>
+        <span class="lab-badge lab-badge--difficulty">Live Catalog</span>
       </div>
       <h1 style="font-family:var(--font-mono);font-size:clamp(2rem, 4vw + 1rem, 3rem);font-weight:800;color:var(--color-text-primary);">
-        Cheat Sheets
+        Offensive Command Cheat Sheets
       </h1>
-      <p style="font-size:var(--font-size-lg);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
-        Quick reference sheets and commands will be published here.
+      <p style="font-size:var(--font-size-base);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
+        Fast, copyable terminal primitives and flags extracted directly from CCY4202 hands-on laboratory exercises.
       </p>
     </header>
 
-    <div style="text-align:center;padding:var(--space-16) var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);color:var(--color-text-muted);">
-      <div style="font-size:2.5rem;margin-bottom:var(--space-3);">📄</div>
-      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-lg);color:var(--color-text-primary);margin-bottom:var(--space-2);">
-        Cheat sheets currently empty
-      </h2>
-      <p style="font-size:var(--font-size-sm);max-width:50ch;margin:0 auto;">
-        Command cheat sheets are being prepared. Check back soon or visit <a href="./labs/lab01.html">Lab 01</a>.
-      </p>
-    </div>
+    <!-- Category 1: Web Reconnaissance & HTTP Interception -->
+    <section class="cheat-section" id="web-recon">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🌐</span>
+        <h2 class="cheat-section__title">Web Reconnaissance &amp; HTTP Interception</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">Command / Primitive</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:30%;">Flags Breakdown</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -I http://example.com</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -I http://example.com')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Server Banner Grab</strong></td>
+              <td><span class="flag-pill">-I</span> Fetch HTTP headers only without response body</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -X POST 'http://target/login' --data-raw 'user=admin&amp;pass=secret'</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -X POST \'http://target/login\' --data-raw \'user=admin&pass=secret\'')">Copy</button>
+                </div>
+              </td>
+              <td><strong>HTTP POST Request Replay</strong></td>
+              <td><span class="flag-pill">-X POST</span> Custom verb, <span class="flag-pill">--data-raw</span> Form payload body</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>document.cookie</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('document.cookie')">Copy</button>
+                </div>
+              </td>
+              <td><strong>DevTools HttpOnly Cookie Audit</strong></td>
+              <td>Evaluated in browser console; returns empty string if HttpOnly flag is active</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category 2: Data Encoding & Cryptographic Primitives -->
+    <section class="cheat-section" id="encoding">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🔐</span>
+        <h2 class="cheat-section__title">Data Encoding &amp; Credential Sniffing</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">Command / Primitive</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:30%;">Flags Breakdown</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>echo "dGVhY2hpbmc6aGFja2luZzEyMw==" | base64 -d</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('echo &quot;dGVhY2hpbmc6aGFja2luZzEyMw==&quot; | base64 -d')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Decode Sniffed HTTP Basic Auth</strong></td>
+              <td><span class="flag-pill">-d</span> Decode input stream back into ASCII cleartext</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>echo -n "username:password" | base64</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('echo -n &quot;username:password&quot; | base64')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Encode Basic Auth Credential</strong></td>
+              <td><span class="flag-pill">-n</span> Prevent trailing newline before base64 transformation</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category 3: Transport Layer & Socket Utilities -->
+    <section class="cheat-section" id="network-sockets">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">⚡</span>
+        <h2 class="cheat-section__title">Network Transport &amp; Socket Listeners</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">Command / Primitive</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:30%;">Flags Breakdown</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nc -lvnp 4444</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -lvnp 4444')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Netcat TCP Listener</strong></td>
+              <td><span class="flag-pill">-l</span> Listen, <span class="flag-pill">-v</span> Verbose, <span class="flag-pill">-n</span> Numeric IPs only, <span class="flag-pill">-p</span> Port</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nmap -sS -sV 192.168.56.101</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nmap -sS -sV 192.168.56.101')">Copy</button>
+                </div>
+              </td>
+              <td><strong>TCP SYN Stealth &amp; Service Scan</strong></td>
+              <td><span class="flag-pill">-sS</span> Half-open SYN scan, <span class="flag-pill">-sV</span> Probe open ports for version info</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>tcpdump -i eth0 -w dump.pcap</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('tcpdump -i eth0 -w dump.pcap')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Capture Raw Network Packets</strong></td>
+              <td><span class="flag-pill">-i</span> Network interface, <span class="flag-pill">-w</span> Write capture stream to PCAP file</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
   </main>
 
   <div data-site-footer></div>

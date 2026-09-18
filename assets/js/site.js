@@ -80,8 +80,16 @@
   // --- Search Index Database ---
   var searchCatalog = [
     { title: 'Lab 01: Security Concepts & Web Prerequisites', desc: 'Threat actors, 5 pentest phases, HTTP headers, DevTools.', url: 'labs/lab01.html', tag: 'Lab' },
-    { title: 'Penetration Testing Cheat Sheets', desc: 'Offensive security cheat sheet reference.', url: 'cheatsheets.html', tag: 'Reference' },
-    { title: 'Pentest Lab & Tools Setup', desc: 'Environment and tooling setup guide.', url: 'tools.html', tag: 'Setup' }
+    { title: 'Command Cheat Sheets: Web & Network', desc: 'Fast, copyable terminal primitives and flags extracted from labs.', url: 'cheatsheets.html', tag: 'Reference' },
+    { title: 'Tools & Environment Setup', desc: 'Attack rigs, verification commands, and tooling catalog.', url: 'tools.html', tag: 'Setup' },
+    { title: 'Tool: Nmap (Network Scanner)', desc: 'Host discovery, port mapping, and TCP SYN stealth scanning.', url: 'tools.html', tag: 'Tool' },
+    { title: 'Tool: Wireshark & TShark', desc: 'Deep packet inspection and TCP handshake dissector.', url: 'tools.html', tag: 'Tool' },
+    { title: 'Tool: Burp Suite Community', desc: 'HTTP/HTTPS interception proxy and tamper analysis.', url: 'tools.html', tag: 'Tool' },
+    { title: 'Tool: Metasploit Framework', desc: 'Exploit engine, payload generation, and reverse Meterpreter shells.', url: 'tools.html', tag: 'Tool' },
+    { title: 'Tool: Netcat (nc)', desc: 'Arbitrary TCP/UDP raw socket listeners and banner checks.', url: 'tools.html', tag: 'Tool' },
+    { title: 'Command: curl -I (Banner Grab)', desc: 'Extract web server headers and banner leaks.', url: 'cheatsheets.html#web-recon', tag: 'CheatSheet' },
+    { title: 'Command: nc -lvnp (TCP Listener)', desc: 'Catch inbound reverse shells on arbitrary ports.', url: 'cheatsheets.html#network-sockets', tag: 'CheatSheet' },
+    { title: 'Command: base64 -d (Credential Decode)', desc: 'Decode Basic Auth tokens and sniffed base64 strings.', url: 'cheatsheets.html#encoding', tag: 'CheatSheet' }
   ];
 
   // --- Nav Template Generator ---

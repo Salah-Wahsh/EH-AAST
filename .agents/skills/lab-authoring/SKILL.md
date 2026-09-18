@@ -74,17 +74,25 @@ You **must** register the new lab in these three files:
    - Add a Bento grid card for the new lab module in the modules section.
    - Add a row in the quick-reference labs table.
 
-### Step 4: Verification Checklist
+### Step 4: Automatic Reference Cross-Harvesting (Zero User Overhead)
+Follow the [Auto-Reference Sync Skill](../auto-reference-sync/SKILL.md):
+1. **Commands Extractor**: Extract all newly introduced terminal commands and syntax into `cheatsheets.html` with flag explanations and 1-click copy buttons.
+2. **Tools Extractor**: Extract all newly introduced tools, scanners, and containers into `tools.html` with install/verify cards.
+3. **Search Indexing**: Register new tools and cheat sheet categories into `searchCatalog` in `assets/js/site.js`.
+
+### Step 5: Verification Checklist
 Before pushing to production, verify:
 - [ ] File opened locally or via test server (`python3 -m http.server 8000`).
 - [ ] Sidebar renders and highlights the active lab.
-- [ ] Search modal (`Ctrl+K`) finds the new lab.
+- [ ] Search modal (`Ctrl+K`) finds the new lab, tools, and commands.
 - [ ] Projector view toggle enlarges text without overflowing elements.
 - [ ] Light / Dark mode toggle works cleanly across all diagrams and cards.
 - [ ] Mobile view (narrow viewport) displays single-column without horizontal scrolling.
 - [ ] Quizzes provide instant pass/fail validation.
+- [ ] `cheatsheets.html` and `tools.html` reflect newly harvested items.
 
-### Step 5: Automated GitHub Pages Deployment
+### Step 6: Automated GitHub Pages Deployment
+
 Run:
 ```bash
 git add .

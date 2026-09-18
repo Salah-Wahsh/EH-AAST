@@ -1083,3 +1083,215 @@
     font-size: 0.85rem;
   }
 }
+
+/* ==========================================================================
+   Cheat Sheet Command Tables & Tool Setup Cards
+   ========================================================================== */
+.cheat-section {
+  margin: var(--space-8) 0;
+}
+
+.cheat-section__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.cheat-section__title {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.cheat-table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin: var(--space-3) 0 var(--space-6);
+}
+
+.cheat-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-xs);
+}
+
+.cheat-table th {
+  padding: var(--space-3) var(--space-4);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--color-surface-hover);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.cheat-table td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-subtle);
+  color: var(--color-text-secondary);
+  vertical-align: middle;
+}
+
+.cheat-table tr:last-child td {
+  border-bottom: none;
+}
+
+.cheat-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.code-copy-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.code-copy-inline code {
+  color: var(--color-accent);
+  background: var(--color-accent-soft);
+  border: 1px solid var(--color-accent-border);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.flag-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-active);
+  color: var(--color-cyan);
+  border: 1px solid rgba(0, 229, 255, 0.2);
+  margin-right: 2px;
+}
+
+.badge-lab-ref {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  background: rgba(0, 255, 102, 0.1);
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent-border);
+  text-decoration: none;
+  transition: all var(--trans-fast);
+}
+
+.badge-lab-ref:hover {
+  background: var(--color-accent);
+  color: #000;
+}
+
+/* Tool Setup Grid & Cards */
+.tool-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-6) 0;
+}
+
+.tool-setup-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  transition: border-color var(--trans-fast), box-shadow var(--trans-fast);
+}
+
+.tool-setup-card:hover {
+  border-color: var(--color-accent-border);
+  box-shadow: 0 4px 20px -2px rgba(0, 255, 102, 0.1);
+}
+
+.tool-setup-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tool-setup-card__title-group {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.tool-setup-card__icon {
+  font-size: 1.5rem;
+}
+
+.tool-setup-card__title {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-base);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.tool-setup-card__desc {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.tool-setup-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: auto;
+}
+
+.tool-setup-step {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+}
+
+.tool-setup-step-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+.tool-setup-step code {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-accent);
+  word-break: break-all;
+}
+
+.tool-setup-card__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border-subtle);
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+
