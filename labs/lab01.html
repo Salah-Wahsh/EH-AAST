@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab 01: Linux &amp; Virtual Pentest Lab Setup — CCY4202</title>
+  <title>Lab 01: Course Intro, Legal Frameworks &amp; Web Prerequisites — CCY4202</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -38,12 +38,12 @@
 
       <header class="lab-header">
         <div class="lab-header__meta">
-          <span class="lab-badge lab-badge--time">⏱️ 45 Mins</span>
-          <span class="lab-badge lab-badge--difficulty">Fundamental</span>
+          <span class="lab-badge lab-badge--time">⏱️ 50 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Foundational</span>
         </div>
-        <h1 class="lab-header__title">Lab 01: Linux &amp; Virtual Pentest Lab Setup</h1>
+        <h1 class="lab-header__title">Lab 01: Course Introduction, Legal Frameworks &amp; Web Prerequisites</h1>
         <p class="lab-header__lead">
-          Provision an airtight, host-only virtual offensive environment. Configure Kali Linux 2026.x networking, assign static subnet leases, inspect iptables firewall rules, and establish cryptographic SSH access.
+          Establish the foundational security concepts, threat actor models, and legal Rules of Engagement (RoE) mandatory for professional penetration testing. Master the 5 testing phases, network transport primitives, HTTP request/response headers, and browser DevTools interception workflows.
         </p>
       </header>
 
@@ -51,112 +51,117 @@
       <section class="checklist-card">
         <div class="checklist-card__header">
           <div class="checklist-card__title">
-            <span>📋</span> Prerequisites &amp; Setup Checklist
+            <span>📋</span> Lab 01 Readiness Checklist
           </div>
           <div class="checklist-card__progress">0 / 4 Completed</div>
         </div>
         <ul class="checklist-items">
           <li class="checklist-item">
             <input type="checkbox" id="chk-01-1" />
-            <label for="chk-01-1"><span>VirtualBox 7.x or VMware Workstation 17+ installed on host workstation.</span></label>
+            <label for="chk-01-1"><span>Familiarity with the academic ethics and legal liability policies of CCY4202.</span></label>
           </li>
           <li class="checklist-item">
             <input type="checkbox" id="chk-01-2" />
-            <label for="chk-01-2"><span>Kali Linux 2026.x VM imported and allocated at least 4GB RAM &amp; 2 vCPUs.</span></label>
+            <label for="chk-01-2"><span>Modern web browser (Chromium, Chrome, or Firefox) with Developer Tools installed.</span></label>
           </li>
           <li class="checklist-item">
             <input type="checkbox" id="chk-01-3" />
-            <label for="chk-01-3"><span>Host-Only Adapter (<code>vboxnet0</code>) created with subnet <code>192.168.56.0/24</code>.</span></label>
+            <label for="chk-01-3"><span>Access to a Linux terminal (Kali Linux, WSL2, or macOS shell) with <code>curl</code> and <code>base64</code>.</span></label>
           </li>
           <li class="checklist-item">
             <input type="checkbox" id="chk-01-4" />
-            <label for="chk-01-4"><span>Target machine (Metasploitable3 or DVWA) connected to the same host-only network.</span></label>
+            <label for="chk-01-4"><span>Internet connectivity to access authorized sandbox targets (<code>httpbin.org</code> and <code>example.com</code>).</span></label>
           </li>
         </ul>
       </section>
 
       <!-- Section 1 -->
       <section>
-        <h2>1. Lab Architecture &amp; IP Addressing Scheme</h2>
+        <h2>1. Fundamental Security Concepts</h2>
+
+        <h3>What is Ethical Hacking &amp; Penetration Testing?</h3>
         <p>
-          In professional penetration testing engagements, strict network segregation ensures that exploitation packets, malformed TCP payloads, and automated fuzzing scans never bleed into unauthorized production segments or public gateways.
+          <strong>Ethical hacking</strong> (also known as white-hat hacking) is the authorized simulation of cyberattacks against systems, networks, or applications to discover and remediate security vulnerabilities before malicious actors can exploit them [1-4].
         </p>
 
-        <div class="callout callout--theory">
-          <span class="callout__icon">💡</span>
-          <div class="callout__content">
-            <div class="callout__title">Host-Only vs Bridged Networking</div>
-            <p>
-              Bridged networking exposes your vulnerable lab targets directly to your physical local area network (LAN), where compromised daemons could be attacked by external peers or cause campus firewall alerts. <strong>Host-Only</strong> creates a private software switch managed entirely by the hypervisor kernel.
-            </p>
-          </div>
-        </div>
-
-        <p>Verify your Kali network interface assignment. Identify the host-only IP address assigned to <code>eth0</code> or <code>eth1</code>:</p>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
+          <div class="callout callout--tip">
+            <span class="callout__icon">📋</span>
+            <div class="callout__content">
+              <div class="callout__title">Vulnerability Assessment</div>
+              <p>A non-intrusive evaluation aimed at identifying, listing, and prioritizing weaknesses across assets without executing full exploitation [1, 5, 6].</p>
             </div>
-            <span class="terminal-window__title">bash — Interface Enumeration</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
           </div>
-          <div class="terminal-window__body">
-            <pre><code>ip -br addr show</code></pre>
+          <div class="callout callout--danger">
+            <span class="callout__icon">🎯</span>
+            <div class="callout__content">
+              <div class="callout__title">Penetration Test</div>
+              <p>An active engagement that goes beyond identification to simulate real-world attack vectors, attempting to exploit identified vulnerabilities to determine actual business impact and depth of compromise [1, 6, 7].</p>
+            </div>
           </div>
         </div>
+
+        <h3>Categories of Threat Actors</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong style="color:var(--color-accent);">• White Hat (Ethical Hacker):</strong> Authorized security professionals hired by an organization to test defenses, respect legal boundaries, and responsibly disclose findings [1, 8-10].</li>
+          <li><strong style="color:var(--color-danger);">• Black Hat (Malicious Hacker / Cracker):</strong> Unauthorized individuals who exploit vulnerabilities for illegal personal gain, damage, or extortion [1, 9, 10].</li>
+          <li><strong style="color:var(--color-warn);">• Gray Hat:</strong> Individuals who operate in a gray area—hacking without prior authorization but disclosing findings without malicious intent, often seeking bug bounties [1, 9, 10].</li>
+          <li><strong style="color:var(--color-cyan);">• Script Kiddie:</strong> Unskilled attackers who rely on pre-made graphical tools, exploits, and scripts created by others without understanding the underlying code or network mechanics [1, 11].</li>
+        </ul>
+
+        <h3>Penetration Testing Methodologies &amp; Categories</h3>
+        <p>Penetration tests are categorized by the level of initial target knowledge provided to the auditor:</p>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);margin:var(--space-4) 0;">
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+            <li><strong>Black Box:</strong> The tester receives zero prior knowledge of the internal architecture or infrastructure (emulating an external, untrusted attacker) [1, 12, 13].</li>
+            <li><strong>White Box:</strong> Full structural details, source code, network diagrams, and configurations are provided for a comprehensive security audit [1, 14, 15].</li>
+            <li><strong>Gray Box:</strong> Partial target information is provided (such as low-level user credentials or web server architecture) to guide test efficiency [1, 15, 16].</li>
+          </ul>
+        </div>
+
+        <h4>Common Penetration Test Domains</h4>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>Network Penetration Testing:</strong> Auditing internal and external IP ranges, firewalls, routers, and network services [1, 17].</li>
+          <li><strong>Web Application Penetration Testing:</strong> Evaluating Layer 7 vulnerabilities such as SQL Injection, Cross-Site Scripting (XSS), and authentication flaws [1, 18].</li>
+          <li><strong>Mobile Application Penetration Testing:</strong> Assessing security controls on Android and iOS client applications [1, 18].</li>
+          <li><strong>Social Engineering Testing:</strong> Evaluating employee security awareness via simulated spear-phishing or credential harvesting [1, 19].</li>
+          <li><strong>Physical Penetration Testing:</strong> Testing physical access controls, badge readers, locks, and perimeter defenses [1, 19].</li>
+        </ol>
       </section>
 
       <!-- Section 2 -->
       <section>
-        <h2>2. Configuring Static IP Addressing &amp; Route Validation</h2>
+        <h2>2. Pre-Engagement &amp; Legal Rules of Engagement (RoE)</h2>
         <p>
-          DHCP leases can expire and rotate during multi-hour exercises. Assign a persistent static IP address to your Kali attack rig (<code>192.168.56.100</code>) using systemd-networkd or NetworkManager CLI:
+          A penetration test cannot begin without legal, logistical, and technical framework agreements [7, 20]. Operating without formal authorization converts security testing into an illegal cybercrime [21, 22].
         </p>
 
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
-            </div>
-            <span class="terminal-window__title">bash — Static Configuration with nmcli</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
-          </div>
-          <div class="terminal-window__body">
-            <pre><code>sudo nmcli con mod "Wired connection 1" ipv4.addresses 192.168.56.100/24
-sudo nmcli con mod "Wired connection 1" ipv4.method manual
-sudo nmcli con up "Wired connection 1"</code></pre>
+        <div class="callout callout--danger">
+          <span class="callout__icon">⚖️</span>
+          <div class="callout__content">
+            <div class="callout__title">The "Get Out of Jail Free" Card</div>
+            <p>
+              Always demand a signed statement of work and written authorization letter from an authorized corporate executive before firing a single packet. If law enforcement or internal security staff question your presence, this document validates your legal engagement.
+            </p>
           </div>
         </div>
 
-        <p>Verify network reachability to the target machine (<code>192.168.56.101</code>) using ICMP echo requests:</p>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
-            </div>
-            <span class="terminal-window__title">bash — Echo Probe</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
-          </div>
-          <div class="terminal-window__body">
-            <pre><code>ping -c 3 192.168.56.101</code></pre>
-          </div>
-        </div>
+        <h3>Core Components of the Rules of Engagement (RoE) Document</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>• Written Authorization &amp; Signed Letter:</strong> Formal, signed permission from authorized corporate executives granting explicit consent to perform security testing [23, 24].</li>
+          <li><strong>• Scope Definition:</strong> Precise listing of authorized target IP addresses, domain names, subnets, and applications alongside strictly prohibited out-of-scope targets [20, 23, 25].</li>
+          <li><strong>• Testing Windows &amp; Blackout Periods:</strong> Approved execution schedules (e.g., off-peak hours) and blackout times to avoid disrupting business-critical operations [24, 26].</li>
+          <li><strong>• Allowed vs. Disallowed Techniques:</strong> Explicit boundaries regarding destructive attacks, Denial-of-Service (DoS) testing, or social engineering pretexts [23, 26].</li>
+          <li><strong>• Non-Disclosure Agreements (NDAs):</strong> Strict legal protections ensuring that discovered vulnerabilities, customer data, and system configurations remain confidential [23, 27].</li>
+          <li><strong>• Emergency Escalation Contacts:</strong> Designated 24/7 technical contacts and clear "stop-testing" criteria if critical services fail or unapproved security incidents occur [24, 28, 29].</li>
+        </ul>
       </section>
 
       <!-- Section 3 -->
       <section>
-        <h2>3. Linux Firewall (iptables) Isolation Auditing</h2>
+        <h2>3. The 5 Core Phases of Penetration Testing</h2>
         <p>
-          Before launching any active scanner, inspect your host packet filtering tables to ensure the kernel is not inadvertently routing traffic between the host-only adapter and your external Wi-Fi card.
+          Ethical hackers follow structured, standardized methodologies such as <strong>NIST SP 800-115</strong>, <strong>PTES</strong>, <strong>OWASP</strong>, and <strong>OSSTMM</strong> [1, 30, 31]. Every assessment follows five primary phases:
         </p>
 
         <div class="terminal-window">
@@ -166,23 +171,389 @@ sudo nmcli con up "Wired connection 1"</code></pre>
               <span class="terminal-dot terminal-dot--yellow"></span>
               <span class="terminal-dot terminal-dot--green"></span>
             </div>
-            <span class="terminal-window__title">bash — Inspect iptables Filtering Rules</span>
+            <span class="terminal-window__title">ASCII Architecture — Penetration Testing Lifecycle</span>
             <button type="button" class="terminal-copy-btn">Copy</button>
           </div>
           <div class="terminal-window__body">
-            <pre><code>sudo iptables -L -n -v</code></pre>
+            <pre><code>┌─────────────────────────┐
+│ 1. Reconnaissance       │ ──► Gathering open-source intelligence &amp; target data
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│ 2. Scanning &amp; Enum      │ ──► Port scanning, service versioning &amp; host discovery
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│ 3. Gaining Access       │ ──► Weaponizing &amp; exploiting vulnerabilities
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│ 4. Maintaining Access   │ ──► Establishing persistence &amp; pivoting through subnets
+└────────────┬────────────┘
+             │
+┌────────────▼────────────┐
+│ 5. Analysis &amp; Reporting │ ──► Clearing logs &amp; compiling technical/executive reports
+└─────────────────────────┘</code></pre>
           </div>
         </div>
 
-        <!-- Discussion Thought Questions -->
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>Reconnaissance (Information Gathering):</strong> Collecting target intelligence using passive Open-Source Intelligence (OSINT) or stealthy active queries [1].</li>
+          <li><strong>Scanning &amp; Enumeration:</strong> Identifying live hosts, open TCP/UDP ports, operating systems, and specific running service versions [1].</li>
+          <li><strong>Gaining Access (Exploitation):</strong> Weaponizing identified weaknesses (e.g., buffer overflows, web vulnerabilities) to obtain an initial foothold on the target [1].</li>
+          <li><strong>Maintaining Access (Post-Exploitation):</strong> Installing persistent backdoors, escalating privileges to root/administrator, and pivoting to internal subnets [1].</li>
+          <li><strong>Analysis &amp; Reporting:</strong> Compiling an executive summary and detailed technical remediation roadmap for stakeholders [1].</li>
+        </ol>
+      </section>
+
+      <!-- Section 4 -->
+      <section>
+        <h2>4. Fundamental Network &amp; Web Prerequisites</h2>
+
+        <h3>Transport Layer Protocols: TCP vs. UDP</h3>
+        <p>
+          Operating at Layer 4 of the OSI model, transport protocols manage end-to-end communication between network processes [9]:
+        </p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-3);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li>
+            <strong style="color:var(--color-text-primary);">• Transmission Control Protocol (TCP):</strong> A connection-oriented, reliable protocol operating at Layer 4 [9]. TCP guarantees packet delivery using the <strong>TCP Three-Way Handshake</strong>:
+            <ol style="margin-left:var(--space-6);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
+              <li><strong>1. SYN:</strong> The client sends a TCP packet with the <code>SYN</code> flag set to synchronize sequence numbers [9].</li>
+              <li><strong>2. SYN/ACK:</strong> The server acknowledges the request by returning a packet with <code>SYN</code> and <code>ACK</code> flags set [9].</li>
+              <li><strong>3. ACK:</strong> The client responds with an <code>ACK</code> flag to establish an open connection [9].</li>
+            </ol>
+          </li>
+          <li>
+            <strong style="color:var(--color-text-primary);">• User Datagram Protocol (UDP):</strong> A connectionless, lightweight protocol that trades delivery verification for speed [9]. UDP does not perform a handshake (commonly used in DNS, streaming, and VoIP) [9, 14].
+          </li>
+        </ul>
+
+        <h3>Core Diagnostic Protocols</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>• Internet Control Message Protocol (ICMP):</strong> Operates at Layer 3 (Network Layer) for network diagnostics and error reporting (e.g., <code>ping</code> echo requests and <code>traceroute</code> Time-To-Live hop tracking) [15, 16].</li>
+          <li><strong>• Domain Name System (DNS):</strong> Resolves human-readable hostnames (e.g., <code>target.com</code>) into numerical IP addresses [9, 17].</li>
+        </ul>
+
+        <h3>Web Fundamentals &amp; HTTP Headers</h3>
+        <p>
+          Web clients interact with servers using text-based <strong>HTTP protocols</strong> over TCP port 80 (or port 443 for encrypted HTTPS) [18].
+        </p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-3) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>• GET:</strong> Retrieves resources from the web server without modifying server state [21].</li>
+          <li><strong>• POST:</strong> Submits user data (e.g., form inputs, login credentials) within the HTTP request body [22].</li>
+        </ul>
+
+        <h4>Key HTTP Request Headers</h4>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
+            <thead>
+              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
+                <th style="padding:var(--space-3);width:180px;">Header Name</th>
+                <th style="padding:var(--space-3);">Technical Description &amp; Penetration Testing Significance</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--color-text-secondary);">
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Host</td>
+                <td style="padding:var(--space-3);">Identifies the target domain name (<code>e.g., target.com</code>). Vital for identifying virtual hosting environments [23, 24].</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">User-Agent</td>
+                <td style="padding:var(--space-3);">Discloses client browser and operating system details. Used for fingerprinting or bypassing filters [23].</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Cookie</td>
+                <td style="padding:var(--space-3);">Transmits session identifiers (<code>e.g., PHPSESSID=...</code>) for user authentication [23].</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Authorization</td>
+                <td style="padding:var(--space-3);">Sends credentials for HTTP Basic Authentication as a Base64-encoded string (<code>e.g., Basic YWRtaW46...</code>) [21, 24].</td>
+              </tr>
+              <tr>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Referer</td>
+                <td style="padding:var(--space-3);">Discloses the previous web page URL from which the request originated [23, 24].</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Key HTTP Response Headers</h4>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
+            <thead>
+              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
+                <th style="padding:var(--space-3);width:180px;">Header Name</th>
+                <th style="padding:var(--space-3);">Technical Description &amp; Penetration Testing Significance</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--color-text-secondary);">
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Server</td>
+                <td style="padding:var(--space-3);">Discloses web server software and version (<code>e.g., Apache/2.2.14</code> or <code>Microsoft-IIS/7.5</code>). Targets for banner grabbing [27].</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Set-Cookie</td>
+                <td style="padding:var(--space-3);">Issues new session identifiers to the browser. Checked for missing security flags like <code>HttpOnly</code> or <code>Secure</code> [29].</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">X-Powered-By</td>
+                <td style="padding:var(--space-3);">Exposes underlying application frameworks (<code>e.g., PHP/5.3.2</code>, <code>ASP.NET</code>) [28].</td>
+              </tr>
+              <tr>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Content-Type</td>
+                <td style="padding:var(--space-3);">Declares the MIME type of returned data (<code>e.g., text/html</code>, <code>application/json</code>) [28, 29].</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Common HTTP Response Status Codes</h4>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);margin:var(--space-4) 0;">
+          <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+            <li><strong style="color:var(--color-accent);">200 OK:</strong> Request succeeded [29, 33].</li>
+            <li><strong style="color:var(--color-cyan);">302 Found / Moved Temporarily:</strong> Server redirects client to another resource [34, 35].</li>
+            <li><strong style="color:var(--color-warn);">401 Unauthorized:</strong> Authentication is required or invalid credentials were provided [33].</li>
+            <li><strong style="color:var(--color-warn);">403 Forbidden:</strong> Access is restricted regardless of authentication status.</li>
+            <li><strong style="color:var(--color-danger);">404 Not Found:</strong> The requested resource does not exist on the server.</li>
+            <li><strong style="color:var(--color-danger);">500 Internal Server Error:</strong> The web application encountered an unhandled exception [36].</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- Section 5 -->
+      <section>
+        <h2>5. Primary Toolset Overview</h2>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
+            <thead>
+              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
+                <th style="padding:var(--space-3);">Tool Name</th>
+                <th style="padding:var(--space-3);">Core Purpose</th>
+                <th style="padding:var(--space-3);">Typical Penetration Testing Phase</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--color-text-secondary);">
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Kali Linux</td>
+                <td style="padding:var(--space-3);">Security-focused Linux distribution pre-loaded with penetration testing tools [37].</td>
+                <td style="padding:var(--space-3);">Base Operating System</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Nmap</td>
+                <td style="padding:var(--space-3);">Network discovery, open port scanning, service versioning, and OS fingerprinting [37].</td>
+                <td style="padding:var(--space-3);">Scanning &amp; Enumeration</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Wireshark</td>
+                <td style="padding:var(--space-3);">GUI packet analyzer for capturing and dissecting unencrypted protocol traffic [37].</td>
+                <td style="padding:var(--space-3);">Network Sniffing &amp; Traffic Analysis</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Burp Suite</td>
+                <td style="padding:var(--space-3);">Intercepting HTTP/HTTPS web proxy used to inspect, modify, and repeat web traffic [37].</td>
+                <td style="padding:var(--space-3);">Web Application Testing</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Metasploit</td>
+                <td style="padding:var(--space-3);">Modular exploitation framework for executing public exploits and generating payloads [37].</td>
+                <td style="padding:var(--space-3);">Exploitation &amp; Post-Exploitation</td>
+              </tr>
+              <tr>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Netcat (nc)</td>
+                <td style="padding:var(--space-3);">Universal networking utility for reading/writing raw TCP/UDP connections and banner grabbing [37, 40].</td>
+                <td style="padding:var(--space-3);">Reconnaissance &amp; Reverse Shells</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Section 6 -->
+      <section>
+        <h2>6. Interactive Hands-on: Browser DevTools Guide</h2>
+        <p>
+          Before moving to interception proxies like Burp Suite, penetration testers frequently use built-in browser <strong>Developer Tools (DevTools)</strong> to inspect client-side traffic, parameters, and cookies.
+        </p>
+
+        <h3>Opening DevTools</h3>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-3) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>• Keyboard Shortcut:</strong> <code>F12</code> or <code>Ctrl + Shift + I</code> (Windows/Linux) | <code>Cmd + Option + I</code> (macOS)</li>
+          <li><strong>• Mouse Navigation:</strong> Right-click anywhere on a web page ➔ <strong>Inspect</strong></li>
+        </ul>
+
+        <h3>Essential Pre-Testing DevTools Settings</h3>
+        <p>Open the <strong>Network</strong> tab in DevTools and configure these two options:</p>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li><strong>Check "Disable cache":</strong> Forces the browser to fetch fresh responses from the server on every request.</li>
+          <li><strong>Check "Preserve log":</strong> Retains request logs across redirects (<code>302 Found</code>) and form submissions.</li>
+        </ol>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">DevTools — Network Control Bar Setup</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>[ Network Tab Control Bar ]
+  ☑ Disable cache    ☑ Preserve log    Filter: [ All | Fetch/XHR | Doc ]</code></pre>
+          </div>
+        </div>
+
+        <h3>Guided Hands-On Exercises</h3>
+
+        <h4>Exercise 6.1: Inspecting HTTP GET Headers &amp; Server Banners</h4>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li>Open a new browser tab, launch DevTools (<code>F12</code>), and select the <strong>Network</strong> tab.</li>
+          <li>Navigate to <code>https://httpbin.org/headers</code> (or <code>https://example.com</code>).</li>
+          <li>Click the first logged request in the Network pane.</li>
+          <li>Inspect the <strong>Headers</strong> tab in the right-hand panel:
+            <ul style="margin-left:var(--space-4);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
+              <li><strong>General:</strong> Observe the <code>Request Method: GET</code> and <code>Status Code: 200 OK</code>.</li>
+              <li><strong>Response Headers:</strong> Locate the <code>Server</code> header (e.g., <code>Server: gunicorn/19.9.0</code> or <code>Apache/2.4</code>).</li>
+              <li><strong>Request Headers:</strong> Locate your browser's <code>User-Agent</code> string and target <code>Host</code>.</li>
+            </ul>
+          </li>
+        </ol>
+
+        <h4>Exercise 6.2: Intercepting POST Request Payloads</h4>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li>Navigate to <code>https://httpbin.org/forms/post</code>.</li>
+          <li>Ensure <strong>Preserve log</strong> is enabled in the Network tab.</li>
+          <li>Complete the sample pizza order form:
+            <ul style="margin-left:var(--space-4);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
+              <li>Customer Name: <code>admin_tester</code></li>
+              <li>Telephone: <code>555-0199</code></li>
+              <li>Pizza Size: <code>Medium</code></li>
+            </ul>
+          </li>
+          <li>Click <strong>Submit Order</strong>.</li>
+          <li>In the Network log, select the resulting <code>/post</code> request and open the <strong>Payload</strong> (or <strong>Form Data</strong>) tab.</li>
+          <li>Compare how <code>POST</code> request parameters are transmitted inside the HTTP request body rather than visible in the URL query string.</li>
+        </ol>
+
+        <h4>Exercise 6.3: Inspecting &amp; Testing Session Cookies via Console</h4>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li>In DevTools, open the <strong>Application</strong> tab (Chrome) or <strong>Storage</strong> tab (Firefox).</li>
+          <li>Expand <strong>Cookies</strong> in the left sidebar and select the current domain.</li>
+          <li>Observe the security flags: <strong>HttpOnly</strong> and <strong>Secure</strong>.</li>
+          <li>Switch to the <strong>Console</strong> tab, type <code>document.cookie</code>, and press <code>Enter</code>.</li>
+        </ol>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🛡️</span>
+          <div class="callout__content">
+            <div class="callout__title">Security Insight: HttpOnly Flag</div>
+            <p>
+              If a cookie has the <code>HttpOnly</code> flag enabled, <code>document.cookie</code> cannot read it via client-side JavaScript, protecting the session token from Cross-Site Scripting (XSS) cookie theft!
+            </p>
+          </div>
+        </div>
+
+        <h4>Exercise 6.4: Exporting Intercepted Browser Requests to Terminal (cURL)</h4>
+        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+          <li>In the DevTools Network log, right-click any HTTP request.</li>
+          <li>Select <strong>Copy</strong> ➔ <strong>Copy as cURL (bash)</strong>.</li>
+          <li>Open a terminal in Kali Linux and paste the copied command.</li>
+          <li>Modify request parameters directly from the CLI command line:</li>
+        </ol>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Replaying POST Request via cURL</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>curl 'https://httpbin.org/post' \
+  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64)' \
+  --data-raw 'custname=admin_tester&amp;size=medium'</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7 -->
+      <section>
+        <h2>7. Classroom Discussion &amp; Self-Assessment Exercises</h2>
+
+        <h3>Exercise 7.1: Evaluating Scope &amp; Legal Boundaries</h3>
+        <p>
+          <strong>Scenario:</strong> During a gray-box penetration test for <em>Company A</em>, you uncover an unpatched vulnerability on <code>api.partner-vendor.com</code>, a third-party cloud service connected to Company A [41, 42].
+        </p>
         <details class="thought-accordion">
-          <summary>Thought Question: Why must IP forwarding be disabled on the attack rig?</summary>
+          <summary>Question: Are you authorized to execute an exploit against api.partner-vendor.com? Which document determines this?</summary>
           <div class="thought-accordion__content">
             <p>
-              If <code>net.ipv4.ip_forward</code> is set to <code>1</code> and your Kali machine is dual-homed (e.g., connected to both the Internet via NAT/Bridged and to the vulnerable target via Host-Only), any malicious payload or worm on the target machine could theoretically route traffic through your Kali VM and reach your physical home or university LAN.
+              <strong>Discussion Hint:</strong> Review the <em>Rules of Engagement (RoE)</em> and Scope definition [41, 42]. Even if systems interact, testing third-party targets without explicit written authorization from the third-party owner is illegal [42, 43].
             </p>
-            <p style="margin-top:0.5rem;font-family:var(--font-mono);color:var(--color-accent);">
-              Command to verify: <code>cat /proc/sys/net/ipv4/ip_forward</code> (must output 0).
+          </div>
+        </details>
+
+        <h3>Exercise 7.2: Base64 Authorization Decoding</h3>
+        <p>
+          <strong>Scenario:</strong> While sniffing unencrypted network traffic with Wireshark, you capture the following HTTP Basic Authentication header [21, 24]:
+        </p>
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:var(--font-size-sm);color:var(--color-accent);margin:var(--space-3) 0;">
+          Authorization: Basic dGVhY2hpbmc6aGFja2luZzEyMw==
+        </div>
+        <p><strong>Task:</strong> Base64 decode this string to reveal the raw credentials:</p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Base64 Credential Decoding</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>echo "dGVhY2hpbmc6aGFja2luZzEyMw==" | base64 -d</code></pre>
+          </div>
+        </div>
+
+        <details class="thought-accordion">
+          <summary>Discussion Hint: Is Base64 an encryption algorithm?</summary>
+          <div class="thought-accordion__content">
+            <p>
+              <strong>No!</strong> Base64 is an encoding format, not encryption [21, 33]. It provides zero confidentiality. Anyone sniffing unencrypted HTTP traffic can instantly decode it with a single command to reveal the plaintext username and password (<code>teaching:hacking123</code>).
+            </p>
+          </div>
+        </details>
+
+        <h3>Exercise 7.3: Banner Grabbing via cURL</h3>
+        <p><strong>Task:</strong> Open your terminal and run a header-only request against a target:</p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Header Inspection via cURL</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>curl -I http://example.com</code></pre>
+          </div>
+        </div>
+
+        <details class="thought-accordion">
+          <summary>Questions &amp; Analysis: Status Code &amp; Information Disclosure</summary>
+          <div class="thought-accordion__content">
+            <p>
+              <strong>1. HTTP Status Code:</strong> Returns <code>HTTP/1.1 200 OK</code>, confirming the web service is operational and reachable [33].<br />
+              <strong>2. Information Disclosure:</strong> The <code>Server</code> and <code>X-Powered-By</code> response headers disclose the exact web daemon software, operating system, and backend application version (e.g. Apache, Nginx, PHP). Attackers use these specific version strings to query CVE databases and locate matching exploit code [28, 29].
             </p>
           </div>
         </details>
@@ -195,37 +566,74 @@ sudo nmcli con up "Wired connection 1"</code></pre>
         </div>
 
         <!-- Question 1: Multiple Choice -->
-        <div class="quiz-card" data-question-id="lab01-q1" data-xp="10">
+        <div class="quiz-card" data-question-id="lab01-q1">
           <div class="quiz-question">
-            Q1: Why is a "Host-Only" virtual network adapter strictly mandated for ethical hacking lab courses rather than a "Bridged" adapter?
+            Q1: What distinguishes an active Penetration Test from a Vulnerability Assessment?
           </div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Bridged adapters are actually very fast, but speed is not the primary safety concern.">
-              A) Bridged adapters have lower bandwidth limits and cannot process Nmap SYN scans.
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A vulnerability assessment only lists and identifies weaknesses without attempting exploitation.">
+              A) A vulnerability assessment actively weaponizes and executes exploits to compromise domain controllers.
             </button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! Host-only adapters isolate targets from the physical LAN, preventing dangerous exploits from impacting external production machines or triggering IDS alarms.">
-              B) Host-only creates an isolated software switch preventing exploit traffic from leaking onto the physical network.
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! A Vulnerability Assessment identifies and prioritizes weaknesses without exploitation, whereas a Penetration Test simulates real-world attack vectors to actively exploit flaws and prove business impact.">
+              B) A penetration test actively exploits identified weaknesses to determine actual business impact and depth of compromise.
             </button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Linux supports full root privileges on any network adapter type.">
-              C) Kali Linux requires host-only mode to enable root privileges on network interfaces.
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Ethical hackers conduct both vulnerability assessments and penetration tests under formal authorization.">
+              C) Penetration testing is performed exclusively by black-hat threat actors without legal authorization.
             </button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="DHCP works across NAT, bridged, and host-only networks.">
-              D) VirtualBox does not allow DHCP service on bridged network interfaces.
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Penetration tests audit networks, wireless, web apps, physical security, and social engineering.">
+              D) Penetration testing only evaluates physical security controls such as badge readers and door locks.
             </button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
 
-        <!-- Question 2: Terminal Command Challenge -->
-        <div class="quiz-card" data-question-id="lab01-q2" data-xp="15"
-             data-expected-regex="^(sudo\s+)?iptables\s+-L(\s+(-n|-v|-vn|-nv))*"
-             data-solution-rationale="Exact iptables rule inspection verified."
-             data-hint="Enter the standard Linux command to list all iptables rules with numeric ports (e.g. iptables -L -n -v).">
+        <!-- Question 2: Multiple Choice -->
+        <div class="quiz-card" data-question-id="lab01-q2">
           <div class="quiz-question">
-            Q2 [Terminal Challenge]: Type the Linux CLI command used to list all active iptables firewall chains with verbose output and numeric IP formatting:
+            Q2: Which document legally defines the authorized targets, testing windows, allowed attack techniques, and emergency escalation contacts?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A Non-Disclosure Agreement (NDA) protects confidentiality but does not define testing scope, attack methods, or schedules.">
+              A) Non-Disclosure Agreement (NDA)
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! The Rules of Engagement (RoE) document governs target IP scopes, execution hours, allowed/prohibited techniques, and emergency stop-testing contacts.">
+              B) Rules of Engagement (RoE)
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="CVSS is a scoring system used to quantify the technical severity of vulnerabilities.">
+              C) Common Vulnerability Scoring System (CVSS) Specification
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="RFC 793 defines the technical transport protocol specifications for TCP.">
+              D) RFC 793 Protocol Specification
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 3: Terminal Command Challenge -->
+        <div class="quiz-card" data-question-id="lab01-q3"
+             data-expected-regex="^echo\s+[\"']?dGVhY2hpbmc6aGFja2luZzEyMw==[\"']?\s*\|\s*base64\s+(-d|--decode)"
+             data-solution-rationale="Decoded credentials: 'teaching:hacking123'."
+             data-hint="Pipe the base64 string into 'base64 -d' (e.g. echo 'dGVhY2hpbmc6aGFja2luZzEyMw==' | base64 -d).">
+          <div class="quiz-question">
+            Q3 [Terminal Challenge]: Type the Linux bash command to decode the Base64 authorization string <code>dGVhY2hpbmc6aGFja2luZzEyMw==</code>:
           </div>
           <div class="quiz-input-group">
-            <input type="text" class="quiz-input" placeholder="root@kali-lab:~# enter command..." spellcheck="false" autocomplete="off" />
+            <input type="text" class="quiz-input" placeholder='root@kali-lab:~# echo "dGVhY2hpbmc6aGFja2luZzEyMw==" | ...' spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 4: Terminal Command Challenge -->
+        <div class="quiz-card" data-question-id="lab01-q4"
+             data-expected-regex="^curl\s+(-I|--head)\s+https?://example\.com"
+             data-solution-rationale="HTTP header retrieval executed successfully."
+             data-hint="Use curl with the -I flag targeting http://example.com (e.g. curl -I http://example.com).">
+          <div class="quiz-question">
+            Q4 [Terminal Challenge]: Type the curl command to perform an HTTP header-only request (banner grab) against <code>http://example.com</code>:
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali-lab:~# curl -I..." spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>
           </div>
           <div class="quiz-feedback"></div>

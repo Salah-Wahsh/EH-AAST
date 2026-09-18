@@ -79,7 +79,7 @@
 
   // --- Search Index Database ---
   var searchCatalog = [
-    { title: 'Lab 01: Linux & Virtual Pentest Lab Setup', desc: 'Linux architecture, virtual networks, iptables, SSH isolation.', url: 'labs/lab01.html', tag: 'Lab' },
+    { title: 'Lab 01: Course Intro, Legal Frameworks & Web Prerequisites', desc: 'Threat actors, Rules of Engagement (RoE), 5 pentest phases, HTTP headers, DevTools.', url: 'labs/lab01.html', tag: 'Lab' },
     { title: 'Penetration Testing Cheat Sheets', desc: 'Offensive security cheat sheet reference.', url: 'cheatsheets.html', tag: 'Reference' },
     { title: 'Pentest Lab & Tools Setup', desc: 'Environment and tooling setup guide.', url: 'tools.html', tag: 'Setup' }
   ];
@@ -136,7 +136,7 @@
           '<div class="mobile-drawer__section-label">Navigation</div>' +
           '<ul class="mobile-nav-list" role="list">' +
             '<li><a class="mobile-nav-link ' + (activeNav === 'home' ? 'is-active' : '') + '" data-site-href="index.html"><span>🏠</span> Portal Home</a></li>' +
-            '<li><a class="mobile-nav-link ' + (activeNav === 'labs' ? 'is-active' : '') + '" data-site-href="labs/lab01.html"><span>🧪</span> Lab 01: Lab Setup</a></li>' +
+            '<li><a class="mobile-nav-link ' + (activeNav === 'labs' ? 'is-active' : '') + '" data-site-href="labs/lab01.html"><span>🧪</span> Lab 01: Legal &amp; Web Intro</a></li>' +
             '<li><a class="mobile-nav-link ' + (activeNav === 'cheatsheets' ? 'is-active' : '') + '" data-site-href="cheatsheets.html"><span>📄</span> Cheat Sheets</a></li>' +
             '<li><a class="mobile-nav-link ' + (activeNav === 'tools' ? 'is-active' : '') + '" data-site-href="tools.html"><span>🛠️</span> Tools Setup</a></li>' +
           '</ul>' +

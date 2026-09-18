@@ -14,7 +14,7 @@
       title: 'Module 01: Fundamentals',
       badge: 'Core',
       labs: [
-        { id: 'lab01', name: 'Lab 01: Linux & Virtual Lab Setup', href: 'labs/lab01.html', time: '45m' }
+        { id: 'lab01', name: 'Lab 01: Legal Frameworks & Web Prerequisites', href: 'labs/lab01.html', time: '50m' }
       ]
     }
   ];
