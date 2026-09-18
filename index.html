@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CCY4202: Ethical Hacking & Penetration Testing — Lab Portal</title>
+  <meta name="description" content="Centralized interactive laboratory portal for CCY4202 Ethical Hacking & Penetration Testing. Featuring structured modules, terminal guides, and real-time assessments." />
+
+  <!-- Google Fonts: JetBrains Mono & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layout.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
+</head>
+<body data-nav-active="home">
+  <!-- Dynamic Header injected by site.js -->
+  <div data-site-nav></div>
+
+  <main class="page-full">
+    <!-- Hero Section -->
+    <section class="home-hero" style="text-align:center;max-width:900px;margin:0 auto var(--space-8) auto;">
+      <div style="display:inline-flex;align-items:center;gap:var(--space-2);padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);background:var(--color-accent-soft);border:1px solid var(--color-accent-border);color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);font-weight:700;margin-bottom:var(--space-4);">
+        <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--color-accent);box-shadow:0 0 8px var(--color-accent);"></span>
+        <span>ACADEMIC YEAR 2026 // SEMESTER 1</span>
+      </div>
+
+      <h1 style="font-family:var(--font-mono);font-size:clamp(2.2rem, 5vw + 1rem, 3.6rem);font-weight:800;letter-spacing:-0.03em;line-height:1.1;margin-bottom:var(--space-4);">
+        Ethical Hacking &amp; <span style="color:var(--color-accent);text-shadow:0 0 16px var(--color-accent-glow);">Penetration Testing</span>
+      </h1>
+
+      <p style="font-size:var(--font-size-lg);color:var(--color-text-secondary);line-height:1.65;max-width:70ch;margin:0 auto var(--space-6) auto;">
+        Welcome to the centralized laboratory platform for <strong>CCY4202</strong>. Replace static PDF manuals with interactive terminal workflows, step-by-step exploit analysis, live quizzes, and classroom-optimized projection.
+      </p>
+
+      <!-- Terminal Bash Prompt Header Simulator -->
+      <div class="terminal-window hero-terminal" id="hero-bash-sim">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — root@kali-lab:~# (x86_64)</span>
+          <button type="button" class="terminal-copy-btn" aria-label="Copy terminal text">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code>root@kali-lab:~# ./verify_lab_environment.sh</code></pre>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Bar -->
+      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:var(--space-6);margin-top:var(--space-8);padding:var(--space-4);background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-xl);">
+        <div>
+          <div style="font-family:var(--font-mono);font-size:var(--font-size-2xl);font-weight:800;color:var(--color-accent);">07</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Modules</div>
+        </div>
+        <div style="width:1px;background:var(--color-border-subtle);"></div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:var(--font-size-2xl);font-weight:800;color:var(--color-cyan);">28+</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Hands-on Tasks</div>
+        </div>
+        <div style="width:1px;background:var(--color-border-subtle);"></div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:var(--font-size-2xl);font-weight:800;color:var(--color-warn);">21</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Quizzes &amp; Flags</div>
+        </div>
+        <div style="width:1px;background:var(--color-border-subtle);"></div>
+        <div>
+          <div style="font-family:var(--font-mono);font-size:var(--font-size-2xl);font-weight:800;color:var(--color-purple);" data-user-xp>0 XP</div>
+          <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.05em;">Student XP</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lab Modules Bento Grid -->
+    <section style="margin-top:var(--space-12);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:var(--space-6);">
+        <div>
+          <h2 style="font-family:var(--font-mono);font-size:var(--font-size-2xl);font-weight:800;color:var(--color-text-primary);">
+            Course Laboratory Modules
+          </h2>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+            Progress sequentially through the penetration testing lifecycle from reconnaissance to pivoting.
+          </p>
+        </div>
+        <a href="./syllabus.html" style="font-family:var(--font-mono);font-size:var(--font-size-sm);color:var(--color-accent);font-weight:600;">
+          View Full Syllabus →
+        </a>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Module 01 (Featured) -->
+        <article class="bento-card bento-card--featured">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">🖥️</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 45 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Fundamental</span>
+              <span class="lab-badge lab-badge--xp">+100 XP</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 01: Course Intro &amp; Lab Architecture</h3>
+          <p class="bento-card__desc">
+            Construct an isolated virtual pentesting network. Configure Kali Linux 2026.x, VirtualBox host-only adapters, custom IP schemes, iptables packet forwarding, and strict host isolation to safeguard external infrastructure.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Target:</strong> Kali 2026.x + Host-Only Gateway</span>
+            <a class="bento-card__cta" href="./labs/lab01.html">Initialize Lab 01 →</a>
+          </div>
+        </article>
+
+        <!-- Module 02 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">🛰️</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 50 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 02: Reconnaissance &amp; OSINT</h3>
+          <p class="bento-card__desc">
+            Master passive intelligence gathering. Interrogate DNS zone data, WHOIS records, automated harvesting with <code>theHarvester</code>, and IoT discovery through Shodan filters.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Tools:</strong> dig, whois, Shodan CLI</span>
+            <a class="bento-card__cta" href="./labs/lab02.html">Launch Lab 02 →</a>
+          </div>
+        </article>
+
+        <!-- Module 03 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">📡</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 03: Active Scanning &amp; Nmap</h3>
+          <p class="bento-card__desc">
+            Perform precision port scanning and service fingerprinting. Deep dive into TCP SYN (half-open) vs Connect handshakes, UDP evasion, OS detection, and custom Lua NSE scripts.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Tools:</strong> Nmap, NSE, Wireshark</span>
+            <a class="bento-card__cta" href="./labs/lab03.html">Launch Lab 03 →</a>
+          </div>
+        </article>
+
+        <!-- Module 04 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">⚖️</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 55 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 04: Vulnerability Assessment &amp; CVSS</h3>
+          <p class="bento-card__desc">
+            Automate vulnerability discovery and assess enterprise risk. Dissect CVE disclosures, evaluate false positives, and calculate CVSS v3.1 vector strings across real targets.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Standards:</strong> CVE, NVD, CVSS v3.1</span>
+            <a class="bento-card__cta" href="./labs/lab04.html">Launch Lab 04 →</a>
+          </div>
+        </article>
+
+        <!-- Module 05 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">🕷️</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 70 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Advanced</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 05: Web App Attacks &amp; Burp Suite</h3>
+          <p class="bento-card__desc">
+            Attack modern web applications using Burp Suite Repeater and Intruder. Exploit OWASP Top 10 vulnerabilities including SQL Injection, Cross-Site Scripting (XSS), and Broken Access Control.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Targets:</strong> DVWA, OWASP Juice Shop</span>
+            <a class="bento-card__cta" href="./labs/lab05.html">Launch Lab 05 →</a>
+          </div>
+        </article>
+
+        <!-- Module 06 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">💣</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 65 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Advanced</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 06: Network Exploitation &amp; Metasploit</h3>
+          <p class="bento-card__desc">
+            Arm and execute exploit payloads using Metasploit Framework. Analyze the MS17-010 (EternalBlue) exploit mechanics, configure staged reverse TCP handlers, and forge custom shells with msfvenom.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Framework:</strong> Metasploit 6, msfvenom</span>
+            <a class="bento-card__cta" href="./labs/lab06.html">Launch Lab 06 →</a>
+          </div>
+        </article>
+
+        <!-- Module 07 -->
+        <article class="bento-card">
+          <div class="bento-card__header">
+            <span class="bento-card__icon">🎯</span>
+            <div style="display:flex;gap:var(--space-2);">
+              <span class="lab-badge lab-badge--time">⏱️ 75 Mins</span>
+              <span class="lab-badge lab-badge--difficulty">Expert</span>
+            </div>
+          </div>
+          <h3 class="bento-card__title">Module 07: Post-Exploitation &amp; Pivoting</h3>
+          <p class="bento-card__desc">
+            Escalate privileges on compromised endpoints. Audit Linux SUID binaries, enumerate Windows tokens, deploy Meterpreter post modules, and establish Chisel/SSH tunnels into deep isolated subnets.
+          </p>
+          <div class="bento-card__footer">
+            <span><strong>Techniques:</strong> SUID abuse, Chisel, SSH tunnel</span>
+            <a class="bento-card__cta" href="./labs/lab07.html">Launch Lab 07 →</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Rules of Engagement Banner -->
+    <section class="callout callout--danger" style="margin-top:var(--space-8);">
+      <span class="callout__icon">🚨</span>
+      <div class="callout__content">
+        <div class="callout__title">MANDATORY ETHICAL CODE &amp; RULES OF ENGAGEMENT</div>
+        <p>
+          All students enrolled in CCY4202 must abide by strict university academic integrity guidelines and international cyber legislation. Performing port scans, vulnerability probes, or exploitation against IP addresses, servers, or wireless networks outside your assigned <code>192.168.56.0/24</code> host-only virtual subnet is strictly prohibited and constitutes a criminal offense.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Dynamic Footer injected by site.js -->
+  <div data-site-footer></div>
+
+  <!-- Scripts -->
+  <script data-site-root="." src="./assets/js/site.js"></script>
+  <script src="./assets/js/lab-common.js"></script>
+  <script src="./assets/js/quiz.js"></script>
+</body>
+</html>

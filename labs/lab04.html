@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 04: Vulnerability Assessment &amp; CVSS — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab04">
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 04</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 04</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 55 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+          <span class="lab-badge lab-badge--xp">💯 100 XP</span>
+        </div>
+        <h1 class="lab-header__title">Lab 04: Vulnerability Assessment &amp; CVSS</h1>
+        <p class="lab-header__lead">
+          Systematically triage security weaknesses. Analyze automated vulnerability scanning feeds, correlate discovered service banners against the National Vulnerability Database (NVD), and calculate precise CVSS v3.1 base score vectors.
+        </p>
+      </header>
+
+      <!-- Prerequisites Checklist -->
+      <section class="checklist-card">
+        <div class="checklist-card__header">
+          <div class="checklist-card__title">
+            <span>📋</span> Prerequisites &amp; Setup Checklist
+          </div>
+          <div class="checklist-card__progress">0 / 4 Completed</div>
+        </div>
+        <ul class="checklist-items">
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-04-1" />
+            <label for="chk-04-1"><span>Target VM (Metasploitable3 at <code>192.168.56.101</code>) accessible on host-only subnet.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-04-2" />
+            <label for="chk-04-2"><span>Exploit-DB search utility <code>searchsploit</code> updated on Kali Linux.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-04-3" />
+            <label for="chk-04-3"><span>Familiarity with CVSS v3.1 specification metrics (NIST Special Publication 800-115).</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-04-4" />
+            <label for="chk-04-4"><span>Nmap XML output file from Lab 03 ready for banner correlation.</span></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 1 -->
+      <section>
+        <h2>1. Vulnerability Assessment vs Penetration Testing</h2>
+        <p>
+          A <strong>Vulnerability Assessment (VA)</strong> is a comprehensive, broad-scope identification of known security flaws across all network hosts without active exploitation. A <strong>Penetration Test</strong> goes further: proving exploitability, achieving access, chaining flaws, and determining business impact.
+        </p>
+
+        <div class="callout callout--theory">
+          <span class="callout__icon">🔍</span>
+          <div class="callout__content">
+            <div class="callout__title">False Positives vs False Negatives</div>
+            <p>
+              Automated scanners rely on version banners. If an administrator backports a security patch without updating the daemon version number, the scanner flags a <strong>False Positive</strong>. Conversely, if a customized daemon hides its banner, the scanner misses it (<strong>False Negative</strong>).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section>
+        <h2>2. Offline Exploit Research with searchsploit</h2>
+        <p>
+          Kali Linux bundles the complete offline Exploit Database repository. Search for verified public exploits matching service versions identified during scanning:
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — searchsploit Querying</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code># Query for ProFTPD vulnerabilities with remote code execution (RCE)
+searchsploit proftpd 1.3.5
+
+# Mirror exploit code directly to current working directory
+searchsploit -m 37262.py</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section>
+        <h2>3. Calculating CVSS v3.1 Base Score Vectors</h2>
+        <p>
+          The Common Vulnerability Scoring System (CVSS v3.1) quantifies technical severity on a 0.0 to 10.0 scale based on eight fundamental metrics:
+        </p>
+
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
+            <thead>
+              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
+                <th style="padding:var(--space-3);">Metric</th>
+                <th style="padding:var(--space-3);">Code</th>
+                <th style="padding:var(--space-3);">Possible Values</th>
+                <th style="padding:var(--space-3);">Description</th>
+              </tr>
+            </thead>
+            <tbody style="color:var(--color-text-secondary);">
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-weight:600;color:var(--color-text-primary);">Attack Vector</td>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);color:var(--color-accent);">AV</td>
+                <td style="padding:var(--space-3);">N (Network) / A (Adjacent) / L (Local) / P (Physical)</td>
+                <td style="padding:var(--space-3);">Remoteness from target</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-weight:600;color:var(--color-text-primary);">Attack Complexity</td>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);color:var(--color-accent);">AC</td>
+                <td style="padding:var(--space-3);">L (Low) / H (High)</td>
+                <td style="padding:var(--space-3);">Race conditions or bypass hurdles</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-weight:600;color:var(--color-text-primary);">Privileges Required</td>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);color:var(--color-accent);">PR</td>
+                <td style="padding:var(--space-3);">N (None) / L (Low) / H (High)</td>
+                <td style="padding:var(--space-3);">Authentication level needed</td>
+              </tr>
+              <tr style="border-bottom:1px solid var(--color-border-subtle);">
+                <td style="padding:var(--space-3);font-weight:600;color:var(--color-text-primary);">User Interaction</td>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);color:var(--color-accent);">UI</td>
+                <td style="padding:var(--space-3);">N (None) / R (Required)</td>
+                <td style="padding:var(--space-3);">Requires victim click/action</td>
+              </tr>
+              <tr>
+                <td style="padding:var(--space-3);font-weight:600;color:var(--color-text-primary);">Scope</td>
+                <td style="padding:var(--space-3);font-family:var(--font-mono);color:var(--color-accent);">S</td>
+                <td style="padding:var(--space-3);">U (Unchanged) / C (Changed)</td>
+                <td style="padding:var(--space-3);">Impact breaks sandbox / VM container</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p>Example Vector String for an unauthenticated remote code execution flaw:</p>
+        <p style="font-family:var(--font-mono);font-size:var(--font-size-sm);color:var(--color-danger);background:var(--color-surface);padding:var(--space-3);border-radius:var(--radius-sm);border:1px solid var(--color-border);">
+          CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H &rarr; <strong>Base Score: 9.8 (CRITICAL)</strong>
+        </p>
+
+        <details class="thought-accordion">
+          <summary>Thought Question: When does CVSS Scope change from Unchanged (S:U) to Changed (S:C)?</summary>
+          <div class="thought-accordion__content">
+            <p>
+              Scope changes (<code>S:C</code>) when a vulnerability in one security authority or software boundary impacts resources managed by a completely different security authority. Classic examples include virtual machine escapes (guest to host), cross-site scripting (malicious script running inside a victim browser origin), or container breakouts.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Interactive Quiz Section -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title">Lab 04 Self-Assessment Quiz</h2>
+          <span class="quiz-xp-badge" data-user-xp>0 XP</span>
+        </div>
+
+        <!-- Question 1 -->
+        <div class="quiz-card" data-question-id="lab04-q1" data-xp="10">
+          <div class="quiz-question">
+            Q1: In CVSS v3.1, which Attack Vector (AV) metric designates an exploit that can be launched across the public Internet without local or adjacent network access?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="AV:A stands for Adjacent Network (same Wi-Fi broadcast domain or VLAN).">
+              A) AV:A (Adjacent)
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! AV:N (Network) signifies that the vulnerable component is bound to the network stack and can be exploited remotely across layer 3 routing boundaries.">
+              B) AV:N (Network)
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="AV:L requires local shell access or user credential execution on the target OS.">
+              C) AV:L (Local)
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="AV:P requires physical possession or hardware bus tampering.">
+              D) AV:P (Physical)
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="quiz-card" data-question-id="lab04-q2" data-xp="15"
+             data-expected-regex="^searchsploit\s+.*proftpd.*"
+             data-solution-rationale="searchsploit query executed."
+             data-hint="Run searchsploit to look up proftpd vulnerabilities (e.g. searchsploit proftpd).">
+          <div class="quiz-question">
+            Q2 [Terminal Challenge]: Type the searchsploit command to search for known exploit modules affecting <code>proftpd</code>:
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali-lab:~# searchsploit..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="toc-sidebar">
+      <div class="toc-label">On this page</div>
+      <nav class="toc-nav" id="toc-nav" aria-label="Table of contents"></nav>
+    </aside>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

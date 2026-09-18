@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 02: Reconnaissance &amp; OSINT — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab02">
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 02</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 02</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 50 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+          <span class="lab-badge lab-badge--xp">💯 100 XP</span>
+        </div>
+        <h1 class="lab-header__title">Lab 02: Passive Reconnaissance &amp; OSINT</h1>
+        <p class="lab-header__lead">
+          Collect actionable technical intelligence without generating alert traffic on target defensive sensors. Harvest subdomains, extract DNS zone topologies, query certificate transparency logs, and leverage Shodan search dorks.
+        </p>
+      </header>
+
+      <!-- Prerequisites Checklist -->
+      <section class="checklist-card">
+        <div class="checklist-card__header">
+          <div class="checklist-card__title">
+            <span>📋</span> Prerequisites &amp; Setup Checklist
+          </div>
+          <div class="checklist-card__progress">0 / 4 Completed</div>
+        </div>
+        <ul class="checklist-items">
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-1" />
+            <label for="chk-02-1"><span>Kali Linux VM with outbound internet access enabled for passive queries.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-2" />
+            <label for="chk-02-2"><span>DNS utility <code>bind9-dnsutils</code> (dig, host, nslookup) installed.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-3" />
+            <label for="chk-02-3"><span><code>theHarvester</code> installed and verified via <code>theHarvester -h</code>.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-4" />
+            <label for="chk-02-4"><span>Free Shodan Community API key registered for command-line queries.</span></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 1 -->
+      <section>
+        <h2>1. The Passive OSINT Mindset</h2>
+        <p>
+          Passive reconnaissance gathers intelligence entirely from public archives, search aggregators, and cached third-party services. Because no packet ever transmits directly between the tester's IP and the target's firewall, passive reconnaissance produces zero entries in the target's intrusion detection systems (IDS).
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout__icon">⚠️</span>
+          <div class="callout__content">
+            <div class="callout__title">Passive vs Active Boundary</div>
+            <p>
+              Querying Google, Shodan, or Public Certificate Transparency servers is 100% passive. However, running a direct <code>AXFR</code> zone transfer request against the target's authoritative nameserver transmits packets directly to them and counts as active interaction.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section>
+        <h2>2. DNS Interrogation &amp; Zone Transfer Attempts</h2>
+        <p>
+          DNS servers maintain a blueprint of the enterprise perimeter. Using <code>dig</code>, query specific resource records including Mail Exchange (<code>MX</code>), Text verification records (<code>TXT</code>), and Canonical Names (<code>CNAME</code>):
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — DNS Resource Record Querying</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code># Query Nameservers (NS) and Mail Exchangers (MX)
+dig mega-corp.one NS +short
+dig mega-corp.one MX +short</code></pre>
+          </div>
+        </div>
+
+        <p>Attempt an Asynchronous Full Zone Transfer (<code>AXFR</code>). If misconfigured without IP ACLs, the nameserver will leak its entire internal IP and host catalog:</p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Attempt AXFR Zone Transfer</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>dig axfr @ns1.mega-corp.one mega-corp.one</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section>
+        <h2>3. OSINT Automation with theHarvester</h2>
+        <p>
+          <code>theHarvester</code> automates passive domain discovery across dozens of public indexes (Bing, Baidu, DuckDuckGo, Yahoo, CertSpotter). Run an automated collection against the authorized practice domain:
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — theHarvester Multi-Source Query</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>theHarvester -d mega-corp.one -b duckduckgo,bing,certspotter -l 200</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4 -->
+      <section>
+        <h2>4. Internet-Scale Intelligence with Shodan CLI</h2>
+        <p>
+          Shodan continuously scans the entire IPv4 address space, indexing open ports, SSL certificates, and service banners. Initialize your API key and filter for targets running exposed administrative interfaces:
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Shodan Query Filters</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code># Initialize API Key
+shodan init YOUR_API_KEY_HERE
+
+# Search for Apache HTTP servers with exposed server-status
+shodan search "org:'Target Corp' product:Apache http.title:'Apache Status'"</code></pre>
+          </div>
+        </div>
+
+        <details class="thought-accordion">
+          <summary>Thought Question: Why are Certificate Transparency (CT) logs a goldmine for penetration testers?</summary>
+          <div class="thought-accordion__content">
+            <p>
+              Whenever an organization requests an SSL/TLS certificate from a Certificate Authority (like Let's Encrypt or DigiCert), that certificate is appended to public, append-only Certificate Transparency logs. Attackers can monitor <code>crt.sh</code> to instantly discover unlinked staging, QA, and internal admin subdomains (e.g., <code>vpn-beta.corp.com</code>, <code>dev-admin.corp.com</code>) the moment they are provisioned.
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Interactive Quiz Section -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title">Lab 02 Self-Assessment Quiz</h2>
+          <span class="quiz-xp-badge" data-user-xp>0 XP</span>
+        </div>
+
+        <!-- Question 1 -->
+        <div class="quiz-card" data-question-id="lab02-q1" data-xp="10">
+          <div class="quiz-question">
+            Q1: What DNS query type requests an entire zone transfer from an authoritative nameserver?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="CNAME specifies canonical alias names for domain records.">
+              A) CNAME
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="PTR records are used for reverse DNS resolution (IP to hostname).">
+              B) PTR
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! AXFR (Asynchronous Full Transfer) asks the primary nameserver to replicate its complete database. If unrestricted, this leaks all internal hostnames and IP mappings.">
+              C) AXFR
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="SOA (Start of Authority) contains administrative metadata, not the full transfer request.">
+              D) SOA
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 2 -->
+        <div class="quiz-card" data-question-id="lab02-q2" data-xp="15"
+             data-expected-regex="^dig\s+(@[a-zA-Z0-9\.\-_]+\s+)?axfr\s+(@[a-zA-Z0-9\.\-_]+\s+)?[a-zA-Z0-9\.\-_]+"
+             data-solution-rationale="Valid AXFR syntax confirmed."
+             data-hint="Use dig to request an axfr zone transfer (e.g. dig axfr @ns1.target.com target.com).">
+          <div class="quiz-question">
+            Q2 [Terminal Challenge]: Type the dig command to request a zone transfer from nameserver <code>ns1.target.com</code> for the domain <code>target.com</code>:
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali-lab:~# dig..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="toc-sidebar">
+      <div class="toc-label">On this page</div>
+      <nav class="toc-nav" id="toc-nav" aria-label="Table of contents"></nav>
+    </aside>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

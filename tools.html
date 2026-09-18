@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pentest Lab Setup &amp; Tools — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./assets/css/base.css" />
+  <link rel="stylesheet" href="./assets/css/layout.css" />
+  <link rel="stylesheet" href="./assets/css/components.css" />
+</head>
+<body data-nav-active="tools">
+  <div data-site-nav></div>
+
+  <main class="page-full">
+    <div class="breadcrumbs">
+      <a href="./index.html">Home</a>
+      <span class="breadcrumbs__separator">/</span>
+      <span>Laboratory Setup &amp; Tools</span>
+    </div>
+
+    <header style="margin-bottom:var(--space-8);padding-bottom:var(--space-6);border-bottom:1px solid var(--color-border);">
+      <div style="display:flex;gap:var(--space-2);margin-bottom:var(--space-2);">
+        <span class="lab-badge lab-badge--time">Setup Guide</span>
+        <span class="lab-badge lab-badge--difficulty">Host-Only Isolation</span>
+      </div>
+      <h1 style="font-family:var(--font-mono);font-size:clamp(2rem, 4vw + 1rem, 3rem);font-weight:800;color:var(--color-text-primary);">
+        Pentesting Lab Environment &amp; Tooling
+      </h1>
+      <p style="font-size:var(--font-size-lg);color:var(--color-text-secondary);max-width:75ch;margin-top:var(--space-2);">
+        Complete architecture blueprint for provisioning your isolated virtual offensive security laboratory across VirtualBox or VMware.
+      </p>
+    </header>
+
+    <!-- Network Topology Callout -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        1. Lab Network Topology
+      </h2>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">ASCII Architecture — Host-Only Isolated Subnet (192.168.56.0/24)</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code>┌──────────────────────────────────────────────────────────────────────────┐
+│                   VIRTUAL HOST-ONLY NETWORK (vboxnet0)                   │
+│                          Subnet: 192.168.56.0/24                         │
+└────────────────┬────────────────────┬────────────────────┬───────────────┘
+                 │                    │                    │
+                 ▼                    ▼                    ▼
+   ┌────────────────────────┐┌──────────────────┐┌────────────────────────┐
+   │ ATTACK RIG             ││ TARGET 1         ││ TARGET 2 (DOCKER)      │
+   │ Kali Linux 2026.x      ││ Metasploitable 3 ││ Ubuntu Server 24.04    │
+   │ IP: 192.168.56.100     ││ IP: 192.168.56.101││ IP: 192.168.56.102    │
+   │ Nmap, Burp, Metasploit ││ Windows Server   ││ DVWA:80, JuiceShop:3000│
+   └────────────────────────┘└──────────────────┘└────────────────────────┘</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Kali Provisioning Script -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        2. Kali Linux Tool Suite Provisioning
+      </h2>
+      <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-bottom:var(--space-3);">
+        Execute this bash bootstrap script inside your fresh Kali installation to install additional offensive utilities and wordlists needed for CCY4202:
+      </p>
+
+      <div class="terminal-window">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — root@kali-lab:~# setup_tools.sh</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code>#!/usr/bin/env bash
+# Update package repositories
+sudo apt update &amp;&amp; sudo apt upgrade -y
+
+# Install essential wordlists &amp; discovery tools
+sudo apt install -y seclists gobuster feroxbuster eyewitness chisel evil-winrm
+
+# Unpack rockyou wordlist
+if [ -f /usr/share/wordlists/rockyou.txt.gz ]; then
+  sudo gunzip /usr/share/wordlists/rockyou.txt.gz
+  echo "[+] rockyou.txt successfully uncompressed."
+fi
+
+echo "[+] Lab tools installation complete."</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Browser Extensions & Docker Targets -->
+    <section style="margin-bottom:var(--space-8);">
+      <h2 style="font-family:var(--font-mono);font-size:var(--font-size-xl);color:var(--color-text-primary);margin-bottom:var(--space-4);">
+        3. Web Pentesting Browser Extensions &amp; Docker Targets
+      </h2>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);">
+        <div class="callout callout--tip">
+          <span class="callout__icon">🦊</span>
+          <div class="callout__content">
+            <div class="callout__title">FoxyProxy Standard</div>
+            <p>Routes browser traffic through Burp Suite on <code>127.0.0.1:8080</code> with a single click.</p>
+          </div>
+        </div>
+        <div class="callout callout--tip">
+          <span class="callout__icon">🔍</span>
+          <div class="callout__content">
+            <div class="callout__title">Wappalyzer</div>
+            <p>Instantly identifies web application frameworks, server daemons, and JavaScript libraries.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="terminal-window" style="margin-top:var(--space-6);">
+        <div class="terminal-window__header">
+          <div class="terminal-window__controls">
+            <span class="terminal-dot terminal-dot--red"></span>
+            <span class="terminal-dot terminal-dot--yellow"></span>
+            <span class="terminal-dot terminal-dot--green"></span>
+          </div>
+          <span class="terminal-window__title">bash — Docker Container Vulnerable Targets</span>
+          <button type="button" class="terminal-copy-btn">Copy</button>
+        </div>
+        <div class="terminal-window__body">
+          <pre><code># Run DVWA (Damn Vulnerable Web Application) on port 80
+docker run --rm -d -p 80:80 vulnerables/web-dvwa
+
+# Run OWASP Juice Shop on port 3000
+docker run --rm -d -p 3000:3000 bkimminich/juice-shop</code></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div data-site-footer></div>
+
+  <script data-site-root="." src="./assets/js/site.js"></script>
+  <script src="./assets/js/lab-common.js"></script>
+  <script src="./assets/js/quiz.js"></script>
+</body>
+</html>

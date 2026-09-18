@@ -1,0 +1,322 @@
+/* ==========================================================================
+   CCY4202: Ethical Hacking Labs — Base Design System
+   ========================================================================== */
+
+/* Design Tokens & Theme Variables */
+:root {
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Share Tech Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.6;
+  --line-height-relaxed: 1.75;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radii */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --header-height: 4rem;
+  --sidebar-width: 300px;
+  --toc-width: 240px;
+  --content-max-width: 1100px;
+
+  /* Transitions */
+  --trans-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --trans-bounce: 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Terminal Traffic Lights */
+  --terminal-red: #ff5f56;
+  --terminal-yellow: #ffbd2e;
+  --terminal-green: #27c93f;
+}
+
+/* ==========================================================================
+   Theme: Terminal Dark (Default - "Mr. Robot" / Hacker HUD)
+   ========================================================================== */
+:root,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --color-bg: #0a0c10;
+  --color-bg-alt: #0d1117;
+  --color-surface: #161b22;
+  --color-surface-hover: #1f242c;
+  --color-surface-active: #242b35;
+  --color-border: #30363d;
+  --color-border-subtle: #21262d;
+
+  /* Typography */
+  --color-text-primary: #f0f6fc;
+  --color-text-secondary: #8b949e;
+  --color-text-muted: #6e7681;
+
+  /* Cybersecurity Palette */
+  --color-accent: #00ff66;              /* Hacker Neon Green */
+  --color-accent-soft: rgba(0, 255, 102, 0.12);
+  --color-accent-border: rgba(0, 255, 102, 0.35);
+  --color-accent-glow: rgba(0, 255, 102, 0.25);
+
+  --color-cyan: #00e5ff;                /* Terminal Cyan */
+  --color-cyan-soft: rgba(0, 229, 255, 0.12);
+  
+  --color-warn: #ffb000;                /* Matrix Amber */
+  --color-warn-soft: rgba(255, 176, 0, 0.12);
+  
+  --color-danger: #ff4444;              /* Exploit Red */
+  --color-danger-soft: rgba(255, 68, 68, 0.14);
+
+  --color-purple: #a371f7;              /* Exploitation Purple */
+  --color-purple-soft: rgba(163, 113, 247, 0.14);
+
+  /* Code / Terminal */
+  --terminal-bg: #050709;
+  --terminal-header-bg: #11151c;
+  --terminal-border: #21262d;
+  --terminal-text: #5af78e;
+  --terminal-prompt: #00e5ff;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-glow: 0 0 20px rgba(0, 255, 102, 0.2);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.6);
+}
+
+/* ==========================================================================
+   Theme: Classroom Light Mode (High Contrast for Projectors)
+   ========================================================================== */
+[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces */
+  --color-bg: #ffffff;
+  --color-bg-alt: #f6f8fa;
+  --color-surface: #ffffff;
+  --color-surface-hover: #f3f4f6;
+  --color-surface-active: #e5e7eb;
+  --color-border: #d0d7de;
+  --color-border-subtle: #e1e4e8;
+
+  /* Typography */
+  --color-text-primary: #1f2328;        /* Obsidian text for deep contrast */
+  --color-text-secondary: #424a53;
+  --color-text-muted: #57606a;
+
+  /* High-Contrast Accents */
+  --color-accent: #0969da;              /* Cobalt blue */
+  --color-accent-soft: rgba(9, 105, 218, 0.1);
+  --color-accent-border: rgba(9, 105, 218, 0.35);
+  --color-accent-glow: rgba(9, 105, 218, 0.15);
+
+  --color-cyan: #0284c7;
+  --color-cyan-soft: rgba(2, 132, 199, 0.1);
+
+  --color-warn: #9a6700;
+  --color-warn-soft: rgba(154, 103, 0, 0.12);
+
+  --color-danger: #cf222e;
+  --color-danger-soft: rgba(207, 34, 46, 0.1);
+
+  --color-purple: #8250df;
+  --color-purple-soft: rgba(130, 80, 223, 0.12);
+
+  /* Code / Terminal */
+  --terminal-bg: #1b1f24;
+  --terminal-header-bg: #24292f;
+  --terminal-border: #32383f;
+  --terminal-text: #7ee787;
+  --terminal-prompt: #58a6ff;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(31, 35, 40, 0.12);
+  --shadow-md: 0 6px 18px rgba(31, 35, 40, 0.1);
+  --shadow-glow: 0 0 12px rgba(9, 105, 218, 0.15);
+  --shadow-card: 0 2px 10px rgba(31, 35, 40, 0.08);
+}
+
+/* ==========================================================================
+   Accessibility Feature: Projector View Mode (.projector-mode)
+   Boosts font sizes (18px+ base), boldens weights, thickens borders
+   ========================================================================== */
+body.projector-mode {
+  --font-size-xs: 0.95rem;
+  --font-size-sm: 1.05rem;
+  --font-size-base: 1.18rem;            /* 18.8px base */
+  --font-size-lg: 1.32rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 1.85rem;
+  --font-size-3xl: 2.3rem;
+  --font-size-4xl: 2.85rem;
+
+  font-weight: 500;
+}
+
+body.projector-mode p,
+body.projector-mode li,
+body.projector-mode summary {
+  font-size: var(--font-size-base);
+  line-height: 1.7;
+}
+
+body.projector-mode h1,
+body.projector-mode h2,
+body.projector-mode h3 {
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+body.projector-mode code,
+body.projector-mode pre {
+  font-size: 1.12rem;
+  font-weight: 600;
+}
+
+body.projector-mode .terminal-window {
+  border-width: 2px !important;
+}
+
+body.projector-mode .quiz-card,
+body.projector-mode .lab-card,
+body.projector-mode .callout {
+  border-width: 2px !important;
+}
+
+/* ==========================================================================
+   CSS Reset & Base Elements
+   ========================================================================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-height) + 1.5rem);
+}
+
+body {
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--trans-normal), color var(--trans-normal);
+}
+
+/* Scanline Effect Overlay */
+.scanline-overlay {
+  display: none;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  opacity: 0.6;
+}
+
+body.scanlines-active .scanline-overlay {
+  display: block;
+}
+
+/* Native Elements */
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+  transition: color var(--trans-fast), text-shadow var(--trans-fast);
+}
+
+a:hover {
+  text-decoration: underline;
+  text-shadow: 0 0 8px var(--color-accent-glow);
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+code, kbd, samp, pre {
+  font-family: var(--font-mono);
+}
+
+code {
+  font-size: 0.9em;
+  padding: 0.15em 0.35em;
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface-hover);
+  color: var(--color-accent);
+  border: 1px solid var(--color-border-subtle);
+}
+
+/* Focus styles (WCAG 2.2 AA) */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

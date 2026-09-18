@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 01: Linux &amp; Virtual Pentest Lab Setup — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab01">
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <!-- Collapsible Sidebar Module Tree -->
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <!-- Main Content Pane -->
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 01</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 45 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Fundamental</span>
+          <span class="lab-badge lab-badge--xp">💯 100 XP</span>
+        </div>
+        <h1 class="lab-header__title">Lab 01: Linux &amp; Virtual Pentest Lab Setup</h1>
+        <p class="lab-header__lead">
+          Provision an airtight, host-only virtual offensive environment. Configure Kali Linux 2026.x networking, assign static subnet leases, inspect iptables firewall rules, and establish cryptographic SSH access.
+        </p>
+      </header>
+
+      <!-- Prerequisites Checklist -->
+      <section class="checklist-card">
+        <div class="checklist-card__header">
+          <div class="checklist-card__title">
+            <span>📋</span> Prerequisites &amp; Setup Checklist
+          </div>
+          <div class="checklist-card__progress">0 / 4 Completed</div>
+        </div>
+        <ul class="checklist-items">
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-01-1" />
+            <label for="chk-01-1"><span>VirtualBox 7.x or VMware Workstation 17+ installed on host workstation.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-01-2" />
+            <label for="chk-01-2"><span>Kali Linux 2026.x VM imported and allocated at least 4GB RAM &amp; 2 vCPUs.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-01-3" />
+            <label for="chk-01-3"><span>Host-Only Adapter (<code>vboxnet0</code>) created with subnet <code>192.168.56.0/24</code>.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-01-4" />
+            <label for="chk-01-4"><span>Target machine (Metasploitable3 or DVWA) connected to the same host-only network.</span></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 1 -->
+      <section>
+        <h2>1. Lab Architecture &amp; IP Addressing Scheme</h2>
+        <p>
+          In professional penetration testing engagements, strict network segregation ensures that exploitation packets, malformed TCP payloads, and automated fuzzing scans never bleed into unauthorized production segments or public gateways.
+        </p>
+
+        <div class="callout callout--theory">
+          <span class="callout__icon">💡</span>
+          <div class="callout__content">
+            <div class="callout__title">Host-Only vs Bridged Networking</div>
+            <p>
+              Bridged networking exposes your vulnerable lab targets directly to your physical local area network (LAN), where compromised daemons could be attacked by external peers or cause campus firewall alerts. <strong>Host-Only</strong> creates a private software switch managed entirely by the hypervisor kernel.
+            </p>
+          </div>
+        </div>
+
+        <p>Verify your Kali network interface assignment. Identify the host-only IP address assigned to <code>eth0</code> or <code>eth1</code>:</p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Interface Enumeration</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>ip -br addr show</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2 -->
+      <section>
+        <h2>2. Configuring Static IP Addressing &amp; Route Validation</h2>
+        <p>
+          DHCP leases can expire and rotate during multi-hour exercises. Assign a persistent static IP address to your Kali attack rig (<code>192.168.56.100</code>) using systemd-networkd or NetworkManager CLI:
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Static Configuration with nmcli</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>sudo nmcli con mod "Wired connection 1" ipv4.addresses 192.168.56.100/24
+sudo nmcli con mod "Wired connection 1" ipv4.method manual
+sudo nmcli con up "Wired connection 1"</code></pre>
+          </div>
+        </div>
+
+        <p>Verify network reachability to the target machine (<code>192.168.56.101</code>) using ICMP echo requests:</p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Echo Probe</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>ping -c 3 192.168.56.101</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3 -->
+      <section>
+        <h2>3. Linux Firewall (iptables) Isolation Auditing</h2>
+        <p>
+          Before launching any active scanner, inspect your host packet filtering tables to ensure the kernel is not inadvertently routing traffic between the host-only adapter and your external Wi-Fi card.
+        </p>
+
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash — Inspect iptables Filtering Rules</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>sudo iptables -L -n -v</code></pre>
+          </div>
+        </div>
+
+        <!-- Discussion Thought Questions -->
+        <details class="thought-accordion">
+          <summary>Thought Question: Why must IP forwarding be disabled on the attack rig?</summary>
+          <div class="thought-accordion__content">
+            <p>
+              If <code>net.ipv4.ip_forward</code> is set to <code>1</code> and your Kali machine is dual-homed (e.g., connected to both the Internet via NAT/Bridged and to the vulnerable target via Host-Only), any malicious payload or worm on the target machine could theoretically route traffic through your Kali VM and reach your physical home or university LAN.
+            </p>
+            <p style="margin-top:0.5rem;font-family:var(--font-mono);color:var(--color-accent);">
+              Command to verify: <code>cat /proc/sys/net/ipv4/ip_forward</code> (must output 0).
+            </p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Interactive Quiz Section -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title">Lab 01 Self-Assessment Quiz</h2>
+          <span class="quiz-xp-badge" data-user-xp>0 XP</span>
+        </div>
+
+        <!-- Question 1: Multiple Choice -->
+        <div class="quiz-card" data-question-id="lab01-q1" data-xp="10">
+          <div class="quiz-question">
+            Q1: Why is a "Host-Only" virtual network adapter strictly mandated for ethical hacking lab courses rather than a "Bridged" adapter?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Bridged adapters are actually very fast, but speed is not the primary safety concern.">
+              A) Bridged adapters have lower bandwidth limits and cannot process Nmap SYN scans.
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct! Host-only adapters isolate targets from the physical LAN, preventing dangerous exploits from impacting external production machines or triggering IDS alarms.">
+              B) Host-only creates an isolated software switch preventing exploit traffic from leaking onto the physical network.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Linux supports full root privileges on any network adapter type.">
+              C) Kali Linux requires host-only mode to enable root privileges on network interfaces.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="DHCP works across NAT, bridged, and host-only networks.">
+              D) VirtualBox does not allow DHCP service on bridged network interfaces.
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Question 2: Terminal Command Challenge -->
+        <div class="quiz-card" data-question-id="lab01-q2" data-xp="15"
+             data-expected-regex="^(sudo\s+)?iptables\s+-L(\s+(-n|-v|-vn|-nv))*"
+             data-solution-rationale="Exact iptables rule inspection verified."
+             data-hint="Enter the standard Linux command to list all iptables rules with numeric ports (e.g. iptables -L -n -v).">
+          <div class="quiz-question">
+            Q2 [Terminal Challenge]: Type the Linux CLI command used to list all active iptables firewall chains with verbose output and numeric IP formatting:
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali-lab:~# enter command..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+    </main>
+
+    <!-- On this page TOC Sidebar -->
+    <aside class="toc-sidebar">
+      <div class="toc-label">On this page</div>
+      <nav class="toc-nav" id="toc-nav" aria-label="Table of contents"></nav>
+    </aside>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
