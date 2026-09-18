@@ -14,6 +14,7 @@ This skill defines the complete lifecycle for building a new laboratory module f
 
 ## 🎯 Core Pedagogical Requirements
 
+All authoring must strictly comply with the [Anti-Cognitive Overload Skill](../anti-cognitive-overload/SKILL.md):
 1. **Visual Over Verbiage**:
    - Limit introductory theory to 1–2 sentences maximum.
    - Convey concepts using **Comparison Cards** (`.comparison-card`), **Vector SVG Diagrams**, **Threat Matrices**, and **DevTools/Terminal Mockups**.
@@ -27,6 +28,9 @@ This skill defines the complete lifecycle for building a new laboratory module f
    - Compatible with `[ 🖥️ Projector View ]` (18px+ font, clean outlines) and Dark/Light mode toggles.
 4. **No Gamification Bloat**:
    - Do NOT add points, XP badges, or score meters.
+5. **Cognitive Load Audit**:
+   - Every lab must pass the 6-point Cognitive Load Audit checklist prior to deployment.
+
 
 ---
 

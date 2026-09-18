@@ -52,6 +52,28 @@ The user's core pedagogical philosophy:
 
 ---
 
+## 🧠 Cognitive Load Control & Anti-Overwhelm Protocol (Strictly to the Point & Fruitful)
+
+To keep students engaged, energized, and actively learning without fatigue, every piece of course content must pass this filter:
+
+### ❌ Prohibited Fatigue Drivers (Never Do These):
+1. **No Text Walls / Lecture Dumps**: Any section with more than 3 consecutive sentences of prose without a visual anchor (card, diagram, or code snippet) is prohibited.
+2. **No Historical / Academic Monologues**: Skip the history of RFCs, IEEE committee backstories, and textbook-style essays. Jump immediately to what the attacker/defender does today.
+3. **No Abstract Theories Without Concrete Commands**: Never mention a protocol, header, or vulnerability without providing the exact terminal command or tool to observe or exploit it.
+4. **No Unanchored Terminology**: Do not introduce obscure edge-case terminology that is not directly used in the practical exercises.
+5. **No Blind Roadblocks**: Never provide commands that could fail without a 1-line troubleshooting hint.
+
+### ✅ Fruitful & To-The-Point Rules (The Lab 01 Standard):
+1. **1–2 Sentence Theoretical Cap**: Introduce the core concept in 1 or 2 high-impact sentences maximum.
+2. **Side-by-Side Visual Chunking**: Use `.comparison-grid` to contrast concepts (e.g. Active vs. Passive, TCP vs. UDP, GET vs. POST, VA vs. Pentest).
+3. **Visual Meters & Gauges**: Use percentage meters (e.g. 0% Malice to 100% Critical, 0% to 100% Box Transparency) to give students an instant intuitive mental model.
+4. **Actionable Primitives**: Every section must culminate in a concrete tool or command (`curl`, `nmap`, `wireshark`, `nc`, `burp`).
+5. **Active Recall Challenges**: Quizzes must include real terminal input challenges that test syntax and command fluency, not just passive multiple-choice.
+6. **Troubleshooting Accordions**: Use `<details class="thought-accordion">` for "Why this matters" or "If this command fails..." so additional detail is available on demand without cluttering the main visual path.
+
+
+---
+
 ## 🏗️ Architecture & Path Standards
 
 1. **Zero External Build Steps**:
