@@ -2,6 +2,8 @@
 
 A static, high-performance web platform designed for 4th-year university students in **Ethical Hacking & Penetration Testing (CCY4202)**. Hosted on GitHub Pages, this platform replaces legacy PDF lab distribution with an interactive, accessible, and hacker-HUD-styled digital workspace.
 
+🌐 **Live Portal**: [https://salah-wahsh.github.io/EH-AAST/](https://salah-wahsh.github.io/EH-AAST/)
+
 Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
 
 ---
@@ -19,7 +21,7 @@ Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
    - All accessibility states persist automatically in `localStorage`.
 
 3. **Curriculum & Laboratory Modules**:
-   - **Module 01**: Course Intro & Fundamentals ([Lab 01: Linux & Virtual Pentest Lab Setup](labs/lab01.html))
+   - **Module 01**: [Lab 01: Security Concepts & Web Prerequisites](labs/lab01.html)
 
 4. **Interactive Learning & Assessment Engine**:
    - Interactive prerequisites checklists that remember completed steps across sessions.
@@ -29,27 +31,12 @@ Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
 
 ---
 
-## 🚀 Running Locally or Deploying to GitHub Pages
+## 🚀 Deployment to GitHub Pages
 
-### Zero-Config Local Preview
-No Node.js or build steps required. Simply open `index.html` in any modern web browser or run any static HTTP server:
+This repository automatically publishes to GitHub Pages via `.github/workflows/deploy.yml` on every push to `main`:
 
-```bash
-# Python 3
-python3 -m http.server 8000
-
-# or Node npx
-npx serve .
-```
-
-Open `http://localhost:8000` in your browser.
-
-### GitHub Pages Deployment
-1. Push this repository to GitHub.
-2. Go to **Settings** &rarr; **Pages**.
-3. Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-4. Select `master` (or `main`) and root `/` directory.
-5. Your course portal will be live at `https://<username>.github.io/<repo>/`!
+- **Live URL**: [https://salah-wahsh.github.io/EH-AAST/](https://salah-wahsh.github.io/EH-AAST/)
+- **Workflow**: Automated `actions/deploy-pages@v4` with zero build-step overhead.
 
 ---
 
