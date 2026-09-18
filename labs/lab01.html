@@ -78,293 +78,648 @@
       <!-- Section 1 -->
       <section>
         <h2>1. Fundamental Security Concepts</h2>
-
-        <h3>What is Ethical Hacking &amp; Penetration Testing?</h3>
-        <p>
-          <strong>Ethical hacking</strong> (also known as white-hat hacking) is the authorized simulation of cyberattacks against systems, networks, or applications to discover and remediate security vulnerabilities before malicious actors can exploit them [1-4].
+        <p class="lab-lead">
+          <strong>Ethical Hacking</strong> is the authorized simulation of cyberattacks to discover and remediate security vulnerabilities before malicious threat actors can exploit them.
         </p>
 
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
-          <div class="callout callout--tip">
-            <span class="callout__icon">📋</span>
-            <div class="callout__content">
-              <div class="callout__title">Vulnerability Assessment</div>
-              <p>A non-intrusive evaluation aimed at identifying, listing, and prioritizing weaknesses across assets without executing full exploitation [1, 5, 6].</p>
+        <!-- Visual Comparison: VA vs Pentest -->
+        <div class="comparison-grid">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">
+                <span class="comparison-icon">📋</span> Vulnerability Assessment
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">BREADTH-FIRST</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> Comprehensive catalog of all potential flaws.</li>
+              <li><span class="comparison-icon">⚙️</span> <strong>Method:</strong> Automated, non-intrusive scanning (Nessus, OpenVAS).</li>
+              <li><span class="comparison-icon">🛡️</span> <strong>Exploitation:</strong> <em>None</em> — Weaknesses are flagged, not weaponized.</li>
+              <li><span class="comparison-icon">📊</span> <strong>Output:</strong> Prioritized risk matrix and CVE score list.</li>
+              <li><span class="comparison-icon">⚡</span> <strong>System Risk:</strong> Zero downtime, safe for live production.</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">
+                <span class="comparison-icon">🎯</span> Penetration Test
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.4);">DEPTH-FIRST</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> Prove real-world business impact and compromise depth.</li>
+              <li><span class="comparison-icon">⚙️</span> <strong>Method:</strong> Active simulation of adversarial tactics &amp; custom payloads.</li>
+              <li><span class="comparison-icon">💥</span> <strong>Exploitation:</strong> <em>Active</em> — Weaponizes flaws to establish footholds.</li>
+              <li><span class="comparison-icon">📊</span> <strong>Output:</strong> Proof-of-concept shells, compromised data &amp; remediation roadmap.</li>
+              <li><span class="comparison-icon">⚡</span> <strong>System Risk:</strong> Controlled risk; requires formal Rules of Engagement.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Threat Actor Matrix -->
+        <h3>Threat Actor Taxonomy</h3>
+        <p>Hacking intent and legal authorization separate threat actors across a spectrum of risk:</p>
+        
+        <div class="threat-grid">
+          <!-- White Hat -->
+          <div class="threat-card" style="border-top:3px solid var(--color-accent);">
+            <div class="threat-card__header">
+              <span class="threat-card__icon">🛡️</span>
+              <div>
+                <h4 class="threat-card__title">White Hat</h4>
+                <span class="threat-card__subtitle">Ethical Hacker</span>
+              </div>
+            </div>
+            <div style="font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <div><strong>Auth:</strong> Explicit Written Contract</div>
+              <div><strong>Goal:</strong> Defense, Hardening, Compliance</div>
+              <div><strong>Methods:</strong> Responsible Disclosure</div>
+            </div>
+            <div class="threat-card__meter">
+              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);font-family:var(--font-mono);">
+                <span>Malice Index</span>
+                <span style="color:var(--color-accent);">0% (BENIGN)</span>
+              </div>
+              <div class="threat-meter-bar">
+                <div class="threat-meter-fill" style="width:5%;background:var(--color-accent);"></div>
+              </div>
             </div>
           </div>
-          <div class="callout callout--danger">
-            <span class="callout__icon">🎯</span>
-            <div class="callout__content">
-              <div class="callout__title">Penetration Test</div>
-              <p>An active engagement that goes beyond identification to simulate real-world attack vectors, attempting to exploit identified vulnerabilities to determine actual business impact and depth of compromise [1, 6, 7].</p>
+
+          <!-- Gray Hat -->
+          <div class="threat-card" style="border-top:3px solid var(--color-warn);">
+            <div class="threat-card__header">
+              <span class="threat-card__icon">⚖️</span>
+              <div>
+                <h4 class="threat-card__title">Gray Hat</h4>
+                <span class="threat-card__subtitle">Ambiguous Hacker</span>
+              </div>
+            </div>
+            <div style="font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <div><strong>Auth:</strong> None / Unsolicited</div>
+              <div><strong>Goal:</strong> Recognition, Bounties, Curiosity</div>
+              <div><strong>Methods:</strong> Tests without consent, then reports</div>
+            </div>
+            <div class="threat-card__meter">
+              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);font-family:var(--font-mono);">
+                <span>Malice Index</span>
+                <span style="color:var(--color-warn);">50% (PERILOUS)</span>
+              </div>
+              <div class="threat-meter-bar">
+                <div class="threat-meter-fill" style="width:50%;background:var(--color-warn);"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Black Hat -->
+          <div class="threat-card" style="border-top:3px solid var(--color-danger);">
+            <div class="threat-card__header">
+              <span class="threat-card__icon">☠️</span>
+              <div>
+                <h4 class="threat-card__title">Black Hat</h4>
+                <span class="threat-card__subtitle">Hostile Threat Actor</span>
+              </div>
+            </div>
+            <div style="font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <div><strong>Auth:</strong> Zero (Illegal Breach)</div>
+              <div><strong>Goal:</strong> Financial extortion, Espionage, Destruction</div>
+              <div><strong>Methods:</strong> Zero-days, Ransomware, Exfiltration</div>
+            </div>
+            <div class="threat-card__meter">
+              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);font-family:var(--font-mono);">
+                <span>Malice Index</span>
+                <span style="color:var(--color-danger);">100% (CRITICAL)</span>
+              </div>
+              <div class="threat-meter-bar">
+                <div class="threat-meter-fill" style="width:100%;background:var(--color-danger);"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Script Kiddie -->
+          <div class="threat-card" style="border-top:3px solid var(--color-cyan);">
+            <div class="threat-card__header">
+              <span class="threat-card__icon">👶</span>
+              <div>
+                <h4 class="threat-card__title">Script Kiddie</h4>
+                <span class="threat-card__subtitle">Amateur Attacker</span>
+              </div>
+            </div>
+            <div style="font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <div><strong>Auth:</strong> None</div>
+              <div><strong>Goal:</strong> Thrills, Vandalism, Ego, Griefing</div>
+              <div><strong>Methods:</strong> Point-and-click GUI automated tools</div>
+            </div>
+            <div class="threat-card__meter">
+              <div style="display:flex;justify-content:space-between;font-size:var(--font-size-xs);font-family:var(--font-mono);">
+                <span>Malice Index</span>
+                <span style="color:var(--color-cyan);">75% (CHAOTIC)</span>
+              </div>
+              <div class="threat-meter-bar">
+                <div class="threat-meter-fill" style="width:75%;background:var(--color-cyan);"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        <h3>Categories of Threat Actors</h3>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong style="color:var(--color-accent);">• White Hat (Ethical Hacker):</strong> Authorized security professionals hired by an organization to test defenses, respect legal boundaries, and responsibly disclose findings [1, 8-10].</li>
-          <li><strong style="color:var(--color-danger);">• Black Hat (Malicious Hacker / Cracker):</strong> Unauthorized individuals who exploit vulnerabilities for illegal personal gain, damage, or extortion [1, 9, 10].</li>
-          <li><strong style="color:var(--color-warn);">• Gray Hat:</strong> Individuals who operate in a gray area—hacking without prior authorization but disclosing findings without malicious intent, often seeking bug bounties [1, 9, 10].</li>
-          <li><strong style="color:var(--color-cyan);">• Script Kiddie:</strong> Unskilled attackers who rely on pre-made graphical tools, exploits, and scripts created by others without understanding the underlying code or network mechanics [1, 11].</li>
-        </ul>
+        <!-- Testing Methodology Models -->
+        <h3>Target Visibility: The 3 Box Models</h3>
+        <p>Assessments differ fundamentally by how much internal architecture is disclosed upfront:</p>
 
-        <h3>Penetration Testing Methodologies &amp; Categories</h3>
-        <p>Penetration tests are categorized by the level of initial target knowledge provided to the auditor:</p>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);margin:var(--space-4) 0;">
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-            <li><strong>Black Box:</strong> The tester receives zero prior knowledge of the internal architecture or infrastructure (emulating an external, untrusted attacker) [1, 12, 13].</li>
-            <li><strong>White Box:</strong> Full structural details, source code, network diagrams, and configurations are provided for a comprehensive security audit [1, 14, 15].</li>
-            <li><strong>Gray Box:</strong> Partial target information is provided (such as low-level user credentials or web server architecture) to guide test efficiency [1, 15, 16].</li>
-          </ul>
+        <div class="methodology-grid">
+          <div class="methodology-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="color:var(--color-text-primary);">⬛ Black Box</strong>
+              <span class="comparison-badge">Zero Knowledge</span>
+            </div>
+            <div>
+              <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);display:flex;justify-content:space-between;">
+                <span>Target Transparency</span>
+                <span>0%</span>
+              </div>
+              <div class="transparency-bar"><div class="transparency-fill" style="width:0%;"></div></div>
+            </div>
+            <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <li><strong>Perspective:</strong> External internet attacker</li>
+              <li><strong>Tester Given:</strong> Target domain or IP range only</li>
+              <li><strong>Simulation:</strong> Maximum real-world adversary accuracy</li>
+            </ul>
+          </div>
+
+          <div class="methodology-card" style="border-color:var(--color-accent-border);">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="color:var(--color-accent);">🔲 Gray Box</strong>
+              <span class="comparison-badge" style="color:var(--color-accent);border-color:var(--color-accent-border);">Industry Standard</span>
+            </div>
+            <div>
+              <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);display:flex;justify-content:space-between;">
+                <span>Target Transparency</span>
+                <span>50%</span>
+              </div>
+              <div class="transparency-bar"><div class="transparency-fill" style="width:50%;"></div></div>
+            </div>
+            <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <li><strong>Perspective:</strong> Malicious insider or compromised account</li>
+              <li><strong>Tester Given:</strong> Low-privilege user credentials &amp; network diagram</li>
+              <li><strong>Simulation:</strong> Best balance of depth, time &amp; budget efficiency</li>
+            </ul>
+          </div>
+
+          <div class="methodology-card">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <strong style="color:var(--color-cyan);">⬜ White Box</strong>
+              <span class="comparison-badge">Full Disclosure</span>
+            </div>
+            <div>
+              <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);display:flex;justify-content:space-between;">
+                <span>Target Transparency</span>
+                <span>100%</span>
+              </div>
+              <div class="transparency-bar"><div class="transparency-fill" style="width:100%;"></div></div>
+            </div>
+            <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
+              <li><strong>Perspective:</strong> Security architect &amp; lead auditor</li>
+              <li><strong>Tester Given:</strong> Full source code, API docs, root configs</li>
+              <li><strong>Simulation:</strong> Deepest audit with 100% code path coverage</li>
+            </ul>
+          </div>
         </div>
 
-        <h4>Common Penetration Test Domains</h4>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>Network Penetration Testing:</strong> Auditing internal and external IP ranges, firewalls, routers, and network services [1, 17].</li>
-          <li><strong>Web Application Penetration Testing:</strong> Evaluating Layer 7 vulnerabilities such as SQL Injection, Cross-Site Scripting (XSS), and authentication flaws [1, 18].</li>
-          <li><strong>Mobile Application Penetration Testing:</strong> Assessing security controls on Android and iOS client applications [1, 18].</li>
-          <li><strong>Social Engineering Testing:</strong> Evaluating employee security awareness via simulated spear-phishing or credential harvesting [1, 19].</li>
-          <li><strong>Physical Penetration Testing:</strong> Testing physical access controls, badge readers, locks, and perimeter defenses [1, 19].</li>
-        </ol>
+        <!-- 5 Testing Domains Grid -->
+        <h3>The 5 Penetration Testing Domains</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:4px;">🌐</div>
+            <strong style="display:block;font-size:var(--font-size-sm);color:var(--color-text-primary);">Network</strong>
+            <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">Subnets, Routers, Firewalls, SMB/SSH</span>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:4px;">💻</div>
+            <strong style="display:block;font-size:var(--font-size-sm);color:var(--color-text-primary);">Web Applications</strong>
+            <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">OWASP Top 10, SQLi, XSS, REST APIs</span>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:4px;">📶</div>
+            <strong style="display:block;font-size:var(--font-size-sm);color:var(--color-text-primary);">Wireless</strong>
+            <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">WPA2/3 Handshakes, Rogue APs, Evil Twins</span>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:4px;">👥</div>
+            <strong style="display:block;font-size:var(--font-size-sm);color:var(--color-text-primary);">Social Engineering</strong>
+            <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">Spear Phishing, Vishing, Pretexting</span>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
+            <div style="font-size:1.75rem;margin-bottom:4px;">🏢</div>
+            <strong style="display:block;font-size:var(--font-size-sm);color:var(--color-text-primary);">Physical Security</strong>
+            <span style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">RFID Badges, Tailgating, Lock Bypasses</span>
+          </div>
+        </div>
       </section>
 
       <!-- Section 2 -->
       <section>
         <h2>2. Pre-Engagement &amp; Legal Rules of Engagement (RoE)</h2>
-        <p>
-          A penetration test cannot begin without legal, logistical, and technical framework agreements [7, 20]. Operating without formal authorization converts security testing into an illegal cybercrime [21, 22].
-        </p>
-
         <div class="callout callout--danger">
           <span class="callout__icon">⚖️</span>
           <div class="callout__content">
-            <div class="callout__title">The "Get Out of Jail Free" Card</div>
+            <div class="callout__title">MANDATORY RULE: The "Get Out of Jail Free" Card</div>
             <p>
-              Always demand a signed statement of work and written authorization letter from an authorized corporate executive before firing a single packet. If law enforcement or internal security staff question your presence, this document validates your legal engagement.
+              A penetration test without written executive authorization is a criminal felony. Never transmit an attack probe without a signed contract, explicit target scope, and mutual Non-Disclosure Agreement (NDA).
             </p>
           </div>
         </div>
 
-        <h3>Core Components of the Rules of Engagement (RoE) Document</h3>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>• Written Authorization &amp; Signed Letter:</strong> Formal, signed permission from authorized corporate executives granting explicit consent to perform security testing [23, 24].</li>
-          <li><strong>• Scope Definition:</strong> Precise listing of authorized target IP addresses, domain names, subnets, and applications alongside strictly prohibited out-of-scope targets [20, 23, 25].</li>
-          <li><strong>• Testing Windows &amp; Blackout Periods:</strong> Approved execution schedules (e.g., off-peak hours) and blackout times to avoid disrupting business-critical operations [24, 26].</li>
-          <li><strong>• Allowed vs. Disallowed Techniques:</strong> Explicit boundaries regarding destructive attacks, Denial-of-Service (DoS) testing, or social engineering pretexts [23, 26].</li>
-          <li><strong>• Non-Disclosure Agreements (NDAs):</strong> Strict legal protections ensuring that discovered vulnerabilities, customer data, and system configurations remain confidential [23, 27].</li>
-          <li><strong>• Emergency Escalation Contacts:</strong> Designated 24/7 technical contacts and clear "stop-testing" criteria if critical services fail or unapproved security incidents occur [24, 28, 29].</li>
-        </ul>
+        <!-- Scope & Guardrails Visual Grid -->
+        <div class="comparison-grid" style="margin-top:var(--space-4);">
+          <div class="comparison-card" style="border-top:3px solid var(--color-accent);">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title" style="color:var(--color-accent);">
+                <span>✅</span> In-Scope (Authorized)
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-accent);border-color:var(--color-accent-border);">EXPLICIT CONSENT</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span>🎯</span> <strong>Assigned Subnets:</strong> <code>192.168.56.0/24</code> (Host-Only Lab)</li>
+              <li><span>🌐</span> <strong>Authorized Staging:</strong> <code>*.staging.company.internal</code></li>
+              <li><span>🧪</span> <strong>Approved Methods:</strong> Service banner enumeration, authenticated web app fuzzing, vulnerability exploit validation.</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card" style="border-top:3px solid var(--color-danger);">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title" style="color:var(--color-danger);">
+                <span>⛔</span> Out-of-Scope (Forbidden)
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,68,68,0.4);">ZERO TOLERANCE</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span>💣</span> <strong>Destructive Attacks:</strong> Denial-of-Service (DoS/DDoS), bandwidth exhaustion.</li>
+              <li><span>🏢</span> <strong>Live Production Systems:</strong> Payment gateways, ERP servers, customer databases.</li>
+              <li><span>☁️</span> <strong>Third-Party Vendors:</strong> Cloud partners or external SaaS not covered under contract.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- RoE Operational Guardrails -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="font-size:var(--font-size-xs);font-family:var(--font-mono);color:var(--color-cyan);margin-bottom:2px;">⏱️ TESTING WINDOW</div>
+            <div style="font-size:var(--font-size-sm);font-weight:600;color:var(--color-text-primary);">Off-Peak Hours Only</div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">e.g., 20:00 - 06:00 to prevent business disruption</div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="font-size:var(--font-size-xs);font-family:var(--font-mono);color:var(--color-warn);margin-bottom:2px;">🚨 EMERGENCY ESCALATION</div>
+            <div style="font-size:var(--font-size-sm);font-weight:600;color:var(--color-text-primary);">24/7 Stop-Testing SPOC</div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Direct phone line to halt test instantly if outages occur</div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="font-size:var(--font-size-xs);font-family:var(--font-mono);color:var(--color-accent);margin-bottom:2px;">🔒 CONFIDENTIALITY (NDA)</div>
+            <div style="font-size:var(--font-size-sm);font-weight:600;color:var(--color-text-primary);">Encrypted Deliverables</div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-muted);">All discovered credentials and logs securely encrypted</div>
+          </div>
+        </div>
       </section>
 
       <!-- Section 3 -->
       <section>
         <h2>3. The 5 Core Phases of Penetration Testing</h2>
-        <p>
-          Ethical hackers follow structured, standardized methodologies such as <strong>NIST SP 800-115</strong>, <strong>PTES</strong>, <strong>OWASP</strong>, and <strong>OSSTMM</strong> [1, 30, 31]. Every assessment follows five primary phases:
-        </p>
+        <p>Standardized methodologies (NIST SP 800-115, PTES, OWASP) structure engagements into five sequential stages:</p>
 
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
-            </div>
-            <span class="terminal-window__title">ASCII Architecture — Penetration Testing Lifecycle</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
+        <!-- Visual Pipeline SVG Diagram -->
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>PIPELINE: Penetration Testing Lifecycle</span>
+            <span style="color:var(--color-accent);">NIST SP 800-115 / PTES</span>
           </div>
-          <div class="terminal-window__body">
-            <pre><code>┌─────────────────────────┐
-│ 1. Reconnaissance       │ ──► Gathering open-source intelligence &amp; target data
-└────────────┬────────────┘
-             │
-┌────────────▼────────────┐
-│ 2. Scanning &amp; Enum      │ ──► Port scanning, service versioning &amp; host discovery
-└────────────┬────────────┘
-             │
-┌────────────▼────────────┐
-│ 3. Gaining Access       │ ──► Weaponizing &amp; exploiting vulnerabilities
-└────────────┬────────────┘
-             │
-┌────────────▼────────────┐
-│ 4. Maintaining Access   │ ──► Establishing persistence &amp; pivoting through subnets
-└────────────┬────────────┘
-             │
-┌────────────▼────────────┐
-│ 5. Analysis &amp; Reporting │ ──► Clearing logs &amp; compiling technical/executive reports
-└─────────────────────────┘</code></pre>
-          </div>
+          <svg class="diagram-svg" viewBox="0 0 920 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="5 Phases of Penetration Testing Flowchart">
+            <defs>
+              <linearGradient id="phase-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="var(--color-cyan)" />
+                <stop offset="100%" stop-color="var(--color-accent)" />
+              </linearGradient>
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+            </defs>
+
+            <!-- Node 1: Recon -->
+            <g>
+              <rect x="5" y="15" width="150" height="85" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="5" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
+              <text x="80" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 01</text>
+              <text x="80" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🔍 Recon</text>
+              <text x="80" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">OSINT &amp; Intelligence</text>
+            </g>
+
+            <!-- Connector 1->2 -->
+            <path d="M 155 57 L 185 57" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- Node 2: Scanning -->
+            <g>
+              <rect x="195" y="15" width="150" height="85" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="195" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
+              <text x="270" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 02</text>
+              <text x="270" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📡 Scanning</text>
+              <text x="270" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Ports &amp; Services (Nmap)</text>
+            </g>
+
+            <!-- Connector 2->3 -->
+            <path d="M 345 57 L 375 57" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- Node 3: Vuln Analysis -->
+            <g>
+              <rect x="385" y="15" width="150" height="85" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="385" y="15" width="150" height="4" rx="2" fill="var(--color-warn)" />
+              <text x="460" y="42" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 03</text>
+              <text x="460" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">⚠️ Vuln Analysis</text>
+              <text x="460" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Identify CVE Flaws</text>
+            </g>
+
+            <!-- Connector 3->4 -->
+            <path d="M 535 57 L 565 57" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- Node 4: Exploitation -->
+            <g>
+              <rect x="575" y="15" width="150" height="85" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="575" y="15" width="150" height="4" rx="2" fill="var(--color-danger)" />
+              <text x="650" y="42" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 04</text>
+              <text x="650" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">💥 Exploitation</text>
+              <text x="650" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Initial Foothold &amp; PoC</text>
+            </g>
+
+            <!-- Connector 4->5 -->
+            <path d="M 725 57 L 755 57" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow)" />
+
+            <!-- Node 5: Reporting -->
+            <g>
+              <rect x="765" y="15" width="150" height="85" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="765" y="15" width="150" height="4" rx="2" fill="var(--color-accent)" />
+              <text x="840" y="42" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 05</text>
+              <text x="840" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📝 Reporting</text>
+              <text x="840" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Remediation Roadmap</text>
+            </g>
+          </svg>
         </div>
 
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-6);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>Reconnaissance (Information Gathering):</strong> Collecting target intelligence using passive Open-Source Intelligence (OSINT) or stealthy active queries [1].</li>
-          <li><strong>Scanning &amp; Enumeration:</strong> Identifying live hosts, open TCP/UDP ports, operating systems, and specific running service versions [1].</li>
-          <li><strong>Gaining Access (Exploitation):</strong> Weaponizing identified weaknesses (e.g., buffer overflows, web vulnerabilities) to obtain an initial foothold on the target [1].</li>
-          <li><strong>Maintaining Access (Post-Exploitation):</strong> Installing persistent backdoors, escalating privileges to root/administrator, and pivoting to internal subnets [1].</li>
-          <li><strong>Analysis &amp; Reporting:</strong> Compiling an executive summary and detailed technical remediation roadmap for stakeholders [1].</li>
-        </ol>
+        <!-- 5 Phases Quick Summary Cards -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-3);margin-top:var(--space-4);">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 1–2: DISCOVERY</strong>
+            <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Map attack surface via OSINT, passive queries, and Nmap port scanning to identify open doors (ports 80, 443, 22).
+            </p>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 3–4: ATTACK</strong>
+            <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Correlate running software versions with known CVEs, craft weaponized payloads in Metasploit, and secure shell access.
+            </p>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 5: REMEDIATION</strong>
+            <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Erase artifacts and deliver clear CVSS risk ratings with actionable mitigation code to prevent black-hat breach.
+            </p>
+          </div>
+        </div>
       </section>
 
       <!-- Section 4 -->
       <section>
         <h2>4. Fundamental Network &amp; Web Prerequisites</h2>
 
-        <h3>Transport Layer Protocols: TCP vs. UDP</h3>
-        <p>
-          Operating at Layer 4 of the OSI model, transport protocols manage end-to-end communication between network processes [9]:
-        </p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-3);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li>
-            <strong style="color:var(--color-text-primary);">• Transmission Control Protocol (TCP):</strong> A connection-oriented, reliable protocol operating at Layer 4 [9]. TCP guarantees packet delivery using the <strong>TCP Three-Way Handshake</strong>:
-            <ol style="margin-left:var(--space-6);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
-              <li><strong>1. SYN:</strong> The client sends a TCP packet with the <code>SYN</code> flag set to synchronize sequence numbers [9].</li>
-              <li><strong>2. SYN/ACK:</strong> The server acknowledges the request by returning a packet with <code>SYN</code> and <code>ACK</code> flags set [9].</li>
-              <li><strong>3. ACK:</strong> The client responds with an <code>ACK</code> flag to establish an open connection [9].</li>
-            </ol>
-          </li>
-          <li>
-            <strong style="color:var(--color-text-primary);">• User Datagram Protocol (UDP):</strong> A connectionless, lightweight protocol that trades delivery verification for speed [9]. UDP does not perform a handshake (commonly used in DNS, streaming, and VoIP) [9, 14].
-          </li>
-        </ul>
+        <!-- Transport Protocols Visual Header -->
+        <h3>TCP 3-Way Handshake vs. UDP</h3>
+        <p>Layer 4 transport protocols manage reliable data channels between Kali and targets:</p>
 
-        <h3>Core Diagnostic Protocols</h3>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-4) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>• Internet Control Message Protocol (ICMP):</strong> Operates at Layer 3 (Network Layer) for network diagnostics and error reporting (e.g., <code>ping</code> echo requests and <code>traceroute</code> Time-To-Live hop tracking) [15, 16].</li>
-          <li><strong>• Domain Name System (DNS):</strong> Resolves human-readable hostnames (e.g., <code>target.com</code>) into numerical IP addresses [9, 17].</li>
-        </ul>
+        <!-- SVG Sequence Diagram: TCP Handshake -->
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>SEQUENCE: TCP Three-Way Handshake (RFC 793)</span>
+            <span style="color:var(--color-cyan);">Reliable Connection-Oriented Stream</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TCP 3-Way Handshake Sequence Diagram">
+            <defs>
+              <marker id="arrow-green" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+              <marker id="arrow-cyan" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
+              </marker>
+            </defs>
 
-        <h3>Web Fundamentals &amp; HTTP Headers</h3>
-        <p>
-          Web clients interact with servers using text-based <strong>HTTP protocols</strong> over TCP port 80 (or port 443 for encrypted HTTPS) [18].
-        </p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-3) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>• GET:</strong> Retrieves resources from the web server without modifying server state [21].</li>
-          <li><strong>• POST:</strong> Submits user data (e.g., form inputs, login credentials) within the HTTP request body [22].</li>
-        </ul>
+            <!-- Actors -->
+            <g>
+              <rect x="60" y="10" width="160" height="34" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+              <text x="140" y="32" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">💻 CLIENT (Kali)</text>
+              <line x1="140" y1="44" x2="140" y2="200" stroke="var(--color-border)" stroke-width="2" stroke-dasharray="4" />
+            </g>
 
-        <h4>Key HTTP Request Headers</h4>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
-            <thead>
-              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
-                <th style="padding:var(--space-3);width:180px;">Header Name</th>
-                <th style="padding:var(--space-3);">Technical Description &amp; Penetration Testing Significance</th>
-              </tr>
-            </thead>
-            <tbody style="color:var(--color-text-secondary);">
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Host</td>
-                <td style="padding:var(--space-3);">Identifies the target domain name (<code>e.g., target.com</code>). Vital for identifying virtual hosting environments [23, 24].</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">User-Agent</td>
-                <td style="padding:var(--space-3);">Discloses client browser and operating system details. Used for fingerprinting or bypassing filters [23].</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Cookie</td>
-                <td style="padding:var(--space-3);">Transmits session identifiers (<code>e.g., PHPSESSID=...</code>) for user authentication [23].</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Authorization</td>
-                <td style="padding:var(--space-3);">Sends credentials for HTTP Basic Authentication as a Base64-encoded string (<code>e.g., Basic YWRtaW46...</code>) [21, 24].</td>
-              </tr>
-              <tr>
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Referer</td>
-                <td style="padding:var(--space-3);">Discloses the previous web page URL from which the request originated [23, 24].</td>
-              </tr>
-            </tbody>
-          </table>
+            <g>
+              <rect x="540" y="10" width="160" height="34" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+              <text x="620" y="32" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">🎯 TARGET (Web Server)</text>
+              <line x1="620" y1="44" x2="620" y2="200" stroke="var(--color-border)" stroke-width="2" stroke-dasharray="4" />
+            </g>
+
+            <!-- Step 1: SYN -->
+            <line x1="140" y1="70" x2="610" y2="95" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
+            <rect x="290" y="60" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
+            <text x="380" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. [SYN] Seq = 0</text>
+
+            <!-- Step 2: SYN-ACK -->
+            <line x1="620" y1="115" x2="150" y2="140" stroke="var(--color-cyan)" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
+            <rect x="250" y="110" width="260" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="1" />
+            <text x="380" y="126" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. [SYN-ACK] Seq = 0, Ack = 1</text>
+
+            <!-- Step 3: ACK -->
+            <line x1="140" y1="160" x2="610" y2="185" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
+            <rect x="290" y="155" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
+            <text x="380" y="171" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. [ACK] Ack = 1</text>
+          </svg>
         </div>
 
-        <h4>Key HTTP Response Headers</h4>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
-            <thead>
-              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
-                <th style="padding:var(--space-3);width:180px;">Header Name</th>
-                <th style="padding:var(--space-3);">Technical Description &amp; Penetration Testing Significance</th>
-              </tr>
-            </thead>
-            <tbody style="color:var(--color-text-secondary);">
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Server</td>
-                <td style="padding:var(--space-3);">Discloses web server software and version (<code>e.g., Apache/2.2.14</code> or <code>Microsoft-IIS/7.5</code>). Targets for banner grabbing [27].</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Set-Cookie</td>
-                <td style="padding:var(--space-3);">Issues new session identifiers to the browser. Checked for missing security flags like <code>HttpOnly</code> or <code>Secure</code> [29].</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">X-Powered-By</td>
-                <td style="padding:var(--space-3);">Exposes underlying application frameworks (<code>e.g., PHP/5.3.2</code>, <code>ASP.NET</code>) [28].</td>
-              </tr>
-              <tr>
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-cyan);">Content-Type</td>
-                <td style="padding:var(--space-3);">Declares the MIME type of returned data (<code>e.g., text/html</code>, <code>application/json</code>) [28, 29].</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- Protocol Comparison Chips -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
+              <span style="font-size:1.25rem;">⚡</span>
+              <strong style="color:var(--color-accent);">TCP (Layer 4)</strong>
+            </div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Connection-oriented, 3-way handshake, guaranteed delivery, sequenced packets (HTTP, SSH, HTTPS).
+            </div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
+              <span style="font-size:1.25rem;">🚀</span>
+              <strong style="color:var(--color-cyan);">UDP (Layer 4)</strong>
+            </div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Connectionless, zero handshake, fire-and-forget, lightweight speed (DNS port 53, DHCP, VoIP).
+            </div>
+          </div>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
+            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
+              <span style="font-size:1.25rem;">📡</span>
+              <strong style="color:var(--color-warn);">ICMP (Layer 3)</strong>
+            </div>
+            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
+              Diagnostic error reporting and network reachability echo checks (<code>ping</code>, <code>traceroute</code>).
+            </div>
+          </div>
         </div>
 
-        <h4>Common HTTP Response Status Codes</h4>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);margin:var(--space-4) 0;">
-          <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-            <li><strong style="color:var(--color-accent);">200 OK:</strong> Request succeeded [29, 33].</li>
-            <li><strong style="color:var(--color-cyan);">302 Found / Moved Temporarily:</strong> Server redirects client to another resource [34, 35].</li>
-            <li><strong style="color:var(--color-warn);">401 Unauthorized:</strong> Authentication is required or invalid credentials were provided [33].</li>
-            <li><strong style="color:var(--color-warn);">403 Forbidden:</strong> Access is restricted regardless of authentication status.</li>
-            <li><strong style="color:var(--color-danger);">404 Not Found:</strong> The requested resource does not exist on the server.</li>
-            <li><strong style="color:var(--color-danger);">500 Internal Server Error:</strong> The web application encountered an unhandled exception [36].</li>
-          </ul>
+        <!-- HTTP Anatomy & GET vs POST -->
+        <h3>Web Protocol Anatomy: GET vs. POST</h3>
+        
+        <div class="comparison-grid">
+          <div class="comparison-card">
+            <div class="comparison-card__header">
+              <span class="http-badge http-badge--get">HTTP GET</span>
+              <span class="comparison-badge">Read-Only Query</span>
+            </div>
+            <ul class="comparison-list">
+              <li><strong>Payload Location:</strong> Appended to URL as query parameters (<code>?user=admin&amp;id=1</code>).</li>
+              <li><strong>Visibility:</strong> Logged in browser history, proxy logs &amp; server access logs.</li>
+              <li><strong>Idempotent:</strong> Multiple identical requests produce the exact same server state.</li>
+              <li><strong>Cacheability:</strong> Cached by default by browsers and CDN edges.</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card">
+            <div class="comparison-card__header">
+              <span class="http-badge http-badge--post">HTTP POST</span>
+              <span class="comparison-badge">State Mutation</span>
+            </div>
+            <ul class="comparison-list">
+              <li><strong>Payload Location:</strong> Transmitted privately within the HTTP Request Body.</li>
+              <li><strong>Visibility:</strong> Hidden from browser URL bar and standard web server access logs.</li>
+              <li><strong>Non-Idempotent:</strong> Submitting twice executes two operations (e.g. 2 credit charges).</li>
+              <li><strong>Cacheability:</strong> Never cached by default.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- HTTP Header Cheat Cards -->
+        <h3>Critical HTTP Headers for Pentesters</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
+          <!-- Request Headers -->
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
+            <h4 style="margin:0 0 var(--space-3);color:var(--color-accent);font-size:var(--font-size-sm);font-family:var(--font-mono);">
+              REQUEST HEADERS (Client ➔ Server)
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-xs);">
+              <div><code style="color:var(--color-accent);">Host</code>: Target virtual host domain (Crucial for VHost routing).</div>
+              <div><code style="color:var(--color-accent);">User-Agent</code>: Browser fingerprint (Spoofable to bypass filters).</div>
+              <div><code style="color:var(--color-accent);">Cookie</code>: Session tokens (Target for session hijacking).</div>
+              <div><code style="color:var(--color-accent);">Authorization</code>: Base64 credentials for Basic HTTP Auth.</div>
+            </div>
+          </div>
+
+          <!-- Response Headers -->
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
+            <h4 style="margin:0 0 var(--space-3);color:var(--color-cyan);font-size:var(--font-size-sm);font-family:var(--font-mono);">
+              RESPONSE HEADERS (Server ➔ Client)
+            </h4>
+            <div style="display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-xs);">
+              <div><code style="color:var(--color-cyan);">Server</code>: <strong>Banner Leak!</strong> Discloses web server software &amp; version.</div>
+              <div><code style="color:var(--color-cyan);">Set-Cookie</code>: Assigns sessions; audit for missing <code>HttpOnly</code> &amp; <code>Secure</code>.</div>
+              <div><code style="color:var(--color-cyan);">X-Powered-By</code>: Discloses backend frameworks (e.g. PHP/5.3, Express).</div>
+              <div><code style="color:var(--color-cyan);">Location</code>: Redirection destination on 301/302 responses.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status Codes -->
+        <h3>HTTP Status Code Reference</h3>
+        <div class="status-badge-grid">
+          <div class="status-chip status-chip--2xx">
+            <span class="status-chip__code">200 OK</span>
+            <span class="status-chip__desc">Request Succeeded</span>
+          </div>
+          <div class="status-chip status-chip--3xx">
+            <span class="status-chip__code">302 Found</span>
+            <span class="status-chip__desc">Redirect (New URL)</span>
+          </div>
+          <div class="status-chip status-chip--4xx">
+            <span class="status-chip__code">401 Unauthorized</span>
+            <span class="status-chip__desc">Missing / Invalid Auth</span>
+          </div>
+          <div class="status-chip status-chip--4xx">
+            <span class="status-chip__code">403 Forbidden</span>
+            <span class="status-chip__desc">Access Denied by ACL</span>
+          </div>
+          <div class="status-chip status-chip--4xx">
+            <span class="status-chip__code">404 Not Found</span>
+            <span class="status-chip__desc">Resource Missing</span>
+          </div>
+          <div class="status-chip status-chip--5xx">
+            <span class="status-chip__code">500 Server Error</span>
+            <span class="status-chip__desc">Backend Crash / Flaw</span>
+          </div>
         </div>
       </section>
 
       <!-- Section 5 -->
       <section>
         <h2>5. Primary Toolset Overview</h2>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow-x:auto;margin:var(--space-4) 0;">
-          <table style="width:100%;border-collapse:collapse;font-size:var(--font-size-sm);text-align:left;">
-            <thead>
-              <tr style="background:var(--color-surface-hover);font-family:var(--font-mono);border-bottom:1px solid var(--color-border);">
-                <th style="padding:var(--space-3);">Tool Name</th>
-                <th style="padding:var(--space-3);">Core Purpose</th>
-                <th style="padding:var(--space-3);">Typical Penetration Testing Phase</th>
-              </tr>
-            </thead>
-            <tbody style="color:var(--color-text-secondary);">
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Kali Linux</td>
-                <td style="padding:var(--space-3);">Security-focused Linux distribution pre-loaded with penetration testing tools [37].</td>
-                <td style="padding:var(--space-3);">Base Operating System</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Nmap</td>
-                <td style="padding:var(--space-3);">Network discovery, open port scanning, service versioning, and OS fingerprinting [37].</td>
-                <td style="padding:var(--space-3);">Scanning &amp; Enumeration</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Wireshark</td>
-                <td style="padding:var(--space-3);">GUI packet analyzer for capturing and dissecting unencrypted protocol traffic [37].</td>
-                <td style="padding:var(--space-3);">Network Sniffing &amp; Traffic Analysis</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Burp Suite</td>
-                <td style="padding:var(--space-3);">Intercepting HTTP/HTTPS web proxy used to inspect, modify, and repeat web traffic [37].</td>
-                <td style="padding:var(--space-3);">Web Application Testing</td>
-              </tr>
-              <tr style="border-bottom:1px solid var(--color-border-subtle);">
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Metasploit</td>
-                <td style="padding:var(--space-3);">Modular exploitation framework for executing public exploits and generating payloads [37].</td>
-                <td style="padding:var(--space-3);">Exploitation &amp; Post-Exploitation</td>
-              </tr>
-              <tr>
-                <td style="padding:var(--space-3);font-family:var(--font-mono);font-weight:700;color:var(--color-accent);">Netcat (nc)</td>
-                <td style="padding:var(--space-3);">Universal networking utility for reading/writing raw TCP/UDP connections and banner grabbing [37, 40].</td>
-                <td style="padding:var(--space-3);">Reconnaissance &amp; Reverse Shells</td>
-              </tr>
-            </tbody>
-          </table>
+        <p>The essential arsenal used throughout CCY4202 laboratories:</p>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🐉 Kali Linux</strong>
+              <span class="comparison-badge" style="color:var(--color-accent);">Base Platform</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Debian-derived offensive security distribution with 600+ pre-installed security tools.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-accent);font-family:var(--font-mono);">cat /etc/os-release</code>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">📡 Nmap</strong>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Port Scanner</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Host discovery, port mapping, service banner detection &amp; OS fingerprinting.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-cyan);font-family:var(--font-mono);">nmap -sS -sV 192.168.56.101</code>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🦈 Wireshark</strong>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Packet Sniffer</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Deep packet inspection, protocol dissector &amp; unencrypted credential capture.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-cyan);font-family:var(--font-mono);">tcpdump -i eth0 -w dump.pcap</code>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🟠 Burp Suite</strong>
+              <span class="comparison-badge" style="color:var(--color-warn);">Web Proxy</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">HTTP/HTTPS interception proxy to inspect, tamper, and automate web application exploits.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-warn);font-family:var(--font-mono);">Proxy: 127.0.0.1:8080</code>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🎯 Metasploit</strong>
+              <span class="comparison-badge" style="color:var(--color-danger);">Exploit Engine</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Automated exploitation framework for launching payloads and reverse Meterpreter shells.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-danger);font-family:var(--font-mono);">msfconsole -q</code>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
+              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🐱 Netcat</strong>
+              <span class="comparison-badge" style="color:var(--color-accent);">Swiss Army Knife</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Arbitrary TCP/UDP raw read/write socket listener, port checker, and reverse shell handler.</p>
+            <code style="font-size:var(--font-size-xs);color:var(--color-accent);font-family:var(--font-mono);">nc -lvnp 4444</code>
+          </div>
         </div>
       </section>
 
@@ -372,191 +727,174 @@
       <section>
         <h2>6. Interactive Hands-on: Browser DevTools Guide</h2>
         <p>
-          Before moving to interception proxies like Burp Suite, penetration testers frequently use built-in browser <strong>Developer Tools (DevTools)</strong> to inspect client-side traffic, parameters, and cookies.
+          Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
         </p>
 
-        <h3>Opening DevTools</h3>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:var(--space-2);margin:var(--space-3) 0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>• Keyboard Shortcut:</strong> <code>F12</code> or <code>Ctrl + Shift + I</code> (Windows/Linux) | <code>Cmd + Option + I</code> (macOS)</li>
-          <li><strong>• Mouse Navigation:</strong> Right-click anywhere on a web page ➔ <strong>Inspect</strong></li>
-        </ul>
-
-        <h3>Essential Pre-Testing DevTools Settings</h3>
-        <p>Open the <strong>Network</strong> tab in DevTools and configure these two options:</p>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li><strong>Check "Disable cache":</strong> Forces the browser to fetch fresh responses from the server on every request.</li>
-          <li><strong>Check "Preserve log":</strong> Retains request logs across redirects (<code>302 Found</code>) and form submissions.</li>
-        </ol>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
+        <!-- DevTools Mockup UI -->
+        <div class="devtools-mock">
+          <div class="devtools-mock__bar">
+            <span class="devtools-mock__tab">Elements</span>
+            <span class="devtools-mock__tab">Console</span>
+            <span class="devtools-mock__tab devtools-mock__tab--active">Network</span>
+            <span class="devtools-mock__tab">Application</span>
+            <div style="margin-left:auto;display:flex;gap:var(--space-2);font-size:var(--font-size-xs);color:var(--color-text-muted);">
+              <span>☑ Disable Cache</span>
+              <span>☑ Preserve Log</span>
             </div>
-            <span class="terminal-window__title">DevTools — Network Control Bar Setup</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
           </div>
-          <div class="terminal-window__body">
-            <pre><code>[ Network Tab Control Bar ]
-  ☑ Disable cache    ☑ Preserve log    Filter: [ All | Fetch/XHR | Doc ]</code></pre>
+          <div class="devtools-mock__body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);">
+              <div>
+                <strong style="color:var(--color-accent);font-size:var(--font-size-xs);font-family:var(--font-mono);">STEP 1: NETWORK INSPECTION</strong>
+                <ol style="margin:var(--space-2) 0;padding-left:var(--space-4);font-size:var(--font-size-xs);color:var(--color-text-secondary);display:flex;flex-direction:column;gap:var(--space-1);">
+                  <li>Press <code>F12</code> ➔ open <strong>Network</strong> tab.</li>
+                  <li>Navigate to <code>https://httpbin.org/headers</code>.</li>
+                  <li>Click the <code>headers</code> request ➔ inspect <strong>Headers</strong>.</li>
+                  <li>Locate the <code>Server: gunicorn</code> banner disclosure!</li>
+                </ol>
+              </div>
+              <div>
+                <strong style="color:var(--color-cyan);font-size:var(--font-size-xs);font-family:var(--font-mono);">STEP 2: POST PAYLOAD INTERCEPTION</strong>
+                <ol style="margin:var(--space-2) 0;padding-left:var(--space-4);font-size:var(--font-size-xs);color:var(--color-text-secondary);display:flex;flex-direction:column;gap:var(--space-1);">
+                  <li>Navigate to <code>https://httpbin.org/forms/post</code>.</li>
+                  <li>Submit sample credentials in the form.</li>
+                  <li>Select the logged <code>/post</code> request ➔ open <strong>Payload</strong> tab.</li>
+                  <li>Notice data is sent in the HTTP body, invisible in the URL bar.</li>
+                </ol>
+              </div>
+            </div>
           </div>
         </div>
 
-        <h3>Guided Hands-On Exercises</h3>
-
-        <h4>Exercise 6.1: Inspecting HTTP GET Headers &amp; Server Banners</h4>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li>Open a new browser tab, launch DevTools (<code>F12</code>), and select the <strong>Network</strong> tab.</li>
-          <li>Navigate to <code>https://httpbin.org/headers</code> (or <code>https://example.com</code>).</li>
-          <li>Click the first logged request in the Network pane.</li>
-          <li>Inspect the <strong>Headers</strong> tab in the right-hand panel:
-            <ul style="margin-left:var(--space-4);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
-              <li><strong>General:</strong> Observe the <code>Request Method: GET</code> and <code>Status Code: 200 OK</code>.</li>
-              <li><strong>Response Headers:</strong> Locate the <code>Server</code> header (e.g., <code>Server: gunicorn/19.9.0</code> or <code>Apache/2.4</code>).</li>
-              <li><strong>Request Headers:</strong> Locate your browser's <code>User-Agent</code> string and target <code>Host</code>.</li>
-            </ul>
-          </li>
-        </ol>
-
-        <h4>Exercise 6.2: Intercepting POST Request Payloads</h4>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li>Navigate to <code>https://httpbin.org/forms/post</code>.</li>
-          <li>Ensure <strong>Preserve log</strong> is enabled in the Network tab.</li>
-          <li>Complete the sample pizza order form:
-            <ul style="margin-left:var(--space-4);margin-top:var(--space-1);display:flex;flex-direction:column;gap:var(--space-1);">
-              <li>Customer Name: <code>admin_tester</code></li>
-              <li>Telephone: <code>555-0199</code></li>
-              <li>Pizza Size: <code>Medium</code></li>
-            </ul>
-          </li>
-          <li>Click <strong>Submit Order</strong>.</li>
-          <li>In the Network log, select the resulting <code>/post</code> request and open the <strong>Payload</strong> (or <strong>Form Data</strong>) tab.</li>
-          <li>Compare how <code>POST</code> request parameters are transmitted inside the HTTP request body rather than visible in the URL query string.</li>
-        </ol>
-
-        <h4>Exercise 6.3: Inspecting &amp; Testing Session Cookies via Console</h4>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li>In DevTools, open the <strong>Application</strong> tab (Chrome) or <strong>Storage</strong> tab (Firefox).</li>
-          <li>Expand <strong>Cookies</strong> in the left sidebar and select the current domain.</li>
-          <li>Observe the security flags: <strong>HttpOnly</strong> and <strong>Secure</strong>.</li>
-          <li>Switch to the <strong>Console</strong> tab, type <code>document.cookie</code>, and press <code>Enter</code>.</li>
-        </ol>
-
-        <div class="callout callout--tip">
+        <!-- Cookie & Storage Security -->
+        <div class="callout callout--tip" style="margin-top:var(--space-4);">
           <span class="callout__icon">🛡️</span>
           <div class="callout__content">
-            <div class="callout__title">Security Insight: HttpOnly Flag</div>
-            <p>
-              If a cookie has the <code>HttpOnly</code> flag enabled, <code>document.cookie</code> cannot read it via client-side JavaScript, protecting the session token from Cross-Site Scripting (XSS) cookie theft!
+            <div class="callout__title">DevTools Console Security Check: The HttpOnly Flag</div>
+            <p style="margin:var(--space-1) 0;">
+              Open the <strong>Console</strong> tab and execute: <code>document.cookie</code>.
+            </p>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              If a session cookie has the <code>HttpOnly</code> attribute set by the server, JavaScript returns an empty string, neutralizing Cross-Site Scripting (XSS) cookie theft!
             </p>
           </div>
         </div>
 
-        <h4>Exercise 6.4: Exporting Intercepted Browser Requests to Terminal (cURL)</h4>
-        <ol style="margin-left:var(--space-6);margin-bottom:var(--space-4);display:flex;flex-direction:column;gap:var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-          <li>In the DevTools Network log, right-click any HTTP request.</li>
-          <li>Select <strong>Copy</strong> ➔ <strong>Copy as cURL (bash)</strong>.</li>
-          <li>Open a terminal in Kali Linux and paste the copied command.</li>
-          <li>Modify request parameters directly from the CLI command line:</li>
-        </ol>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
+        <!-- Request Replay: Copy as cURL -->
+        <div style="margin-top:var(--space-4);">
+          <h4 style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-primary);">
+            Request Replay: Browser to Terminal (cURL)
+          </h4>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Right-click any request in the DevTools Network log ➔ <strong>Copy</strong> ➔ <strong>Copy as cURL</strong> to replay and fuzz parameters directly from Kali:
+          </p>
+          <div class="terminal-window" style="margin:var(--space-2) 0;">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">bash — Replay POST Request</span>
+              <button type="button" class="terminal-copy-btn">Copy</button>
             </div>
-            <span class="terminal-window__title">bash — Replaying POST Request via cURL</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
-          </div>
-          <div class="terminal-window__body">
-            <pre><code>curl 'https://httpbin.org/post' \
-  -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64)' \
-  --data-raw 'custname=admin_tester&amp;size=medium'</code></pre>
+            <div class="terminal-window__body">
+              <pre><code>curl -X POST 'https://httpbin.org/post' \
+  -H 'Content-Type: application/x-www-form-urlencoded' \
+  --data-raw 'username=admin_tester&amp;action=auth'</code></pre>
+            </div>
           </div>
         </div>
       </section>
 
       <!-- Section 7 -->
       <section>
-        <h2>7. Classroom Discussion &amp; Self-Assessment Exercises</h2>
+        <h2>7. Classroom Discussion &amp; Hands-On Exercises</h2>
 
-        <h3>Exercise 7.1: Evaluating Scope &amp; Legal Boundaries</h3>
-        <p>
-          <strong>Scenario:</strong> During a gray-box penetration test for <em>Company A</em>, you uncover an unpatched vulnerability on <code>api.partner-vendor.com</code>, a third-party cloud service connected to Company A [41, 42].
-        </p>
-        <details class="thought-accordion">
-          <summary>Question: Are you authorized to execute an exploit against api.partner-vendor.com? Which document determines this?</summary>
-          <div class="thought-accordion__content">
-            <p>
-              <strong>Discussion Hint:</strong> Review the <em>Rules of Engagement (RoE)</em> and Scope definition [41, 42]. Even if systems interact, testing third-party targets without explicit written authorization from the third-party owner is illegal [42, 43].
-            </p>
+        <!-- Exercise 7.1 -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-warn);font-size:var(--font-size-sm);">Exercise 7.1: Scope Boundaries &amp; Cloud Dependencies</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">LEGAL CASE STUDY</span>
           </div>
-        </details>
-
-        <h3>Exercise 7.2: Base64 Authorization Decoding</h3>
-        <p>
-          <strong>Scenario:</strong> While sniffing unencrypted network traffic with Wireshark, you capture the following HTTP Basic Authentication header [21, 24]:
-        </p>
-        <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:var(--font-size-sm);color:var(--color-accent);margin:var(--space-3) 0;">
-          Authorization: Basic dGVhY2hpbmc6aGFja2luZzEyMw==
-        </div>
-        <p><strong>Task:</strong> Base64 decode this string to reveal the raw credentials:</p>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-3);">
+            <strong>Scenario:</strong> While assessing <em>Company A</em>, you identify an unpatched flaw on <code>api.partner-vendor.com</code>, a third-party SaaS dependency. Are you legally authorized to test it?
+          </p>
+          <details class="thought-accordion">
+            <summary>Discussion Resolution &amp; RoE Answer</summary>
+            <div class="thought-accordion__content">
+              <p>
+                <strong>NO!</strong> The target belongs to an uncontracted third-party. Even though Company A uses their API, executing exploits against third-party assets without explicit written authorization from that third-party constitutes an illegal cyberattack under international law.
+              </p>
             </div>
-            <span class="terminal-window__title">bash — Base64 Credential Decoding</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
-          </div>
-          <div class="terminal-window__body">
-            <pre><code>echo "dGVhY2hpbmc6aGFja2luZzEyMw==" | base64 -d</code></pre>
-          </div>
+          </details>
         </div>
 
-        <details class="thought-accordion">
-          <summary>Discussion Hint: Is Base64 an encryption algorithm?</summary>
-          <div class="thought-accordion__content">
-            <p>
-              <strong>No!</strong> Base64 is an encoding format, not encryption [21, 33]. It provides zero confidentiality. Anyone sniffing unencrypted HTTP traffic can instantly decode it with a single command to reveal the plaintext username and password (<code>teaching:hacking123</code>).
-            </p>
+        <!-- Exercise 7.2 -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-size:var(--font-size-sm);">Exercise 7.2: Base64 Sniffed Credential Decoding</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">SNIFFED AUTH HEADER</span>
           </div>
-        </details>
-
-        <h3>Exercise 7.3: Banner Grabbing via cURL</h3>
-        <p><strong>Task:</strong> Open your terminal and run a header-only request against a target:</p>
-
-        <div class="terminal-window">
-          <div class="terminal-window__header">
-            <div class="terminal-window__controls">
-              <span class="terminal-dot terminal-dot--red"></span>
-              <span class="terminal-dot terminal-dot--yellow"></span>
-              <span class="terminal-dot terminal-dot--green"></span>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            You captured an HTTP Basic Auth header: <code>Authorization: Basic dGVhY2hpbmc6aGFja2luZzEyMw==</code>. Decode it:
+          </p>
+          <div class="terminal-window" style="margin:var(--space-2) 0;">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">bash — Decode Base64 Token</span>
+              <button type="button" class="terminal-copy-btn">Copy</button>
             </div>
-            <span class="terminal-window__title">bash — Header Inspection via cURL</span>
-            <button type="button" class="terminal-copy-btn">Copy</button>
+            <div class="terminal-window__body">
+              <pre><code>echo "dGVhY2hpbmc6aGFja2luZzEyMw==" | base64 -d</code></pre>
+            </div>
           </div>
-          <div class="terminal-window__body">
-            <pre><code>curl -I http://example.com</code></pre>
-          </div>
+          <details class="thought-accordion">
+            <summary>Core Principle: Is Base64 an encryption algorithm?</summary>
+            <div class="thought-accordion__content">
+              <p>
+                <strong>No!</strong> Base64 is an encoding scheme, not encryption. It provides zero confidentiality. Any attacker intercepting cleartext HTTP can decode credentials in a fraction of a second (<code>teaching:hacking123</code>).
+              </p>
+            </div>
+          </details>
         </div>
 
-        <details class="thought-accordion">
-          <summary>Questions &amp; Analysis: Status Code &amp; Information Disclosure</summary>
-          <div class="thought-accordion__content">
-            <p>
-              <strong>1. HTTP Status Code:</strong> Returns <code>HTTP/1.1 200 OK</code>, confirming the web service is operational and reachable [33].<br />
-              <strong>2. Information Disclosure:</strong> The <code>Server</code> and <code>X-Powered-By</code> response headers disclose the exact web daemon software, operating system, and backend application version (e.g. Apache, Nginx, PHP). Attackers use these specific version strings to query CVE databases and locate matching exploit code [28, 29].
-            </p>
+        <!-- Exercise 7.3 -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-cyan);font-size:var(--font-size-sm);">Exercise 7.3: Banner Grabbing via cURL</strong>
+            <span class="comparison-badge" style="color:var(--color-cyan);">RECONNAISSANCE</span>
           </div>
-        </details>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Extract HTTP response banners without downloading web page bodies:
+          </p>
+          <div class="terminal-window" style="margin:var(--space-2) 0;">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">bash — Banner Grab</span>
+              <button type="button" class="terminal-copy-btn">Copy</button>
+            </div>
+            <div class="terminal-window__body">
+              <pre><code>curl -I http://example.com</code></pre>
+            </div>
+          </div>
+          <details class="thought-accordion">
+            <summary>Why is Server Banner leakage dangerous?</summary>
+            <div class="thought-accordion__content">
+              <p>
+                Disclosing web server versions (e.g. <code>Apache/2.2.14</code>) allows adversaries to query the CVE vulnerability database and execute targeted, off-the-shelf exploits in minutes.
+              </p>
+            </div>
+          </details>
+        </div>
       </section>
 
       <!-- Interactive Quiz Section -->
