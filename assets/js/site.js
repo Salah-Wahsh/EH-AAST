@@ -87,7 +87,8 @@
     { title: 'Command: base64 -d (Credential Decode)', desc: 'Decode Basic Auth tokens and sniffed base64 strings.', url: 'cheatsheets.html#encoding', tag: 'CheatSheet' },
     { title: 'Network Diagnostics & Layer Triage', desc: 'Systematic troubleshooting primitives (ip route, ip neigh, nc -zv, curl -I -v).', url: 'cheatsheets.html#network-triage', tag: 'CheatSheet' },
     { title: 'Network Layers (Hacker Model & Triage)', desc: "Offensive 5-layer stack (L7 to L1) and the 'Which Layer Broke?' systematic triage checklist.", url: 'labs/lab01.html#section-3', tag: 'Concept' },
-    { title: 'Ports Architecture (The Apartment Model)', desc: 'Demystifying IP vs. Port (0-65535), port ranges, and why hackers scan ports.', url: 'labs/lab01.html#section-3', tag: 'Concept' }
+    { title: 'Ports Architecture (The Apartment Model)', desc: 'Demystifying IP vs. Port (0-65535), port ranges, and why hackers scan ports.', url: 'labs/lab01.html#section-3', tag: 'Concept' },
+    { title: 'Web Request Lifecycle (Click to Response)', desc: 'From /etc/hosts & DNS to TCP handshake, Burp proxy, server execution, and DOM render.', url: 'labs/lab01.html#section-3', tag: 'Concept' }
   ];
 
   // --- Nav Template Generator ---

@@ -681,13 +681,128 @@
           </div>
         </div>
 
-        <div class="status-badge-grid">
+        <div class="status-badge-grid" style="margin-bottom:var(--space-5);">
           <div class="status-chip status-chip--2xx"><span class="status-chip__code">200 OK</span><span class="status-chip__desc">Success</span></div>
           <div class="status-chip status-chip--3xx"><span class="status-chip__code">302 Found</span><span class="status-chip__desc">Redirect</span></div>
           <div class="status-chip status-chip--4xx"><span class="status-chip__code">401 Auth</span><span class="status-chip__desc">Needs Login</span></div>
           <div class="status-chip status-chip--4xx"><span class="status-chip__code">403 Denied</span><span class="status-chip__desc">Forbidden / WAF</span></div>
           <div class="status-chip status-chip--4xx"><span class="status-chip__code">404 Missing</span><span class="status-chip__desc">Not Found</span></div>
           <div class="status-chip status-chip--5xx"><span class="status-chip__code">500 Error</span><span class="status-chip__desc">Backend Crash</span></div>
+        </div>
+
+        <!-- Subsection 3.5: The Web Request Lifecycle -->
+        <h3>3.5 The Web Request Lifecycle: From Click to Response</h3>
+        <p>What actually happens under the hood when a user clicks a link or submits a form? Here is the full lifecycle — and where ethical hackers intercept each hop:</p>
+
+        <!-- SVG Lifecycle Pipeline Diagram -->
+        <div class="diagram-card" style="margin:var(--space-3) 0 var(--space-4);">
+          <div class="diagram-card__title">
+            <span>PIPELINE: Complete Web Request Lifecycle</span>
+            <span style="color:var(--color-accent);">Client ➔ DNS ➔ TCP ➔ Server ➔ DOM</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 840 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Web Request Lifecycle Pipeline">
+            <defs>
+              <marker id="arrow-flow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+              <marker id="arrow-resp" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
+              </marker>
+            </defs>
+
+            <!-- 1. Click -->
+            <rect x="10" y="20" width="115" height="54" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="67" y="42" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. User Click</text>
+            <text x="67" y="58" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Event / URL input</text>
+
+            <line x1="125" y1="47" x2="148" y2="47" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-flow)" />
+
+            <!-- 2. DNS & Hosts -->
+            <rect x="150" y="20" width="125" height="54" rx="6" fill="var(--color-bg-alt)" stroke="#3b82f6" stroke-width="1.5" />
+            <text x="212" y="42" fill="#3b82f6" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. Hosts &amp; DNS</text>
+            <text x="212" y="58" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Resolve target IP</text>
+
+            <line x1="275" y1="47" x2="298" y2="47" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-flow)" />
+
+            <!-- 3. TCP Handshake -->
+            <rect x="300" y="20" width="125" height="54" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+            <text x="362" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. TCP Handshake</text>
+            <text x="362" y="58" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Port 80/443 Syn-Ack</text>
+
+            <line x1="425" y1="47" x2="448" y2="47" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-flow)" />
+
+            <!-- 4. HTTP Request (Burp) -->
+            <rect x="450" y="20" width="125" height="54" rx="6" fill="var(--color-bg-alt)" stroke="#ffb000" stroke-width="1.5" />
+            <text x="512" y="42" fill="#ffb000" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">4. HTTP Request</text>
+            <text x="512" y="58" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Headers, Cookies, Burp</text>
+
+            <line x1="575" y1="47" x2="598" y2="47" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-flow)" />
+
+            <!-- 5. Backend Server & DB -->
+            <rect x="600" y="20" width="125" height="54" rx="6" fill="var(--color-bg-alt)" stroke="#a855f7" stroke-width="1.5" />
+            <text x="662" y="42" fill="#a855f7" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">5. Server &amp; DB</text>
+            <text x="662" y="58" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Apache/PHP/MySQL</text>
+
+            <line x1="662" y1="74" x2="662" y2="105" stroke="var(--color-cyan)" stroke-width="2" />
+            <line x1="662" y1="105" x2="212" y2="105" stroke="var(--color-cyan)" stroke-width="2" />
+            <line x1="212" y1="105" x2="212" y2="120" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arrow-resp)" />
+
+            <!-- 6. Response & Render -->
+            <rect x="150" y="125" width="575" height="42" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="437" y="145" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">6. HTTP Response (200 OK) ➔ Browser Parses DOM, Executes JS &amp; Stores Cookies</text>
+            <text x="437" y="159" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Target for Stored/Reflected XSS execution and cookie theft</text>
+          </svg>
+        </div>
+
+        <!-- The 6-Step Hacker's Lifecycle Matrix -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:var(--space-3);margin-bottom:var(--space-4);">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid var(--color-accent);border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">1. USER CLICK &amp; /etc/hosts</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> Checks browser cache, then OS <code>/etc/hosts</code> file.<br>
+              <strong>Attacker:</strong> Local DNS override / phishing redirection.
+            </p>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid #3b82f6;border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:#3b82f6;font-family:var(--font-mono);font-size:var(--font-size-xs);">2. DNS QUERY (PORT 53)</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> Resolves <code>target.lab</code> to IP (<code>192.168.56.101</code>).<br>
+              <strong>Attacker:</strong> DNS Spoofing &amp; Cache Poisoning.
+            </p>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid var(--color-cyan);border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-xs);">3. TCP HANDSHAKE</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> <code>SYN ➔ SYN-ACK ➔ ACK</code> opens port 80/443 socket.<br>
+              <strong>Attacker:</strong> Port scanning (<code>-sS</code>), SYN floods, ARP MITM.
+            </p>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid #ffb000;border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:#ffb000;font-family:var(--font-mono);font-size:var(--font-size-xs);">4. HTTP REQUEST &amp; PROXY</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> Sends HTTP verb, headers, cookies, payload.<br>
+              <strong>Attacker:</strong> <strong>Burp Suite</strong> tampering &amp; payload injection.
+            </p>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid #a855f7;border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:#a855f7;font-family:var(--font-mono);font-size:var(--font-size-xs);">5. BACKEND APP &amp; DATABASE</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> Web server executes code and queries database.<br>
+              <strong>Attacker:</strong> SQL Injection (SQLi), SSRF, Remote Code Execution.
+            </p>
+          </div>
+
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-left:3px solid var(--color-accent);border-radius:var(--radius-md);padding:var(--space-3);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">6. RESPONSE &amp; DOM RENDER</strong>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
+              <strong>System:</strong> Returns HTTP 200 OK + HTML/JS body to browser.<br>
+              <strong>Attacker:</strong> Reflected/Stored XSS execution &amp; cookie theft.
+            </p>
+          </div>
         </div>
       </section>
 
