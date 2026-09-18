@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab XX: [Lab Title] — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="labXX">
+  <!-- Dynamic Header Navigation Injected by site.js -->
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <!-- Collapsible Sidebar Module Tree Injected by lab-common.js -->
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <!-- Main Lab Content Pane -->
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module XX</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab XX</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 45 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab XX: [Lab Title]</h1>
+        <p class="lab-header__lead">
+          [1-2 sentence lead description summarizing the hands-on objective and tools used in this laboratory.]
+        </p>
+      </header>
+
+      <!-- Prerequisites Checklist -->
+      <section class="checklist-card">
+        <div class="checklist-card__header">
+          <div class="checklist-card__title">
+            <span>📋</span> Lab Readiness Checklist
+          </div>
+          <div class="checklist-card__progress">0 / 3 Completed</div>
+        </div>
+        <ul class="checklist-items">
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-xx-1" />
+            <label for="chk-xx-1"><span>Kali Linux VM or sandbox attack rig initialized and reachable.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-xx-2" />
+            <label for="chk-xx-2"><span>Target sandbox container or machine running on local host-only subnet.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-xx-3" />
+            <label for="chk-xx-3"><span>Required security tool installed and verified in terminal.</span></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 1: Visual Comparison -->
+      <section>
+        <h2>1. [Key Concept Visual Breakdown]</h2>
+        <p class="lab-lead">
+          [1-sentence brief introduction to the core methodology.]
+        </p>
+
+        <!-- Visual Comparison Grid -->
+        <div class="comparison-grid">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">
+                <span class="comparison-icon">🛡️</span> [Method A / Defensive / Standard]
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">PASSIVE / STANDARD</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> [Key objective]</li>
+              <li><span class="comparison-icon">⚙️</span> <strong>Mechanism:</strong> [How it functions under the hood]</li>
+              <li><span class="comparison-icon">📊</span> <strong>Output:</strong> [Deliverable / result]</li>
+              <li><span class="comparison-icon">⚡</span> <strong>Detection Risk:</strong> Low footprint.</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">
+                <span class="comparison-icon">⚔️</span> [Method B / Offensive / Stealth]
+              </h3>
+              <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.4);">ACTIVE / ADVERSARIAL</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> [Key objective]</li>
+              <li><span class="comparison-icon">⚙️</span> <strong>Mechanism:</strong> [How it functions under the hood]</li>
+              <li><span class="comparison-icon">💥</span> <strong>Impact:</strong> [Direct impact on target]</li>
+              <li><span class="comparison-icon">⚡</span> <strong>Detection Risk:</strong> High noise if unmitigated.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Visual Workflow / SVG Diagram -->
+      <section>
+        <h2>2. [Attack / Defense Lifecycle Diagram]</h2>
+        <div class="diagram-card">
+          <div class="diagram-card__header">
+            <div class="diagram-card__title">
+              <span>📊</span> [Workflow Title]
+            </div>
+            <span class="diagram-card__tag">Architecture Flow</span>
+          </div>
+          <!-- Self-contained responsive SVG -->
+          <svg class="diagram-svg" viewBox="0 0 900 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Workflow Diagram">
+            <!-- SVG content here using var(--color-accent), var(--color-cyan), var(--color-surface) -->
+          </svg>
+        </div>
+      </section>
+
+      <!-- Section 3: Hands-on Terminal Exercise -->
+      <section>
+        <h2>3. Hands-On Execution</h2>
+        <div class="exercise-card">
+          <div class="exercise-card__header">
+            <span class="exercise-tag">EXERCISE 1</span>
+            <h3>[Task Title]</h3>
+          </div>
+          <p>[Direct instruction of what the student will execute.]</p>
+          
+          <div class="terminal-block">
+            <div class="terminal-block__header">
+              <span class="terminal-dot red"></span>
+              <span class="terminal-dot yellow"></span>
+              <span class="terminal-dot green"></span>
+              <span class="terminal-title">bash — root@kali-lab:~</span>
+            </div>
+            <div class="code-block-wrapper">
+              <pre><code># [Command description]
+[sample-command] --option target.local</code></pre>
+              <button class="code-copy-btn" aria-label="Copy code">Copy</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Interactive Knowledge Verification Quiz -->
+      <section>
+        <h2>4. Interactive Knowledge Verification</h2>
+        <div class="quiz-container">
+          <!-- Question 1: Multiple Choice -->
+          <div class="quiz-card" data-question-id="q-xx-1">
+            <div class="quiz-header">
+              <span class="quiz-badge">QUESTION 1</span>
+              <div class="quiz-title">[Question scenario description]</div>
+            </div>
+            <div class="quiz-options">
+              <button class="quiz-option" data-correct="false" data-feedback="[Why this is incorrect]">
+                <span class="quiz-option__letter">A</span>
+                <span>[Distractor answer option]</span>
+              </button>
+              <button class="quiz-option" data-correct="true" data-feedback="[Why this is correct]">
+                <span class="quiz-option__letter">B</span>
+                <span>[Correct answer option]</span>
+              </button>
+              <button class="quiz-option" data-correct="false" data-feedback="[Why this is incorrect]">
+                <span class="quiz-option__letter">C</span>
+                <span>[Distractor answer option]</span>
+              </button>
+            </div>
+            <div class="quiz-feedback" aria-live="polite"></div>
+          </div>
+
+          <!-- Question 2: Terminal Challenge -->
+          <div class="quiz-card" data-question-id="q-xx-2">
+            <div class="quiz-header">
+              <span class="quiz-badge">CHALLENGE 2</span>
+              <div class="quiz-title">[Command construction challenge]</div>
+            </div>
+            <div class="quiz-body">
+              <p>[Prompt asking student to type exact command.]</p>
+              <div class="quiz-input-group">
+                <span class="quiz-prompt">root@kali:~#</span>
+                <input type="text" class="quiz-input" placeholder="Type command here..." data-expected-command="[expected command]" />
+                <button class="quiz-submit-btn" onclick="QuizEngine.handleCommandSubmit(this.closest('.quiz-card'))">Submit</button>
+              </div>
+            </div>
+            <div class="quiz-feedback" aria-live="polite"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Dynamic Footer Injected by site.js -->
+  <div data-site-footer></div>
+
+  <!-- Core Scripts -->
+  <script src="../assets/js/site.js" data-site-root=".."></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
