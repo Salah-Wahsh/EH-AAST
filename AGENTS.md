@@ -27,6 +27,8 @@ The user has explicitly commanded the following constraints across all sessions.
    - The instructor explicitly instructed: *Do not ask the user to manually write or maintain `cheatsheets.html` and `tools.html`*.
    - Whenever any lab is created or updated, the agent MUST automatically extract every new tool, service, command, and flag introduced in that lab and add them to `cheatsheets.html` (categorized command tables) and `tools.html` (installation & verification cards).
    - Only include tools and commands actually introduced and taught in the course labs.
+8. **❌ NO Generic Tool Dumps Without Conceptual Grounding**:
+   - Do not throw arbitrary lists of tool names and binaries into labs. Focus on deep understanding of foundational concepts (e.g. TCP 3-way handshake state machines vs. UDP statelessness) and explicitly teach **why** ethical hackers and penetration testers must know them.
 
 ---
 

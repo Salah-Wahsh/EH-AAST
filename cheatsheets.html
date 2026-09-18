@@ -133,54 +133,57 @@
       </div>
     </section>
 
-    <!-- Category 3: Transport Layer & Socket Utilities -->
-    <section class="cheat-section" id="network-sockets">
+    <!-- Category 3: Transport Layer & Handshake State Probing -->
+    <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
         <span style="font-size:1.25rem;">⚡</span>
-        <h2 class="cheat-section__title">Network Transport &amp; Socket Listeners</h2>
+        <h2 class="cheat-section__title">TCP 3-Way Handshake &amp; Port State Deduction</h2>
       </div>
       <div class="cheat-table-container">
         <table class="cheat-table">
           <thead>
             <tr>
-              <th style="width:35%;">Command / Primitive</th>
-              <th style="width:25%;">Action</th>
-              <th style="width:30%;">Flags Breakdown</th>
+              <th style="width:25%;">State / Sequence</th>
+              <th style="width:20%;">Kernel Response</th>
+              <th style="width:15%;">Deducted State</th>
+              <th style="width:30%;">Pentester Exploitation / Operational Reality</th>
               <th style="width:10%;">Source</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td>
-                <div class="code-copy-inline">
-                  <code>nc -lvnp 4444</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -lvnp 4444')">Copy</button>
-                </div>
-              </td>
-              <td><strong>Netcat TCP Listener</strong></td>
-              <td><span class="flag-pill">-l</span> Listen, <span class="flag-pill">-v</span> Verbose, <span class="flag-pill">-n</span> Numeric IPs only, <span class="flag-pill">-p</span> Port</td>
+              <td><code>Client [SYN]</code></td>
+              <td><strong style="color:var(--color-accent);">[SYN-ACK]</strong></td>
+              <td><span class="comparison-badge" style="color:var(--color-accent);">OPEN</span></td>
+              <td>Target service is listening and willing to allocate socket buffers. Primary exploit target.</td>
               <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
             </tr>
             <tr>
-              <td>
-                <div class="code-copy-inline">
-                  <code>nmap -sS -sV 192.168.56.101</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nmap -sS -sV 192.168.56.101')">Copy</button>
-                </div>
-              </td>
-              <td><strong>TCP SYN Stealth &amp; Service Scan</strong></td>
-              <td><span class="flag-pill">-sS</span> Half-open SYN scan, <span class="flag-pill">-sV</span> Probe open ports for version info</td>
+              <td><code>Client [SYN]</code></td>
+              <td><strong style="color:var(--color-danger);">[RST] (Reset)</strong></td>
+              <td><span class="comparison-badge" style="color:var(--color-danger);">CLOSED</span></td>
+              <td>Host OS kernel actively rejects packet; indicates host is alive but no daemon is bound.</td>
               <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
             </tr>
             <tr>
-              <td>
-                <div class="code-copy-inline">
-                  <code>tcpdump -i eth0 -w dump.pcap</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('tcpdump -i eth0 -w dump.pcap')">Copy</button>
-                </div>
-              </td>
-              <td><strong>Capture Raw Network Packets</strong></td>
-              <td><span class="flag-pill">-i</span> Network interface, <span class="flag-pill">-w</span> Write capture stream to PCAP file</td>
+              <td><code>Client [SYN]</code></td>
+              <td><strong>Timeout / No Reply</strong></td>
+              <td><span class="comparison-badge" style="color:var(--color-warn);">FILTERED</span></td>
+              <td>Packet dropped silently by an intervening firewall rule or host-based iptables/ACL.</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td><code>SYN Stealth Scan</code></td>
+              <td><code>SYN ➔ SYN-ACK ➔ RST</code></td>
+              <td><span class="comparison-badge" style="color:var(--color-cyan);">HALF-OPEN</span></td>
+              <td>Client tears down connection before final ACK to evade web server application-layer logs.</td>
+              <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
+            </tr>
+            <tr>
+              <td><code>TCP vs. UDP</code></td>
+              <td><code>Stateful vs Stateless</code></td>
+              <td><span class="comparison-badge">L4 TRADE-OFF</span></td>
+              <td>TCP guarantees delivery for reverse shells; UDP allows spoofed traffic but is silent when open.</td>
               <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
             </tr>
           </tbody>

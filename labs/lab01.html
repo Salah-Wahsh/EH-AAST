@@ -422,18 +422,22 @@
       </section>
 
       <!-- Section 3 -->
+      <!-- Section 3 -->
       <section>
-        <h2>3. Fundamental Network &amp; Web Prerequisites</h2>
+        <h2>3. Transport Protocols &amp; Deep Handshake Analysis</h2>
+        <p class="lab-lead">
+          Understanding Layer 4 state machines (TCP vs. UDP) is the single most critical prerequisite for penetration testing. Every port scan, reverse shell, and network evasion technique relies directly on how these two protocols establish or omit state.
+        </p>
 
         <!-- Transport Protocols Visual Header -->
-        <h3>TCP 3-Way Handshake vs. UDP</h3>
-        <p>Layer 4 transport protocols manage reliable data channels between Kali and targets:</p>
+        <h3>The TCP 3-Way Handshake: Sequence &amp; Mechanics</h3>
+        <p>Before transmitting a single byte of application data (HTTP, SSH), TCP synchronizes sequence numbers between Client and Target:</p>
 
         <!-- SVG Sequence Diagram: TCP Handshake -->
         <div class="diagram-card">
           <div class="diagram-card__title">
             <span>SEQUENCE: TCP Three-Way Handshake (RFC 793)</span>
-            <span style="color:var(--color-cyan);">Reliable Connection-Oriented Stream</span>
+            <span style="color:var(--color-cyan);">State Synchronization &amp; Reliability</span>
           </div>
           <svg class="diagram-svg" viewBox="0 0 760 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="TCP 3-Way Handshake Sequence Diagram">
             <defs>
@@ -461,7 +465,7 @@
             <!-- Step 1: SYN -->
             <line x1="140" y1="70" x2="610" y2="95" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
             <rect x="290" y="60" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
-            <text x="380" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. [SYN] Seq = 0</text>
+            <text x="380" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. [SYN] Seq = 0 (Init)</text>
 
             <!-- Step 2: SYN-ACK -->
             <line x1="620" y1="115" x2="150" y2="140" stroke="var(--color-cyan)" stroke-width="2.5" marker-end="url(#arrow-cyan)" />
@@ -471,38 +475,112 @@
             <!-- Step 3: ACK -->
             <line x1="140" y1="160" x2="610" y2="185" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-green)" />
             <rect x="290" y="155" width="180" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
-            <text x="380" y="171" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. [ACK] Ack = 1</text>
+            <text x="380" y="171" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. [ACK] Ack = 1 (Established)</text>
           </svg>
         </div>
 
-        <!-- Protocol Comparison Chips -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
-            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
-              <span style="font-size:1.25rem;">⚡</span>
-              <strong style="color:var(--color-accent);">TCP (Layer 4)</strong>
+        <!-- WHY We Need the Handshake: Deep Conceptual Breakdown -->
+        <h3>Why Do We Need the Handshake? (State &amp; Integrity)</h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-3) 0 var(--space-6);">
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+              <span style="font-size:1.25rem;">🔢</span>
+              <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Initial Sequence Number (ISN) Sync</strong>
             </div>
-            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Connection-oriented, 3-way handshake, guaranteed delivery, sequenced packets (HTTP, SSH, HTTPS).
-            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.6;">
+              Both client and server generate random Initial Sequence Numbers (ISNs). The handshake ensures both sides agree on byte offsets so packets arriving out of order or across multiple routes can be reassembled flawlessly.
+            </p>
           </div>
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
-            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
-              <span style="font-size:1.25rem;">🚀</span>
-              <strong style="color:var(--color-cyan);">UDP (Layer 4)</strong>
+          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-4);">
+            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+              <span style="font-size:1.25rem;">🛡️</span>
+              <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Bidirectional Consent &amp; Buffer Allocation</strong>
             </div>
-            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Connectionless, zero handshake, fire-and-forget, lightweight speed (DNS port 53, DHCP, VoIP).
-            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.6;">
+              Before opening kernel socket buffers, the server verifies that the client's IP actually exists and is actively requesting communication, preventing trivial socket starvation and ensuring delivery receipts.
+            </p>
           </div>
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);">
-            <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-1);">
-              <span style="font-size:1.25rem;">📡</span>
-              <strong style="color:var(--color-warn);">ICMP (Layer 3)</strong>
+        </div>
+
+        <!-- WHY Pentesters Must Know This: Offensive Reality -->
+        <h3>Why Pentesters Care: Port Scanning via TCP Flags</h3>
+        <p>A port scanner (like Nmap) does not guess: it sends TCP probes and infers port states directly from kernel responses:</p>
+
+        <div class="cheat-table-container">
+          <table class="cheat-table">
+            <thead>
+              <tr>
+                <th style="width:20%;">Probe Sent</th>
+                <th style="width:25%;">Target Kernel Response</th>
+                <th style="width:20%;">Deducted State</th>
+                <th style="width:35%;">What It Means to an Attacker</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>[SYN]</code></td>
+                <td><strong style="color:var(--color-accent);">[SYN-ACK]</strong></td>
+                <td><span class="comparison-badge" style="color:var(--color-accent);">OPEN</span></td>
+                <td>Service is listening and accepting incoming sockets. Immediate exploit target!</td>
+              </tr>
+              <tr>
+                <td><code>[SYN]</code></td>
+                <td><strong style="color:var(--color-danger);">[RST] (Reset)</strong></td>
+                <td><span class="comparison-badge" style="color:var(--color-danger);">CLOSED</span></td>
+                <td>Host is alive, but no process is bound to this port. Operating system actively rejects connection.</td>
+              </tr>
+              <tr>
+                <td><code>[SYN]</code></td>
+                <td><strong>No Response / Timeout</strong> (or ICMP Unreachable)</td>
+                <td><span class="comparison-badge" style="color:var(--color-warn);">FILTERED</span></td>
+                <td>A firewall or packet filter dropped the SYN packet. Probe never reached the host application.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- The SYN Stealth Scan Exploit Callout -->
+        <div class="callout callout--tip" style="margin:var(--space-4) 0;">
+          <span class="callout__icon">💡</span>
+          <div class="callout__content">
+            <div class="callout__title">The SYN Stealth Scan ("Half-Open" Scan)</div>
+            <p style="font-size:var(--font-size-xs);margin:var(--space-1) 0 0;line-height:1.6;">
+              In a normal TCP connection, completing the 3-way handshake causes the target application (e.g. Apache, Nginx) to create a session and log the client's IP in <code>access.log</code>. Pentesters execute <strong>SYN Stealth Scans</strong>: Kali sends <code>SYN</code>, receives <code>SYN-ACK</code> (confirming the port is open), and immediately transmits a <code>RST</code> packet instead of the final <code>ACK</code>. The connection is aborted before the application layer ever logs the session!
+            </p>
+          </div>
+        </div>
+
+        <!-- TCP vs UDP: The Pentester's Trade-Off -->
+        <h3>TCP vs. UDP: The Offensive &amp; Defensive Trade-off</h3>
+        <div class="comparison-grid">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h4 class="comparison-card__title">
+                <span class="comparison-icon">⚡</span> TCP (Connection-Oriented)
+              </h4>
+              <span class="comparison-badge" style="color:var(--color-accent);">STATEFUL</span>
             </div>
-            <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Diagnostic error reporting and network reachability echo checks (<code>ping</code>, <code>traceroute</code>).
+            <ul class="comparison-list">
+              <li><strong>Reliability:</strong> Guaranteed in-order delivery; dropped packets are automatically retransmitted.</li>
+              <li><strong>Attacker Advantage:</strong> Essential for interactive command shells (reverse shells) where lost bytes corrupt shell execution.</li>
+              <li><strong>Attacker Drawback:</strong> Strict 3-way handshake makes IP spoofing impossible for interactive sessions.</li>
+              <li><strong>Audit Footprint:</strong> Completed connections are logged in web server and firewall state tables.</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h4 class="comparison-card__title">
+                <span class="comparison-icon">🚀</span> UDP (Connectionless)
+              </h4>
+              <span class="comparison-badge" style="color:var(--color-cyan);">STATELESS</span>
             </div>
+            <ul class="comparison-list">
+              <li><strong>Reliability:</strong> Fire-and-forget; zero handshake, zero verification, zero guarantee of receipt.</li>
+              <li><strong>Attacker Advantage:</strong> Trivial IP address spoofing (used in DNS/NTP reflection amplification attacks).</li>
+              <li><strong>Attacker Drawback:</strong> Extremely difficult to scan: open ports rarely reply (silent), while closed ports generate rate-limited ICMP errors.</li>
+              <li><strong>Audit Footprint:</strong> No session state maintained; harder for firewalls to track bidirectional flows.</li>
+            </ul>
           </div>
         </div>
 
@@ -597,72 +675,13 @@
         </div>
       </section>
 
-      <!-- Section 4 -->
+      <!-- Section 4 (previously 5) -->
       <section>
-        <h2>4. Primary Toolset Overview</h2>
-        <p>The essential arsenal used throughout CCY4202 laboratories:</p>
-
-        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(280px, 1fr));gap:var(--space-4);margin:var(--space-4) 0;">
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🐉 Kali Linux</strong>
-              <span class="comparison-badge" style="color:var(--color-accent);">Base Platform</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Debian-derived offensive security distribution with 600+ pre-installed security tools.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-accent);font-family:var(--font-mono);">cat /etc/os-release</code>
-          </div>
-
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">📡 Nmap</strong>
-              <span class="comparison-badge" style="color:var(--color-cyan);">Port Scanner</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Host discovery, port mapping, service banner detection &amp; OS fingerprinting.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-cyan);font-family:var(--font-mono);">nmap -sS -sV 192.168.56.101</code>
-          </div>
-
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🦈 Wireshark</strong>
-              <span class="comparison-badge" style="color:var(--color-cyan);">Packet Sniffer</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Deep packet inspection, protocol dissector &amp; unencrypted credential capture.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-cyan);font-family:var(--font-mono);">tcpdump -i eth0 -w dump.pcap</code>
-          </div>
-
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🟠 Burp Suite</strong>
-              <span class="comparison-badge" style="color:var(--color-warn);">Web Proxy</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">HTTP/HTTPS interception proxy to inspect, tamper, and automate web application exploits.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-warn);font-family:var(--font-mono);">Proxy: 127.0.0.1:8080</code>
-          </div>
-
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🎯 Metasploit</strong>
-              <span class="comparison-badge" style="color:var(--color-danger);">Exploit Engine</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Automated exploitation framework for launching payloads and reverse Meterpreter shells.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-danger);font-family:var(--font-mono);">msfconsole -q</code>
-          </div>
-
-          <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:var(--space-4);">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-2);">
-              <strong style="color:var(--color-text-primary);font-size:var(--font-size-base);">🐱 Netcat</strong>
-              <span class="comparison-badge" style="color:var(--color-accent);">Swiss Army Knife</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">Arbitrary TCP/UDP raw read/write socket listener, port checker, and reverse shell handler.</p>
-            <code style="font-size:var(--font-size-xs);color:var(--color-accent);font-family:var(--font-mono);">nc -lvnp 4444</code>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 5 -->
-      <section>
-        <h2>5. Interactive Hands-on: Browser DevTools Guide</h2>
+        <h2>4. Interactive Hands-on: Browser DevTools Guide</h2>
         <p>
+          Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
+        </p>
+
           Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
         </p>
 
@@ -743,14 +762,14 @@
         </div>
       </section>
 
-      <!-- Section 6 -->
+      <!-- Section 5 -->
       <section>
-        <h2>6. Classroom Hands-On Exercises</h2>
+        <h2>5. Classroom Hands-On Exercises</h2>
 
-        <!-- Exercise 6.1 -->
+        <!-- Exercise 5.1 -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-size:var(--font-size-sm);">Exercise 6.1: Base64 Sniffed Credential Decoding</strong>
+            <strong style="color:var(--color-accent);font-size:var(--font-size-sm);">Exercise 5.1: Base64 Sniffed Credential Decoding</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">SNIFFED AUTH HEADER</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
@@ -780,10 +799,10 @@
           </details>
         </div>
 
-        <!-- Exercise 6.2 -->
+        <!-- Exercise 5.2 -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-cyan);font-size:var(--font-size-sm);">Exercise 6.2: Banner Grabbing via cURL</strong>
+            <strong style="color:var(--color-cyan);font-size:var(--font-size-sm);">Exercise 5.2: Banner Grabbing via cURL</strong>
             <span class="comparison-badge" style="color:var(--color-cyan);">RECONNAISSANCE</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
