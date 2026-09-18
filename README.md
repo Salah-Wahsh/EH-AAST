@@ -12,7 +12,6 @@ Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
    - Deep terminal dark canvas (`#0a0c10` / `#0d1117`) with neon cyber-green accents (`#00ff66`) and terminal cyan highlights (`#00e5ff`).
    - Interactive typing bash prompt header simulator on the portal home.
    - Code snippets formatted as macOS/Linux terminal windows with traffic-light chrome (red, yellow, green) and 1-click **Copy Command** buttons.
-   - Optional CRT scanline overlay filter toggle.
 
 2. **Classroom Accessibility & Projector View**:
    - **Light/Dark Mode Toggle**: Instant switch to high-contrast obsidian-on-white palette (`#1f2328` text, `#ffffff` surface, `#0969da` links) engineered specifically to eliminate washed-out colors on low-contrast classroom projectors.
@@ -20,13 +19,7 @@ Inspired by [AAST Labs](https://salah-wahsh.github.io/AAST/).
    - All accessibility states persist automatically in `localStorage`.
 
 3. **Curriculum & Laboratory Modules**:
-   - **Module 01**: Course Intro & Fundamentals (Linux & Virtual Pentest Lab Setup)
-   - **Module 02**: Reconnaissance & OSINT (Passive Recon, DNS AXFR, Whois, Shodan, theHarvester)
-   - **Module 03**: Active Scanning & Nmap (SYN vs Connect Handshakes, NSE Scripting, Banner Grabbing)
-   - **Module 04**: Vulnerability Assessment & CVSS (Searchsploit, CVE triaging, CVSS v3.1 calculation)
-   - **Module 05**: Web Application Attacks & Burp (OWASP Top 10, SQL Injection, XSS, Burp Suite Intercept)
-   - **Module 06**: Network Exploitation & Metasploit (MS17-010 EternalBlue, msfvenom payloads, handlers)
-   - **Module 07**: Post-Exploitation & Pivoting (Meterpreter, SUID/sudo GTFOBins privesc, Chisel/SSH pivoting)
+   - **Module 01**: Course Intro & Fundamentals ([Lab 01: Linux & Virtual Pentest Lab Setup](labs/lab01.html))
 
 4. **Interactive Learning & Assessment Engine**:
    - Interactive prerequisites checklists that remember completed steps across sessions.
@@ -65,17 +58,10 @@ Open `http://localhost:8000` in your browser.
 ```
 .
 ├── index.html            # Course Portal Home & Bento Grid Showcase
-├── syllabus.html         # Official 4th-Year Course Specification & Grading
-├── cheatsheets.html      # High-Utility Offensive Security Field Cheat Sheet
-├── tools.html            # Lab Setup Blueprint & Tooling Provisioning
-├── labs/                 # 7 Step-by-Step Hands-On Lab Modules
-│   ├── lab01.html        # Module 01: Lab Architecture & Isolation
-│   ├── lab02.html        # Module 02: Reconnaissance & OSINT
-│   ├── lab03.html        # Module 03: Active Scanning & Nmap
-│   ├── lab04.html        # Module 04: Vulnerability Assessment & CVSS
-│   ├── lab05.html        # Module 05: Web Application Attacks & Burp
-│   ├── lab06.html        # Module 06: Network Exploitation & Metasploit
-│   └── lab07.html        # Module 07: Post-Exploitation & Pivoting
+├── cheatsheets.html      # Cheat Sheets Section (Placeholder)
+├── tools.html            # Tools Setup Section (Placeholder)
+├── labs/                 # Hands-On Lab Modules
+│   └── lab01.html        # Module 01: Lab Architecture & Isolation
 ├── assets/
 │   ├── css/
 │   │   ├── base.css      # Design Tokens, Dark/Light Palettes, Projector Mode, Reset

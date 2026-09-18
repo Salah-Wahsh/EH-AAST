@@ -16,54 +16,6 @@
       labs: [
         { id: 'lab01', name: 'Lab 01: Linux & Virtual Lab Setup', href: 'labs/lab01.html', time: '45m' }
       ]
-    },
-    {
-      id: 'mod02',
-      title: 'Module 02: OSINT & Recon',
-      badge: 'Recon',
-      labs: [
-        { id: 'lab02', name: 'Lab 02: Passive Recon & OSINT', href: 'labs/lab02.html', time: '50m' }
-      ]
-    },
-    {
-      id: 'mod03',
-      title: 'Module 03: Active Scanning',
-      badge: 'Scanning',
-      labs: [
-        { id: 'lab03', name: 'Lab 03: Port Scanning & Nmap', href: 'labs/lab03.html', time: '60m' }
-      ]
-    },
-    {
-      id: 'mod04',
-      title: 'Module 04: Vulnerability Assmt',
-      badge: 'Analysis',
-      labs: [
-        { id: 'lab04', name: 'Lab 04: Vuln Scanning & CVSS v3.1', href: 'labs/lab04.html', time: '55m' }
-      ]
-    },
-    {
-      id: 'mod05',
-      title: 'Module 05: Web App Attacks',
-      badge: 'WebSec',
-      labs: [
-        { id: 'lab05', name: 'Lab 05: OWASP Top 10 & Burp Suite', href: 'labs/lab05.html', time: '70m' }
-      ]
-    },
-    {
-      id: 'mod06',
-      title: 'Module 06: Network Exploits',
-      badge: 'Exploit',
-      labs: [
-        { id: 'lab06', name: 'Lab 06: Metasploit & Payloads', href: 'labs/lab06.html', time: '65m' }
-      ]
-    },
-    {
-      id: 'mod07',
-      title: 'Module 07: Post-Exploit',
-      badge: 'Advanced',
-      labs: [
-        { id: 'lab07', name: 'Lab 07: Pivoting & PrivEsc', href: 'labs/lab07.html', time: '75m' }
-      ]
     }
   ];
 
@@ -253,8 +205,8 @@
       { text: "[+] Attack Rig: Kali Linux Rolling 2026.x (x86_64) [ONLINE]", delay: 250 },
       { text: "[+] Target 1: Metasploitable3 (192.168.56.101) [READY]", delay: 200 },
       { text: "[+] Target 2: DVWA & OWASP Juice Shop Container [LISTENING:80,3000]", delay: 200 },
-      { text: "[+] 7 Laboratory Modules, 28 Guided Exploits Loaded.", delay: 300 },
-      { text: "root@kali-lab:~# Select a module below to commence operation_", delay: 100, isFinal: true }
+      { text: "[+] Laboratory Module 01 Loaded & Ready.", delay: 300 },
+      { text: "root@kali-lab:~# Select Lab 01 below to commence operation_", delay: 100, isFinal: true }
     ];
 
     var outputContainer = heroTerm.querySelector('.terminal-window__body pre');

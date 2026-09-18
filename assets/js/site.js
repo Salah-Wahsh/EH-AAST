@@ -29,11 +29,9 @@
     init: function () {
       var savedTheme = localStorage.getItem('ccy_theme') || 'dark';
       var savedProjector = localStorage.getItem('ccy_projector') === 'true';
-      var savedScanlines = localStorage.getItem('ccy_scanlines') === 'true';
 
       this.setTheme(savedTheme, false);
       this.setProjector(savedProjector, false);
-      this.setScanlines(savedScanlines, false);
     },
 
     setTheme: function (theme, persist) {
@@ -73,26 +71,6 @@
     toggleProjector: function () {
       var isCurrent = document.body.classList.contains('projector-mode');
       this.setProjector(!isCurrent, true);
-    },
-
-    setScanlines: function (isActive, persist) {
-      if (isActive) {
-        document.body.classList.add('scanlines-active');
-      } else {
-        document.body.classList.remove('scanlines-active');
-      }
-      if (persist !== false) {
-        localStorage.setItem('ccy_scanlines', isActive ? 'true' : 'false');
-      }
-      var scanBtn = document.getElementById('scanline-toggle-btn');
-      if (scanBtn) {
-        scanBtn.classList.toggle('is-active', isActive);
-      }
-    },
-
-    toggleScanlines: function () {
-      var isCurrent = document.body.classList.contains('scanlines-active');
-      this.setScanlines(!isCurrent, true);
     }
   };
 
@@ -101,16 +79,9 @@
 
   // --- Search Index Database ---
   var searchCatalog = [
-    { title: 'Module 01: Course Intro & Fundamentals', desc: 'Linux architecture, virtual networks, iptables, SSH isolation.', url: 'labs/lab01.html', tag: 'Lab' },
-    { title: 'Module 02: Reconnaissance & OSINT', desc: 'Passive intelligence, DNS discovery, whois, Shodan, theHarvester.', url: 'labs/lab02.html', tag: 'Lab' },
-    { title: 'Module 03: Active Scanning & Nmap', desc: 'Port scanning, SYN/Connect scans, service versions, NSE scripts.', url: 'labs/lab03.html', tag: 'Lab' },
-    { title: 'Module 04: Vulnerability Assessment & CVSS', desc: 'Vulnerability scanners, CVE analysis, CVSS v3.1 scoring formulas.', url: 'labs/lab04.html', tag: 'Lab' },
-    { title: 'Module 05: Web Application Attacks & Burp', desc: 'OWASP Top 10, SQLi manual payload craft, XSS vectors, Burp proxy.', url: 'labs/lab05.html', tag: 'Lab' },
-    { title: 'Module 06: Network Exploitation & Metasploit', desc: 'EternalBlue MS17-010, msfvenom staged payloads, meterpreter shells.', url: 'labs/lab06.html', tag: 'Lab' },
-    { title: 'Module 07: Post-Exploitation & Pivoting', desc: 'Linux SUID/sudo privesc, Windows token impersonation, Chisel SSH pivots.', url: 'labs/lab07.html', tag: 'Lab' },
-    { title: 'Course Syllabus', desc: 'Grading breakdown, weekly schedule, lab rules of engagement.', url: 'syllabus.html', tag: 'Course' },
-    { title: 'Penetration Testing Cheat Sheets', desc: 'Fast reference for Nmap, Burp, Metasploit, PrivEsc & Reverse Shells.', url: 'cheatsheets.html', tag: 'Reference' },
-    { title: 'Pentest Lab & Tools Setup', desc: 'Kali Linux VM, VirtualBox/VMware networking, Docker targets & extensions.', url: 'tools.html', tag: 'Setup' }
+    { title: 'Lab 01: Linux & Virtual Pentest Lab Setup', desc: 'Linux architecture, virtual networks, iptables, SSH isolation.', url: 'labs/lab01.html', tag: 'Lab' },
+    { title: 'Penetration Testing Cheat Sheets', desc: 'Offensive security cheat sheet reference.', url: 'cheatsheets.html', tag: 'Reference' },
+    { title: 'Pentest Lab & Tools Setup', desc: 'Environment and tooling setup guide.', url: 'tools.html', tag: 'Setup' }
   ];
 
   // --- Nav Template Generator ---
@@ -133,11 +104,9 @@
 
           '<ul class="nav-links" role="list">' +
             '<li><a class="nav-link ' + (activeNav === 'home' ? 'is-active' : '') + '" data-site-href="index.html">Portal Home</a></li>' +
-            '<li><a class="nav-link ' + (activeNav === 'syllabus' ? 'is-active' : '') + '" data-site-href="syllabus.html">Syllabus</a></li>' +
             '<li><a class="nav-link ' + (activeNav === 'labs' ? 'is-active' : '') + '" data-site-href="labs/lab01.html">Labs</a></li>' +
             '<li><a class="nav-link ' + (activeNav === 'cheatsheets' ? 'is-active' : '') + '" data-site-href="cheatsheets.html">Cheat Sheets</a></li>' +
             '<li><a class="nav-link ' + (activeNav === 'tools' ? 'is-active' : '') + '" data-site-href="tools.html">Tools Setup</a></li>' +
-            '<li><a class="nav-link" href="https://github.com/salah-wahsh" target="_blank" rel="noopener noreferrer">GitHub ↗</a></li>' +
           '</ul>' +
 
           '<div class="nav-controls">' +
@@ -151,13 +120,9 @@
             '<button class="nav-btn" id="theme-toggle-btn" onclick="ThemeManager.toggleTheme()" aria-label="Toggle theme">' +
               '☀️ <span>Light</span>' +
             '</button>' +
-            '<button class="nav-btn" id="scanline-toggle-btn" onclick="ThemeManager.toggleScanlines()" title="Toggle CRT HUD Scanlines" aria-label="Toggle CRT HUD">' +
-              'CRT' +
-            '</button>' +
           '</div>' +
         '</div>' +
       '</header>' +
-      '<div class="scanline-overlay" aria-hidden="true"></div>' +
       '<dialog class="search-dialog" id="search-dialog" aria-label="Course Search">' +
         '<div class="search-dialog__header">' +
           '<span>🔍</span>' +
