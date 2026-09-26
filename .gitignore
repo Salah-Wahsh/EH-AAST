@@ -1,0 +1,10 @@
+# Instructor-only material. The repo is public, so these stay local.
+# (deploy.yml also excludes them from GitHub Pages as a second guard.)
+teaching-notes/
+.agents/context/student-profile.md
+
+# Local build output from the Pages staging step
+_site/
+
+# OS noise
+.DS_Store

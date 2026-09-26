@@ -29,10 +29,25 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      # Publish only the student-facing site. Instructor notes, agent context,
+      # and tooling stay in the repo but never reach GitHub Pages.
+      - name: Stage public site
+        run: |
+          mkdir -p _site
+          rsync -a ./ _site/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.agents' \
+            --exclude='teaching-notes' \
+            --exclude='scripts' \
+            --exclude='AGENTS.md' \
+            --exclude='CLAUDE.md' \
+            --exclude='_site'
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: '_site'
 
       - name: Deploy to GitHub Pages
         id: deployment
