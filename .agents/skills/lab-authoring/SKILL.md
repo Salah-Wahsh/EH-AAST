@@ -92,6 +92,10 @@ Before pushing to production, verify:
 - [ ] Mobile view (narrow viewport) displays single-column without horizontal scrolling.
 - [ ] Quizzes provide instant pass/fail validation.
 - [ ] `cheatsheets.html` and `tools.html` reflect newly harvested items.
+- [ ] Content Accuracy Audit passed with zero 🔴 findings (see Step 5.4).
+
+### Step 5.4: Content Accuracy Audit (Blocking Gate)
+Run the [Content Audit Skill](../content-audit/SKILL.md) over the new lab **and** its teaching note before deploy. It hunts wrong or misleading claims, facts placed in the wrong card/column, security-inverted wording, overclaims, stale menu paths, and quiz-body vs answer-key contradictions. Fix every 🔴 finding before pushing. This is separate from the voice and cognitive-load checks; it is about whether the content is *correct*.
 
 ### Step 5.5: Instructor Briefing (Zero User Overhead)
 After the lab is built, generate the TA's private teaching notes with the [Instructor Briefing Skill](../instructor-briefing/SKILL.md) → `teaching-notes/labXX.md`. Deep background, likely student questions, room failures, verified target behavior. Never deployed to students.

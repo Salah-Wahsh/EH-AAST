@@ -123,6 +123,8 @@ To keep students engaged, energized, and actively learning without fatigue, ever
 
 ## 📓 Instructor Teaching Notes
 
+Before any lab deploys, run the [`content-audit`](.agents/skills/content-audit/SKILL.md) skill over the lab **and** its teaching note. It catches claims that are wrong, misleading, in the wrong card/column, security-inverted, overclaimed, stale, or contradicted by the quiz answer key. Every 🔴 finding is fixed before pushing. This is the accuracy gate, separate from the voice and cognitive-load checks.
+
 Every lab gets a private night-before briefing at `teaching-notes/labXX.md`, produced by the [`instructor-briefing`](.agents/skills/instructor-briefing/SKILL.md) skill: deep background, likely student questions, what breaks in the room, and verified target behavior. This folder (and `.agents`, `scripts`, `AGENTS.md`) is **excluded from the GitHub Pages deploy** by `.github/workflows/deploy.yml`, so answers never reach students. Never put briefing or solution content in `labs/` or any deployed file.
 
 ---
