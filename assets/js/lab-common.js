@@ -235,16 +235,24 @@
     setTimeout(printNext, 300);
   };
 
-  // --- QR Jump Header (top-of-lab QR + short URL for far-projector classroom) ---
+  // --- QR Jump (optional top-of-lab banner) + projector-corner QR ---
+  // Works in two modes, independently:
+  //   1. A `.qr-jump` banner in the page (URL + copy button + inline QR).
+  //   2. A `<body data-projector-qr>` opt-in that shows ONLY the pinned
+  //      upper-right QR in projector mode, with no inline banner.
   LabCommon.initQrJump = function () {
     var container = document.querySelector('.qr-jump');
-    if (!container) return;
+    var projectorFlag = document.body.hasAttribute('data-projector-qr');
+    if (!container && !projectorFlag) return;
 
-    var urlEl = container.querySelector('.qr-jump__url');
-    var copyBtn = container.querySelector('.qr-jump__copy-btn');
-    var codeEl = container.querySelector('.qr-jump__code');
+    var urlEl = container && container.querySelector('.qr-jump__url');
+    var copyBtn = container && container.querySelector('.qr-jump__copy-btn');
+    var codeEl = container && container.querySelector('.qr-jump__code');
 
-    var currentUrl = (urlEl && urlEl.dataset && urlEl.dataset.explicitUrl) || window.location.href.split('#')[0];
+    var currentUrl =
+      (urlEl && urlEl.dataset && urlEl.dataset.explicitUrl) ||
+      document.body.getAttribute('data-projector-qr') ||
+      window.location.href.split('#')[0];
     if (urlEl) urlEl.textContent = currentUrl;
 
     if (copyBtn) {
@@ -262,21 +270,22 @@
     }
 
     // QR generation: uses the vendored qrcode-generator library (window.qrcode).
-    // Falls back to a "QR" placeholder if it isn't loaded — URL + copy button
-    // still provide full value.
+    // Generated once here so it can feed both the inline banner (if present) and
+    // the projector-corner QR below.
     var qrSvg = null;
-    if (codeEl) {
-      try {
-        if (typeof window.qrcode === 'function') {
-          var qr = window.qrcode(0, 'M'); // type 0 = auto-size, M = ~15% error correction
-          qr.addData(currentUrl);
-          qr.make();
-          qrSvg = qr.createSvgTag({ cellSize: 6, margin: 1, scalable: true, title: 'Lab URL QR code' });
-        } else if (window.QRCodeMini && typeof window.QRCodeMini.generateSvg === 'function') {
-          qrSvg = window.QRCodeMini.generateSvg(currentUrl);
-        }
-      } catch (e) { qrSvg = null; }
+    try {
+      if (typeof window.qrcode === 'function') {
+        var qr = window.qrcode(0, 'M'); // type 0 = auto-size, M = ~15% error correction
+        qr.addData(currentUrl);
+        qr.make();
+        qrSvg = qr.createSvgTag({ cellSize: 6, margin: 1, scalable: true, title: 'Lab URL QR code' });
+      } else if (window.QRCodeMini && typeof window.QRCodeMini.generateSvg === 'function') {
+        qrSvg = window.QRCodeMini.generateSvg(currentUrl);
+      }
+    } catch (e) { qrSvg = null; }
 
+    // Inline banner QR (only when a `.qr-jump` banner exists on the page).
+    if (codeEl) {
       if (qrSvg) {
         codeEl.innerHTML = qrSvg;
         codeEl.classList.add('qr-jump__code--live');

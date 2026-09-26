@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
 </head>
-<body data-nav-active="labs" data-active-lab="lab02">
+<body data-nav-active="labs" data-active-lab="lab02" data-projector-qr>
   <div data-site-nav></div>
 
   <div class="page-wrapper">
@@ -34,18 +34,7 @@
         <span>Lab 02</span>
       </nav>
 
-      <!-- QR Jump: fixes far-projector problem -->
-      <section class="qr-jump">
-        <div class="qr-jump__code"></div>
-        <div class="qr-jump__body">
-          <div class="qr-jump__label">📱 Follow along on your laptop</div>
-          <div class="qr-jump__url"></div>
-          <div class="qr-jump__actions">
-            <button type="button" class="qr-jump__copy-btn">Copy URL</button>
-            <span class="qr-jump__hint">Scan it or copy it. Nobody can read the projector from row 12</span>
-          </div>
-        </div>
-      </section>
+      <!-- QR banner removed; projector-corner QR is driven by body[data-projector-qr] -->
 
       <header class="lab-header">
         <div class="lab-header__meta">
@@ -1266,17 +1255,17 @@
           <div class="quiz-question">
             Q3 [Spot the difference]: Which line has been tampered by Burp compared to the browser's original?
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-top:var(--space-3);font-family:var(--font-mono);font-size:var(--font-size-xs);">
-              <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
+              <div style="min-width:0;background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
                 <strong style="color:var(--color-cyan);">Original (browser)</strong>
-                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;">GET /rest/products/search?q=apple HTTP/1.1
+                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere;">GET /rest/products/search?q=apple HTTP/1.1
 Host: localhost:3000
 User-Agent: Mozilla/5.0
 Cookie: token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoidGVzdCJ9
 Accept: application/json</pre>
               </div>
-              <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
+              <div style="min-width:0;background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
                 <strong style="color:var(--color-warn);">Forwarded (Burp)</strong>
-                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;">GET /rest/products/search?q=apple HTTP/1.1
+                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;word-break:break-all;overflow-wrap:anywhere;">GET /rest/products/search?q=apple HTTP/1.1
 Host: localhost:3000
 User-Agent: Mozilla/5.0
 Cookie: token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ
