@@ -14,7 +14,8 @@
       title: 'Module 01: Fundamentals',
       badge: 'Core',
       labs: [
-        { id: 'lab01', name: 'Lab 01: Security Concepts & Web Prerequisites', href: 'labs/lab01.html', time: '45m' }
+        { id: 'lab01', name: 'Lab 01: Security Concepts & Web Prerequisites', href: 'labs/lab01.html', time: '45m' },
+        { id: 'lab02', name: 'Lab 02: Web App Basics & Burp Suite', href: 'labs/lab02.html', time: '60m' }
       ]
     }
   ];
@@ -234,6 +235,272 @@
     setTimeout(printNext, 300);
   };
 
+  // --- QR Jump Header (top-of-lab QR + short URL for far-projector classroom) ---
+  LabCommon.initQrJump = function () {
+    var container = document.querySelector('.qr-jump');
+    if (!container) return;
+
+    var urlEl = container.querySelector('.qr-jump__url');
+    var copyBtn = container.querySelector('.qr-jump__copy-btn');
+    var codeEl = container.querySelector('.qr-jump__code');
+
+    var currentUrl = (urlEl && urlEl.dataset && urlEl.dataset.explicitUrl) || window.location.href.split('#')[0];
+    if (urlEl) urlEl.textContent = currentUrl;
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(currentUrl).then(function () {
+          var original = copyBtn.textContent;
+          copyBtn.textContent = '✓ Copied';
+          copyBtn.classList.add('copied');
+          setTimeout(function () {
+            copyBtn.textContent = original;
+            copyBtn.classList.remove('copied');
+          }, 1800);
+        }).catch(function (err) { console.error('Copy failed:', err); });
+      });
+    }
+
+    // QR generation: uses window.QRCodeMini if a library is loaded; otherwise
+    // renders a "QR" placeholder — URL + copy button still provide full value.
+    if (codeEl) {
+      if (window.QRCodeMini && typeof window.QRCodeMini.generateSvg === 'function') {
+        try { codeEl.innerHTML = window.QRCodeMini.generateSvg(currentUrl); }
+        catch (e) { codeEl.classList.add('qr-jump__code--placeholder'); codeEl.textContent = 'QR'; }
+      } else {
+        codeEl.classList.add('qr-jump__code--placeholder');
+        codeEl.textContent = 'QR';
+      }
+    }
+  };
+
+  // --- You-Are-Here Persistent Section Indicator (bottom-right) ---
+  LabCommon.initYouAreHere = function () {
+    var content = document.querySelector('.main-content');
+    if (!content) return;
+    var headings = content.querySelectorAll('h2, h3');
+    if (headings.length === 0) return;
+
+    var indicator = document.querySelector('.you-are-here');
+    if (!indicator) {
+      indicator = document.createElement('div');
+      indicator.className = 'you-are-here';
+      indicator.innerHTML =
+        '<span class="you-are-here__label">📍 In:</span>' +
+        '<span class="you-are-here__section">—</span>' +
+        '<span class="you-are-here__progress"></span>';
+      document.body.appendChild(indicator);
+    }
+
+    var sectionEl = indicator.querySelector('.you-are-here__section');
+    var progressEl = indicator.querySelector('.you-are-here__progress');
+    var totalHeadings = headings.length;
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var h = entry.target;
+          var idx = Array.prototype.indexOf.call(headings, h);
+          if (idx >= 0) {
+            sectionEl.textContent = h.textContent.trim();
+            progressEl.textContent = (idx + 1) + '/' + totalHeadings;
+            indicator.classList.add('is-visible');
+          }
+        }
+      });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+
+    headings.forEach(function (h) { observer.observe(h); });
+
+    // Hide the indicator when the user scrolls back above the first heading
+    var firstHeading = headings[0];
+    var topObs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting && entry.boundingClientRect.top > 100) {
+          indicator.classList.remove('is-visible');
+        }
+      });
+    });
+    topObs.observe(firstHeading);
+  };
+
+  // --- Prediction Prompts (force cognitive engagement before revealing) ---
+  LabCommon.initPredictionPrompts = function () {
+    document.querySelectorAll('.prediction-prompt').forEach(function (card) {
+      var input = card.querySelector('.prediction-prompt__input');
+      var btn = card.querySelector('.prediction-prompt__btn');
+      var reveal = card.querySelector('.prediction-prompt__reveal');
+      if (!input || !btn || !reveal) return;
+
+      function doReveal() {
+        var guess = input.value.trim();
+        if (!guess) {
+          input.focus();
+          input.style.borderColor = 'var(--color-warn)';
+          return;
+        }
+        var existing = reveal.querySelector('.prediction-prompt__your-guess');
+        if (existing) existing.remove();
+        var yourGuess = document.createElement('div');
+        yourGuess.className = 'prediction-prompt__your-guess';
+        yourGuess.innerHTML = '<em>Your guess:</em> ' + guess.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        reveal.appendChild(yourGuess);
+
+        reveal.hidden = false;
+        btn.disabled = true;
+        btn.textContent = '✓ Revealed';
+        input.disabled = true;
+      }
+
+      btn.addEventListener('click', doReveal);
+      input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); doReveal(); }
+      });
+    });
+  };
+
+  // --- Tool Comparison Matrix (task-vs-tool expandable grid) ---
+  LabCommon.initToolComparisonMatrix = function () {
+    document.querySelectorAll('.tool-comparison-matrix').forEach(function (matrix) {
+      matrix.addEventListener('click', function (e) {
+        var head = e.target.closest('.tool-comparison-matrix__row-head');
+        if (!head) return;
+        var row = head.closest('.tool-comparison-matrix__row');
+        if (!row) return;
+        // Collapse siblings for radio-like behavior (comment out for multi-expand)
+        matrix.querySelectorAll('.tool-comparison-matrix__row.is-expanded').forEach(function (other) {
+          if (other !== row) other.classList.remove('is-expanded');
+        });
+        row.classList.toggle('is-expanded');
+      });
+    });
+  };
+
+  // --- Burp Suite Mock (static clickable simulation) ---
+  LabCommon.initBurpMock = function () {
+    document.querySelectorAll('.burp-mock').forEach(function (mock) {
+      var tabs = mock.querySelectorAll('.burp-mock__tab');
+      var panes = mock.querySelectorAll('.burp-mock__pane');
+
+      function activatePane(name) {
+        tabs.forEach(function (t) { t.classList.toggle('is-active', t.dataset.tab === name); });
+        panes.forEach(function (p) { p.classList.toggle('is-active', p.dataset.pane === name); });
+      }
+
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var target = tab.dataset.tab;
+          if (target) activatePane(target);
+        });
+      });
+
+      // Render a raw HTTP message as TEXT, the way Burp's message editor does.
+      // Using textContent (not innerHTML) keeps any tags in the body literal
+      // instead of letting the browser render them as live markup.
+      function setRaw(panel, text) {
+        if (!panel) return;
+        panel.textContent = '';
+        var pre = document.createElement('pre');
+        pre.textContent = text;
+        panel.appendChild(pre);
+      }
+
+      // History row click -> populate the selected request into request/response panels
+      var rows = mock.querySelectorAll('.burp-mock__history-row');
+      var reqBody = mock.querySelector('.burp-mock__panel-body[data-role="request"]');
+      var resBody = mock.querySelector('.burp-mock__panel-body[data-role="response"]');
+
+      rows.forEach(function (row) {
+        row.addEventListener('click', function () {
+          rows.forEach(function (r) { r.classList.remove('is-selected'); });
+          row.classList.add('is-selected');
+          if (reqBody && row.dataset.request) setRaw(reqBody, row.dataset.request);
+          if (resBody && row.dataset.response) setRaw(resBody, row.dataset.response);
+          var hint = mock.querySelector('.burp-mock__hint');
+          if (hint) hint.classList.add('is-visible');
+        });
+      });
+
+      // "Send to Repeater" action: switch to Repeater tab & carry selected request over
+      var sendBtns = mock.querySelectorAll('[data-action="send-to-repeater"]');
+      sendBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          activatePane('repeater');
+          var selected = mock.querySelector('.burp-mock__history-row.is-selected');
+          var repReq = mock.querySelector('.burp-mock__pane[data-pane="repeater"] .burp-mock__panel-body[data-role="request"]');
+          if (selected && repReq && selected.dataset.request) {
+            setRaw(repReq, selected.dataset.request);
+          }
+        });
+      });
+    });
+  };
+
+  // --- Docker Reality Check (live target probes via fetch no-cors) ---
+  LabCommon.initDockerRealityCheck = function () {
+    document.querySelectorAll('.docker-reality-check').forEach(function (widget) {
+      var probes = widget.querySelectorAll('.reality-check__probe');
+
+      function setState(probe, state) {
+        probe.classList.remove('is-idle', 'is-testing', 'is-pass', 'is-fail');
+        probe.classList.add('is-' + state);
+        var badge = probe.querySelector('.reality-check__status');
+        if (badge) {
+          badge.className = 'reality-check__status reality-check__status--' + state;
+          badge.textContent = ({
+            idle: 'IDLE',
+            testing: 'TESTING…',
+            pass: '✓ REACHABLE',
+            fail: '✗ UNREACHABLE'
+          })[state] || state.toUpperCase();
+        }
+      }
+
+      function runProbe(probe) {
+        var url = probe.dataset.url;
+        if (!url) return Promise.resolve();
+        var btn = probe.querySelector('.reality-check__probe-btn');
+        if (btn) btn.disabled = true;
+        setState(probe, 'testing');
+        // no-cors swallows CORS errors, so success = fetch didn't throw a network error.
+        // Timeout guard: a hung request (e.g. Burp Intercept ON holding it) fails after 4s
+        // instead of leaving the badge stuck on TESTING.
+        var controller = window.AbortController ? new AbortController() : null;
+        var timeout = new Promise(function (_, reject) {
+          setTimeout(function () {
+            if (controller) controller.abort();
+            reject(new Error('timeout'));
+          }, 4000);
+        });
+        var request = fetch(url, {
+          mode: 'no-cors',
+          cache: 'no-store',
+          signal: controller ? controller.signal : undefined
+        });
+
+        return Promise.race([request, timeout])
+          .then(function () { setState(probe, 'pass'); })
+          .catch(function () { setState(probe, 'fail'); })
+          .then(function () {
+            if (btn) btn.disabled = false;
+          });
+      }
+
+      probes.forEach(function (probe) {
+        var btn = probe.querySelector('.reality-check__probe-btn');
+        if (btn) btn.addEventListener('click', function () { runProbe(probe); });
+        setState(probe, 'idle');
+      });
+
+      var runAll = widget.querySelector('.docker-reality-check__run-all');
+      if (runAll) {
+        runAll.addEventListener('click', function () {
+          probes.forEach(function (probe) { runProbe(probe); });
+        });
+      }
+    });
+  };
+
   // Initialize all common features on DOM load
   window.addEventListener('DOMContentLoaded', function () {
     LabCommon.renderModuleTree();
@@ -241,6 +508,12 @@
     LabCommon.initCopyButtons();
     LabCommon.initChecklists();
     LabCommon.initHeroTerminal();
+    LabCommon.initQrJump();
+    LabCommon.initYouAreHere();
+    LabCommon.initPredictionPrompts();
+    LabCommon.initToolComparisonMatrix();
+    LabCommon.initBurpMock();
+    LabCommon.initDockerRealityCheck();
   });
 
   window.LabCommon = LabCommon;

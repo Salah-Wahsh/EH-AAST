@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 02: Web App Basics &amp; Burp Suite — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab02">
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 02</span>
+      </nav>
+
+      <!-- QR Jump: fixes far-projector problem -->
+      <section class="qr-jump">
+        <div class="qr-jump__code"></div>
+        <div class="qr-jump__body">
+          <div class="qr-jump__label">📱 Follow along on your laptop</div>
+          <div class="qr-jump__url"></div>
+          <div class="qr-jump__actions">
+            <button type="button" class="qr-jump__copy-btn">Copy URL</button>
+            <span class="qr-jump__hint">Scan it or copy it. Nobody can read the projector from row 12</span>
+          </div>
+        </div>
+      </section>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 02: Web App Basics &amp; Burp Suite</h1>
+        <p class="lab-header__lead">
+          Today you put Burp Suite between your browser and OWASP Juice Shop, then catch, read, edit, and resend real HTTP traffic. You'll do the key moves three ways (DevTools, Burp, and <code>curl</code>) so you know which tool to grab when.
+        </p>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
+          👯 <strong>Pair up.</strong> One person types, the other reads the steps out loud. Swap every 15 min.
+        </p>
+      </header>
+
+      <!-- Section 0: Readiness Checklist -->
+      <section class="checklist-card">
+        <div class="checklist-card__header">
+          <div class="checklist-card__title">
+            <span>📋</span> Lab 02 Readiness Checklist
+          </div>
+          <div class="checklist-card__progress">0 / 5 Completed</div>
+        </div>
+        <ul class="checklist-items">
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-1" />
+            <label for="chk-02-1"><span>Docker Desktop / Docker Engine is running (<code>docker ps</code> returns a header row without error).</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-2" />
+            <label for="chk-02-2"><span>Burp Suite Community launches and shows the default project ("Temporary project").</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-3" />
+            <label for="chk-02-3"><span>You can open Burp's built-in browser (Proxy → Intercept → Open Browser). We use it in §4 so there's nothing to configure.</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-4" />
+            <label for="chk-02-4"><span>Terminal with <code>curl</code> available (Kali, WSL2, or macOS. If <code>curl --version</code> prints something, you're good).</span></label>
+          </li>
+          <li class="checklist-item">
+            <input type="checkbox" id="chk-02-5" />
+            <label for="chk-02-5"><span>You have paired up with a partner and agreed who drives first.</span></label>
+          </li>
+        </ul>
+      </section>
+
+      <!-- Section 0.5: Skip & Navigate -->
+      <section>
+        <h2 id="skip-and-navigate">0. Skip &amp; Navigate: Where Are We in the Kill Chain?</h2>
+
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">We're jumping straight to Phase 3 (Exploitation)</div>
+            <p style="margin:0 0 var(--space-2);">
+              Recon and scanning (Phases 1–2) come in Weeks 6–7. We're skipping ahead so you're poking a live web app within 10 minutes instead of reading about one. Recon will make a lot more sense once you've seen what a target actually looks like up close.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title">
+            <span>PIPELINE: You Are Here (Phase 3 of 5)</span>
+            <span style="color:var(--color-warn);">Web Exploitation Track</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="5-phase pipeline with phases 1 and 2 dimmed">
+            <defs>
+              <marker id="arrow-nav" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+            </defs>
+            <!-- P1 dimmed -->
+            <g opacity="0.35">
+              <rect x="5" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="5" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
+              <text x="80" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 01</text>
+              <text x="80" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🔍 Recon</text>
+              <text x="80" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 6)</text>
+            </g>
+            <path d="M 155 50 L 185 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
+            <!-- P2 dimmed -->
+            <g opacity="0.35">
+              <rect x="195" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="195" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
+              <text x="270" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 02</text>
+              <text x="270" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📡 Scanning</text>
+              <text x="270" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 7)</text>
+            </g>
+            <path d="M 345 50 L 375 50" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-nav)" />
+            <!-- P3 active -->
+            <g>
+              <rect x="385" y="10" width="150" height="80" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
+              <rect x="385" y="10" width="150" height="4" rx="2" fill="var(--color-warn)" />
+              <text x="460" y="37" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 03 · TODAY</text>
+              <text x="460" y="58" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="14" font-weight="800" text-anchor="middle">💥 Exploitation</text>
+              <text x="460" y="76" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">Burp + Juice Shop</text>
+            </g>
+            <path d="M 535 50 L 565 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
+            <!-- P4 dimmed -->
+            <g opacity="0.35">
+              <rect x="575" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="575" y="15" width="150" height="4" rx="2" fill="var(--color-danger)" />
+              <text x="650" y="42" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 04</text>
+              <text x="650" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🎯 Post-Exploit</text>
+              <text x="650" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 12)</text>
+            </g>
+            <path d="M 725 50 L 755 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
+            <!-- P5 dimmed -->
+            <g opacity="0.35">
+              <rect x="765" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <rect x="765" y="15" width="150" height="4" rx="2" fill="var(--color-accent)" />
+              <text x="840" y="42" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 05</text>
+              <text x="840" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📝 Reporting</text>
+              <text x="840" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 14)</text>
+            </g>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Section 1: HTTP anatomy refresher -->
+      <section>
+        <h2 id="http-anatomy">1. HTTP Anatomy in 30 Seconds</h2>
+        <p class="lab-lead">
+          Most web attacks come down to one thing: sending a request the developer didn't expect. You send <strong>method</strong> + <strong>URL/headers</strong> + <strong>body</strong>. The server answers with <strong>status</strong> + <strong>headers</strong> + <strong>body</strong>. Everything today is about messing with those pieces.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">📤 REQUEST (Kali → Target)</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">CLIENT-SENT</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> <strong>Method:</strong> <code>GET</code> / <code>POST</code> / <code>PUT</code> / <code>DELETE</code></li>
+              <li><span class="comparison-icon">🔹</span> <strong>Path + query:</strong> <code>/rest/products/search?q=apple</code></li>
+              <li><span class="comparison-icon">🔹</span> <strong>Headers:</strong> <code>Host</code>, <code>Cookie</code>, <code>Authorization</code>, <code>User-Agent</code></li>
+              <li><span class="comparison-icon">🔹</span> <strong>Body (POST/PUT):</strong> form or JSON payload</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">📥 RESPONSE (Target → Kali)</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">SERVER-SENT</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> <strong>Status:</strong> <code>200</code> OK, <code>302</code> redirect, <code>401/403</code>, <code>500</code></li>
+              <li><span class="comparison-icon">🔹</span> <strong>Headers:</strong> <code>Set-Cookie</code>, <code>Server</code>, <code>X-Powered-By</code></li>
+              <li><span class="comparison-icon">🔹</span> <strong>Body:</strong> HTML, JSON, JS, images…</li>
+              <li><span class="comparison-icon">🔹</span> <strong>You can change any of it.</strong> The server has to trust whatever arrives.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="status-badge-grid">
+          <div class="status-chip status-chip--2xx"><span class="status-chip__code">200 OK</span><span class="status-chip__desc">Success</span></div>
+          <div class="status-chip status-chip--3xx"><span class="status-chip__code">302 Redirect</span><span class="status-chip__desc">Login flow</span></div>
+          <div class="status-chip status-chip--4xx"><span class="status-chip__code">401 Auth</span><span class="status-chip__desc">Needs login</span></div>
+          <div class="status-chip status-chip--4xx"><span class="status-chip__code">403 Denied</span><span class="status-chip__desc">Forbidden / WAF</span></div>
+          <div class="status-chip status-chip--4xx"><span class="status-chip__code">404 Missing</span><span class="status-chip__desc">Not found</span></div>
+          <div class="status-chip status-chip--5xx"><span class="status-chip__code">500 Error</span><span class="status-chip__desc">Backend crash</span></div>
+        </div>
+
+        <!-- HANDS-ON #1: curl -v matching -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #1 · Match the parts on the wire</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">2 min</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Run <code>curl -v https://httpbin.org/get</code>. Lines starting with <code>&gt;</code> are what you sent. Lines starting with <code>&lt;</code> are what came back. Find the method, the <code>Host</code> header, the status line, and the <code>Server</code> header, and point at each one on your partner's screen.
+          </p>
+          <div class="terminal-window">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">bash · verbose HTTP</span>
+              <button type="button" class="terminal-copy-btn">Copy</button>
+            </div>
+            <div class="terminal-window__body">
+              <pre><code>curl -v https://httpbin.org/get</code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Tool Comparison Matrix -->
+      <section>
+        <h2 id="tool-comparison">2. DevTools vs. Burp vs. curl: Which One When?</h2>
+        <p class="lab-lead">
+          All three can send the same request. They're just good at different things. Click a row to see how each one does it.
+        </p>
+
+        <div class="tool-comparison-matrix" aria-label="Task vs. tool capability matrix">
+          <div class="tool-comparison-matrix__header">
+            <span>Task</span>
+            <span>DevTools</span>
+            <span>Burp Suite</span>
+            <span>curl</span>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">Inspect a request that already fired</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="partial">⚠</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>F12 → Network → click the request → Headers / Payload / Response tabs.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Proxy → HTTP History → click any row → Request / Response panes side-by-side.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong>Only inspects what <em>you</em> send: <code>curl -v &lt;url&gt;</code>. Can't retro-inspect the browser.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">Edit a request <em>before</em> the server sees it</div>
+              <div class="tool-comparison-matrix__cell" data-status="no">✗</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="partial">⚠</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>Can't pause a request mid-flight. Firefox's "Edit and Resend" fires a <em>new</em> request, and the original already left.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Proxy → Intercept ON → request is held → edit any byte → Forward. This is the main reason Burp exists.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong>Only if you write the request yourself. It can't touch what the browser sends.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">Replay a single request 10 times</div>
+              <div class="tool-comparison-matrix__cell" data-status="partial">⚠</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>Right-click → Replay XHR. Fine twice. By the fifth time you'll want to throw your laptop, and there's no history of what you changed.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Repeater (<kbd>Ctrl+R</kbd>). Edit, click Send, compare responses. Built for this.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong><code>for i in {1..10}; do curl -s &lt;url&gt;; done</code>. One line, done.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">Fuzz one parameter with a 10k wordlist</div>
+              <div class="tool-comparison-matrix__cell" data-status="no">✗</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="partial">⚠</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>Not built for this. If you're scripting the browser to do it, you should be using a real fuzzer.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Intruder: mark where the payload goes, load a wordlist, click Start Attack. The free Community edition is slow on purpose, but you still learn the workflow.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong>Script it, or use <code>ffuf</code> / <code>wfuzz</code>, which are basically curl built for fuzzing.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">See &amp; manipulate cookies</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>Application → Storage → Cookies. Edit values live; page picks them up on next request.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Every intercepted request shows the <code>Cookie</code> header. Edit it right there in the raw pane.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong><code>curl -H "Cookie: session=abc123" &lt;url&gt;</code>. Full control, zero UI.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tool-comparison-matrix__row">
+            <div class="tool-comparison-matrix__row-head">
+              <div class="tool-comparison-matrix__task">Proxy a mobile app / non-browser client</div>
+              <div class="tool-comparison-matrix__cell" data-status="no">✗</div>
+              <div class="tool-comparison-matrix__cell" data-status="yes">✓</div>
+              <div class="tool-comparison-matrix__cell" data-status="partial">⚠</div>
+            </div>
+            <div class="tool-comparison-matrix__detail">
+              <div class="tool-comparison-matrix__detail-grid">
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--devtools">
+                  <strong>DevTools</strong>Only sees traffic from its own browser tab. It can't see iOS apps, Postman, IoT devices, or anything else.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--burp">
+                  <strong>Burp</strong>Point the device's proxy at your Burp IP:8080 and install Burp's CA on it. Now you see everything the app sends. Mobile and API pentests mostly look like this.
+                </div>
+                <div class="tool-comparison-matrix__detail-tile tool-comparison-matrix__detail-tile--curl">
+                  <strong>curl</strong>Only if you can talk the app into using it (env vars, LD_PRELOAD). Usually you can't.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2.5: Three Ways to Tamper -->
+      <section>
+        <h2 id="three-ways">2.5 The Three Ways Principle</h2>
+        <p class="lab-lead">
+          You'll do <em>the same tamper</em> three ways today: change <code>?q=apple</code> to <code>?q=banana</code> on Juice Shop. The server can't tell which tool you used.
+        </p>
+
+        <div class="info-dense-card info-dense-card--cyan">
+          <div class="info-dense-card__title">One attack · Three tools · Same wire</div>
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">DevTools</span>
+              <code>Copy as fetch → edit → Console → paste</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Burp Proxy</span>
+              <code>Intercept ON → edit q= → Forward</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">curl</span>
+              <code>curl 'http://localhost:3000/rest/products/search?q=banana'</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">💡</span>
+          <div class="callout__content">
+            <div class="callout__title">Why do the same thing three times?</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              Real targets break your favorite tool all the time. A WAF blocks curl's user agent, or the target is a mobile app and DevTools is useless. When that happens you want a backup you've already practiced, not one you're googling during the engagement.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Target Launcher + Docker Reality Check -->
+      <section>
+        <h2 id="target-juice-shop">3. Target: OWASP Juice Shop (Docker)</h2>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Node · Angular SPA · runs offline after first pull</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · Pull &amp; run</span>
+              <div class="terminal-window" style="margin:0;">
+                <div class="terminal-window__header">
+                  <div class="terminal-window__controls">
+                    <span class="terminal-dot terminal-dot--red"></span>
+                    <span class="terminal-dot terminal-dot--yellow"></span>
+                    <span class="terminal-dot terminal-dot--green"></span>
+                  </div>
+                  <span class="terminal-window__title">bash · start Juice Shop</span>
+                  <button type="button" class="terminal-copy-btn">Copy</button>
+                </div>
+                <div class="terminal-window__body">
+                  <pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Open in browser</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Verify container</span>
+              <div class="target-launcher__verify">
+                <code>docker ps --filter name=juice</code>
+                <span>should list a running container on port 3000</span>
+              </div>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Image: <code>bkimminich/juice-shop</code> (~450MB. Pull it at home. Uni wifi will not forgive you.)</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <!-- Interactive Docker Reality Check -->
+        <div class="docker-reality-check">
+          <div class="docker-reality-check__header">
+            <h3 class="docker-reality-check__title">
+              <span>🔬</span> Live Target Verification
+            </h3>
+            <button type="button" class="docker-reality-check__run-all">▶ Run All Probes</button>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0 0 var(--space-3);font-family:var(--font-mono);">
+            Don't just trust the checklist. Click each probe. If one fails, the likely fixes are right under it. (One catch: if Burp's Intercept is ON, it holds these requests and the probe will time out. Turn Intercept OFF before probing.)
+          </p>
+          <div class="docker-reality-check__grid">
+            <div class="reality-check__probe" data-url="http://localhost:3000">
+              <div class="reality-check__probe-header">
+                <h4 class="reality-check__probe-title">1. Juice Shop reachable</h4>
+                <span class="reality-check__status reality-check__status--idle">IDLE</span>
+              </div>
+              <div class="reality-check__target">GET http://localhost:3000</div>
+              <button type="button" class="reality-check__probe-btn">▶ Probe</button>
+              <div class="reality-check__causes">
+                <strong>If this fails, check:</strong>
+                <ul>
+                  <li>Container not running: <code>docker ps | grep juice</code></li>
+                  <li>Port collision: something else is bound to <code>3000</code></li>
+                  <li>Docker Desktop paused (macOS/Windows)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="reality-check__probe" data-url="http://127.0.0.1:8080">
+              <div class="reality-check__probe-header">
+                <h4 class="reality-check__probe-title">2. Burp Proxy listening</h4>
+                <span class="reality-check__status reality-check__status--idle">IDLE</span>
+              </div>
+              <div class="reality-check__target">GET http://127.0.0.1:8080</div>
+              <button type="button" class="reality-check__probe-btn">▶ Probe</button>
+              <div class="reality-check__causes">
+                <strong>If this fails, check:</strong>
+                <ul>
+                  <li>Burp not launched → open Burp Suite Community</li>
+                  <li>Proxy listener disabled: Proxy → Proxy settings → Proxy listeners → tick 127.0.0.1:8080</li>
+                  <li>Firewall blocking loopback (rare)</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="reality-check__probe" data-url="http://localhost:3000/rest/products/search?q=test">
+              <div class="reality-check__probe-header">
+                <h4 class="reality-check__probe-title">3. Juice Shop API answers</h4>
+                <span class="reality-check__status reality-check__status--idle">IDLE</span>
+              </div>
+              <div class="reality-check__target">GET /rest/products/search?q=test</div>
+              <button type="button" class="reality-check__probe-btn">▶ Probe</button>
+              <div class="reality-check__causes">
+                <strong>If this fails, check:</strong>
+                <ul>
+                  <li>Container is still booting. Wait 10s and try again</li>
+                  <li>Wrong image (a fork). Use <code>bkimminich/juice-shop</code></li>
+                  <li>Container crashed: <code>docker logs juice</code></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: Burp Proxy Config -->
+      <section>
+        <h2 id="burp-proxy-config">4. Point a Browser Through Burp</h2>
+        <p class="lab-lead">
+          For Burp to catch traffic, the browser has to send it through Burp first. There are two ways to do that. Use the fast one today.
+        </p>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">⚡</span>
+          <div class="callout__content">
+            <div class="callout__title">Fast path: use Burp's own browser (recommended)</div>
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);">
+              Burp ships with a Chromium browser that's already pointed at the proxy and already trusts Burp's certificate. Zero setup, nothing to break.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              In Burp: <strong>Proxy → Intercept → Open Browser</strong>. A browser window opens. Type <code>localhost:3000</code> in it. Everything you do in that window flows through Burp. That's the whole setup.
+            </p>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin:var(--space-3) 0;">
+          <summary>Slow path: wiring up your own Firefox (worth doing once)</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">The built-in browser hides what's actually happening. Do this manual setup once so you understand it, because on a real engagement you'll often need to proxy a browser (or app) Burp didn't launch.</p>
+            <div class="devtools-mock" style="margin:0;">
+              <div class="devtools-mock__bar">
+                <span class="devtools-mock__tab devtools-mock__tab--active">Proxy</span>
+                <span class="devtools-mock__tab">Target</span>
+                <span class="devtools-mock__tab">Intruder</span>
+                <span class="devtools-mock__tab">Repeater</span>
+                <div style="margin-left:auto;font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">Burp Suite Community</div>
+              </div>
+              <div class="devtools-mock__body">
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--space-3);">
+                  <div>
+                    <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">STEP 1 · Burp listener</strong>
+                    <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+                      <strong>Proxy → Proxy settings → Proxy listeners.</strong> You should see one entry, <code>127.0.0.1:8080</code>, with "Running" ticked. (Older Burp calls this Proxy → Options. They rename it every so often to keep you humble.)
+                    </p>
+                  </div>
+                  <div>
+                    <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">STEP 2 · Firefox proxy</strong>
+                    <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+                      <strong>Firefox Settings → Network Settings → Manual proxy</strong>: HTTP proxy <code>127.0.0.1</code>, port <code>8080</code>, tick "Also use this proxy for HTTPS". Then open <code>about:config</code> and set <code>network.proxy.allow_hijacking_localhost</code> to <code>true</code>. Otherwise Firefox skips the proxy for <code>localhost</code> and Burp sees nothing. (This trips up almost everyone.)
+                    </p>
+                  </div>
+                  <div>
+                    <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">STEP 3 · Burp CA cert</strong>
+                    <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+                      Visit <code>http://burp</code> → CA Certificate → download → Firefox Settings → Certificates → Import → trust for websites. Juice Shop is plain HTTP so you won't need this today, but PortSwigger labs are HTTPS.
+                    </p>
+                  </div>
+                  <div>
+                    <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">STEP 4 · Intercept OFF</strong>
+                    <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.5;">
+                      <strong>Proxy → Intercept</strong> tab. Turn intercept <em>off</em> for now so pages load normally while we set scope.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <!-- Prediction Prompt #1 -->
+        <div class="prediction-prompt">
+          <div class="prediction-prompt__question">🤔 You browse to <code>localhost:3000</code> with Intercept OFF. Predict: does Burp still see the traffic?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess (yes / no / why)…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <strong>Yes.</strong> "Intercept OFF" only means requests aren't <em>held</em>. Every request still flows through Burp and lands in <strong>Proxy → HTTP History</strong>, where you can inspect it after the fact. Intercept controls whether Burp <em>pauses</em>, not whether it <em>observes</em>.
+          </div>
+        </div>
+
+        <!-- HANDS-ON #3: browse through Burp -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #3 · First proxied browse</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">3 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Open Burp's browser: <strong>Proxy → Intercept → Open Browser</strong>. (Or use your wired-up Firefox if you did the slow path.)</li>
+            <li>Visit <code>http://localhost:3000</code>. The page should load normally.</li>
+            <li>Switch back to Burp → <strong>Proxy → HTTP History</strong>.</li>
+            <li>You should see 20–40 rows (page assets and API calls). Click any row and read the raw request and response.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Section 5: Scope -->
+      <section>
+        <h2 id="scope-config">5. Scope: Filter the Noise</h2>
+        <p class="lab-lead">
+          A modern web app fires 100+ requests to fonts, analytics, and CDNs. Scope tells Burp to only care about <em>your</em> target, so History stops looking like a slot machine.
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>FUNNEL: All Traffic → Scoped Only</span>
+            <span style="color:var(--color-accent);">Signal to Noise</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 720 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scope funnel diagram">
+            <defs>
+              <marker id="funnel-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+            </defs>
+
+            <!-- 3 sources -->
+            <g>
+              <rect x="10" y="20" width="180" height="42" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-danger)" stroke-width="1.5" />
+              <text x="100" y="38" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">google-analytics.com</text>
+              <text x="100" y="54" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">noise · not our target</text>
+            </g>
+            <g>
+              <rect x="10" y="90" width="180" height="42" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+              <text x="100" y="108" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">localhost:3000</text>
+              <text x="100" y="124" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">✓ our Juice Shop</text>
+            </g>
+            <g>
+              <rect x="10" y="160" width="180" height="42" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-danger)" stroke-width="1.5" />
+              <text x="100" y="178" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">fonts.gstatic.com</text>
+              <text x="100" y="194" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">noise · CDN</text>
+            </g>
+
+            <!-- Funnel body -->
+            <path d="M 200 30 L 460 90 L 460 130 L 200 190 Z" fill="var(--color-surface)" stroke="var(--color-warn)" stroke-width="2" />
+            <text x="330" y="105" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="13" font-weight="700" text-anchor="middle">🎯 SCOPE FILTER</text>
+            <text x="330" y="125" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Target → Scope → include host</text>
+
+            <!-- Arrow to output -->
+            <line x1="465" y1="110" x2="530" y2="110" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#funnel-arrow)" />
+
+            <!-- Output -->
+            <rect x="540" y="90" width="170" height="42" rx="6" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2" />
+            <text x="625" y="108" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">CLEAN HISTORY</text>
+            <text x="625" y="124" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">Just what matters</text>
+          </svg>
+        </div>
+
+        <!-- HANDS-ON #4: add scope + filter -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #4 · Add Juice Shop to scope</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">4 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li><strong>Target → Site map</strong>. Right-click <code>http://localhost:3000</code> → <em>Add to scope</em>.</li>
+            <li>Answer <em>Yes</em> when Burp asks "stop logging out-of-scope items?"</li>
+            <li>Switch to <strong>Proxy → HTTP History</strong>. Tick the "Filter" bar → "Show only in-scope items".</li>
+            <li>Refresh <code>localhost:3000</code>. History now shows only your target.</li>
+          </ol>
+          <details class="thought-accordion">
+            <summary>Why "stop logging out-of-scope" matters in a real engagement</summary>
+            <div class="thought-accordion__content">
+              <p>In a paid pentest, the contract says exactly what you're allowed to touch. If Burp logs requests to a domain you weren't hired to test, that log is evidence you went where you shouldn't. Scope is how you stay on the right side of that line (and out of an awkward meeting with a lawyer).</p>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Section 6: Intercept a GET -->
+      <section>
+        <h2 id="intercept-get">6. Intercept a GET Request</h2>
+        <p class="lab-lead">
+          Now turn Intercept ON. Every request stops at Burp and waits for you to click Forward, like a very patient bouncer. This is where you get to edit traffic in flight.
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>SEQUENCE: Browser → Burp (PAUSED) → Server</span>
+            <span style="color:var(--color-warn);">Intercept ON</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 780 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Intercept sequence diagram">
+            <defs>
+              <marker id="arrow-burp-fwd" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-warn)" />
+              </marker>
+              <marker id="arrow-burp-back" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
+              </marker>
+            </defs>
+
+            <!-- Actors -->
+            <g>
+              <rect x="30" y="10" width="140" height="34" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+              <text x="100" y="32" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">🌐 BROWSER</text>
+              <line x1="100" y1="44" x2="100" y2="205" stroke="var(--color-border)" stroke-width="2" stroke-dasharray="4" />
+            </g>
+            <g>
+              <rect x="320" y="10" width="140" height="34" rx="6" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2" />
+              <text x="390" y="32" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">🟠 BURP (paused)</text>
+              <line x1="390" y1="44" x2="390" y2="205" stroke="var(--color-border)" stroke-width="2" stroke-dasharray="4" />
+            </g>
+            <g>
+              <rect x="610" y="10" width="140" height="34" rx="6" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+              <text x="680" y="32" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">🎯 JUICE SHOP</text>
+              <line x1="680" y1="44" x2="680" y2="205" stroke="var(--color-border)" stroke-width="2" stroke-dasharray="4" />
+            </g>
+
+            <!-- 1. Browser -> Burp -->
+            <line x1="100" y1="70" x2="380" y2="90" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-burp-fwd)" />
+            <rect x="140" y="60" width="220" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="1" />
+            <text x="250" y="76" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">1. GET /rest/products/search?q=apple</text>
+
+            <!-- 2. Held at Burp -->
+            <rect x="330" y="100" width="120" height="30" rx="4" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="1.5" />
+            <text x="390" y="120" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">2. ⏸ HELD: edit q=</text>
+
+            <!-- 3. Burp -> Server (after Forward) -->
+            <line x1="390" y1="150" x2="670" y2="165" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arrow-burp-fwd)" />
+            <rect x="420" y="140" width="240" height="24" rx="4" fill="var(--color-surface)" stroke="var(--color-warn)" stroke-width="1" />
+            <text x="540" y="156" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">3. Forward (tampered q=)</text>
+
+            <!-- 4. Response back -->
+            <line x1="680" y1="185" x2="110" y2="200" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arrow-burp-back)" />
+            <rect x="240" y="180" width="300" height="20" rx="4" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="1" />
+            <text x="390" y="194" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">4. 200 OK · JSON products list</text>
+          </svg>
+        </div>
+
+        <!-- HANDS-ON #5: toggle intercept, inspect -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #5 · Catch your first request</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">4 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Burp → <strong>Proxy → Intercept</strong> → click "Intercept is off" to toggle ON.</li>
+            <li>In the browser, use the Juice Shop search bar: type <code>apple</code> and hit Enter.</li>
+            <li>Burp holds the request. Read the raw HTTP: the method line, <code>Host</code>, the other headers, and an empty body (it's a GET).</li>
+            <li>Click <strong>Forward</strong>. The response comes back and the page finishes loading.</li>
+          </ol>
+          <details class="thought-accordion">
+            <summary>Nothing captured? 3 quick fixes.</summary>
+            <div class="thought-accordion__content">
+              <ol style="margin:0;padding-left:var(--space-4);display:flex;flex-direction:column;gap:var(--space-1);font-size:var(--font-size-xs);">
+                <li>Is Firefox actually pointing at <code>127.0.0.1:8080</code>? And did you set <code>allow_hijacking_localhost</code>? That one gets almost everyone.</li>
+                <li>The browser may be serving from cache. Hard-refresh with <kbd>Ctrl+Shift+R</kbd>.</li>
+                <li>You opened the Juice Shop tab <em>before</em> setting the proxy. Close it and open a new one.</li>
+              </ol>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Section 7: Modify & Forward -->
+      <section>
+        <h2 id="tamper-get">7. Tamper the GET, Then Forward</h2>
+        <p class="lab-lead">
+          You caught the search request. Now change it before the server sees it: swap <code>q=apple</code> for a payload and see what Juice Shop's backend gives away.
+        </p>
+
+        <!-- Prediction Prompt #2 -->
+        <div class="prediction-prompt">
+          <div class="prediction-prompt__question">🤔 Predict: what happens when we send <code>q=';--</code> to Juice Shop's product search?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            The server throws a <code>500</code> and the page title reads <code>Error: SQLITE_ERROR: near &quot;;&quot;: syntax error</code>. It doesn't hand you the full query (the stack trace is empty), but that one line is already a <strong>leak</strong>: it confirms your input reached a SQLite database and broke the query. Real apps usually hide this behind a generic 500. Week 3 is all SQLi, so today you're just proving you can reach the database.
+          </div>
+        </div>
+
+        <!-- HANDS-ON #6: tamper GET live -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Live tamper</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Intercept ON. Trigger a new search from Juice Shop (any word).</li>
+            <li>In the intercepted request, find <code>?q=&lt;yourword&gt;</code>. Change the value to <code>%27%3B--</code> (that's <code>';--</code> URL-encoded).</li>
+            <li>Click <strong>Forward</strong>. Watch the browser render the response.</li>
+            <li>Open <strong>Proxy → HTTP History</strong> → click the last request → Response tab. Look for the database error.</li>
+          </ol>
+          <details class="thought-accordion">
+            <summary>Why URL-encode the payload?</summary>
+            <div class="thought-accordion__content">
+              <p>Characters like <code>;</code>, <code>'</code>, and space break URL parsing. <code>%27</code> is <code>'</code> and <code>%3B</code> is <code>;</code>. Burp can do this for you (right-click → <em>Convert selection → URL → URL-encode key characters</em>), but you'll see <code>%27</code> so often in the next few labs that it's worth knowing by sight.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Stretch challenge -->
+        <div class="bento-card bento-card--stretch" style="margin:var(--space-4) 0;">
+          <div style="margin-bottom:var(--space-2);padding-right:6rem;">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Bonus · Trigger a different error</strong>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0;">
+            Instead of <code>';--</code>, try <code>%27+UNION+SELECT+NULL--</code>. Compare the two responses in HTTP History. Did the error change? (Skip it if you're short on time. UNION gets its own lab next week.)
+          </p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">👯</span>
+          <div class="callout__content">
+            <div class="callout__title">Driver swap #1 (you've done your first live tamper)</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">If you've been typing, hand over the keyboard. Yes, even if you were on a roll. Continue from §8.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 8: Send to Repeater -->
+      <section>
+        <h2 id="repeater">8. Send to Repeater: Try Again Without Reloading</h2>
+        <p class="lab-lead">
+          Intercept gives you one shot per request. Repeater lets you keep the request and fire it as many times as you like: edit, send, compare. You'll basically live here during the SQLi lab.
+        </p>
+
+        <!-- Burp Mock: History + Repeater -->
+        <div class="burp-mock">
+          <div class="burp-mock__chrome">
+            <span class="burp-mock__chrome-logo">B</span>
+            <span class="burp-mock__chrome-title">Burp Suite Community · Simulated</span>
+          </div>
+          <div class="burp-mock__toolbar">
+            <button type="button" class="burp-mock__tab is-active" data-tab="proxy">Proxy</button>
+            <button type="button" class="burp-mock__tab" data-tab="repeater">Repeater</button>
+            <button type="button" class="burp-mock__tab" data-tab="intruder">Intruder</button>
+            <button type="button" class="burp-mock__tab" data-tab="target">Target</button>
+          </div>
+          <div class="burp-mock__subtoolbar">
+            <span class="burp-mock__chip burp-mock__chip--intercept-off">Intercept OFF</span>
+            <span>HTTP History · in-scope only · Filter ✓</span>
+          </div>
+
+          <!-- Proxy pane -->
+          <div class="burp-mock__pane is-active" data-pane="proxy">
+            <div class="burp-mock__history">
+              <div class="burp-mock__history-header">
+                <span>#</span><span>Method</span><span>URL</span><span>Status</span><span>Len</span><span>Type</span>
+              </div>
+              <div class="burp-mock__history-row"
+                   data-request="GET /rest/products/search?q=apple HTTP/1.1&#10;Host: localhost:3000&#10;User-Agent: Mozilla/5.0&#10;Accept: application/json"
+                   data-response="HTTP/1.1 200 OK&#10;Content-Type: application/json&#10;&#10;{&quot;status&quot;:&quot;success&quot;,&quot;data&quot;:[{&quot;id&quot;:1,&quot;name&quot;:&quot;Apple Juice (1000ml)&quot;}]}">
+                <span>17</span><span class="burp-mock__method burp-mock__method--get">GET</span>
+                <span>/rest/products/search?q=apple</span>
+                <span class="burp-mock__status--200">200</span><span>412</span><span>JSON</span>
+              </div>
+              <div class="burp-mock__history-row"
+                   data-request="POST /rest/user/login HTTP/1.1&#10;Host: localhost:3000&#10;Content-Type: application/json&#10;&#10;{&quot;email&quot;:&quot;test@juice-sh.op&quot;,&quot;password&quot;:&quot;wrong&quot;}"
+                   data-response="HTTP/1.1 401 Unauthorized&#10;Content-Type: text/html; charset=utf-8&#10;Content-Length: 26&#10;&#10;Invalid email or password.">
+                <span>18</span><span class="burp-mock__method burp-mock__method--post">POST</span>
+                <span>/rest/user/login</span>
+                <span class="burp-mock__status--401">401</span><span>26</span><span>HTML</span>
+              </div>
+              <div class="burp-mock__history-row"
+                   data-request="GET /rest/products/search?q=%27%3B-- HTTP/1.1&#10;Host: localhost:3000&#10;User-Agent: Mozilla/5.0"
+                   data-response="HTTP/1.1 500 Internal Server Error&#10;Content-Type: text/html&#10;&#10;&lt;h2&gt;&lt;em&gt;500&lt;/em&gt; Error: SQLITE_ERROR: near &quot;;&quot;: syntax error&lt;/h2&gt;&#10;&lt;ul id=&quot;stacktrace&quot;&gt;&lt;/ul&gt;">
+                <span>19</span><span class="burp-mock__method burp-mock__method--get">GET</span>
+                <span>/rest/products/search?q=%27%3B--</span>
+                <span class="burp-mock__status--500">500</span><span>2.1k</span><span>HTML</span>
+              </div>
+            </div>
+
+            <div class="burp-mock__split">
+              <div class="burp-mock__panel">
+                <div class="burp-mock__panel-header">Request</div>
+                <div class="burp-mock__panel-body" data-role="request"><pre>Click a row above to load a request…</pre></div>
+              </div>
+              <div class="burp-mock__panel">
+                <div class="burp-mock__panel-header">Response</div>
+                <div class="burp-mock__panel-body" data-role="response"><pre>…and its response.</pre></div>
+              </div>
+            </div>
+
+            <div class="burp-mock__actions">
+              <button type="button" class="burp-mock__action-btn is-primary" data-action="send-to-repeater">→ Send to Repeater (Ctrl+R)</button>
+              <button type="button" class="burp-mock__action-btn">Send to Intruder (Ctrl+I)</button>
+              <button type="button" class="burp-mock__action-btn">Add to Scope</button>
+            </div>
+            <div class="burp-mock__hint">💡 Row selected. Click <strong>Send to Repeater</strong> above to switch tabs and iterate on it.</div>
+          </div>
+
+          <!-- Repeater pane -->
+          <div class="burp-mock__pane" data-pane="repeater">
+            <div class="burp-mock__subtoolbar" style="margin:0 0 var(--space-3);">
+              <span class="burp-mock__chip">Request #1</span>
+              <span>Edit the request → click Send → compare response</span>
+            </div>
+            <div class="burp-mock__split">
+              <div class="burp-mock__panel">
+                <div class="burp-mock__panel-header">Request (editable)</div>
+                <div class="burp-mock__panel-body" data-role="request"><pre>Send a request from Proxy first (click a history row → Send to Repeater).</pre></div>
+              </div>
+              <div class="burp-mock__panel">
+                <div class="burp-mock__panel-header">Response</div>
+                <div class="burp-mock__panel-body" data-role="response"><pre>Response will render here after you click Send.</pre></div>
+              </div>
+            </div>
+            <div class="burp-mock__actions">
+              <button type="button" class="burp-mock__action-btn is-primary">▶ Send</button>
+              <button type="button" class="burp-mock__action-btn">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Intruder / Target placeholder panes -->
+          <div class="burp-mock__pane" data-pane="intruder">
+            <div style="padding:var(--space-4);font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);">
+              Intruder (wordlist fuzzing) shows up in Lab 03 with SQLi automation.
+            </div>
+          </div>
+          <div class="burp-mock__pane" data-pane="target">
+            <div style="padding:var(--space-4);font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);">
+              Target → Site map tree. You've been using this in §5 to add scope.
+            </div>
+          </div>
+        </div>
+
+        <!-- HANDS-ON #7: 3 payloads in Repeater -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #7 · Three payloads, one Repeater tab</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            In real Burp: HTTP History → right-click the <code>?q=apple</code> row → Send to Repeater. Send each payload below and note the status code and response length.
+          </p>
+          <div class="info-dense-card info-dense-card--warn" style="margin:var(--space-2) 0;">
+            <div class="info-dense-card__title">Payloads to send</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Baseline</span>
+                <code>q=apple</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">SQL sink probe</span>
+                <code>q=%27%3B--</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Union probe</span>
+                <code>q=%27+UNION+SELECT+NULL--</code>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;font-family:var(--font-mono);">
+            Compare the response bodies. Which ones broke the query?
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 9: POST -->
+      <section>
+        <h2 id="post-tamper">9. Tamper a POST: The Login Form</h2>
+        <p class="lab-lead">
+          GET puts data in the URL. POST puts it in the body. Juice Shop's login is a JSON POST, so it's the same tampering, just in a different spot.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Form-encoded POST</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Classic HTML form</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">📮</span> <code>Content-Type: application/x-www-form-urlencoded</code></li>
+              <li><span class="comparison-icon">📝</span> Body: <code>email=a%40b.com&amp;password=xyz</code></li>
+              <li><span class="comparison-icon">🔍</span> Curl: <code>--data-raw 'email=a&amp;password=b'</code></li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">JSON POST</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">SPA / API</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">📮</span> <code>Content-Type: application/json</code></li>
+              <li><span class="comparison-icon">📝</span> Body: <code>{"email":"a@b.com","password":"xyz"}</code></li>
+              <li><span class="comparison-icon">🔍</span> Curl: <code>-H "Content-Type: application/json" --data '{…}'</code></li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- HANDS-ON #8: tamper login POST -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #8 · Intercept &amp; edit the login POST</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Juice Shop → top-right <strong>Account → Login</strong>.</li>
+            <li>Intercept ON. Enter <code>test@juice-sh.op</code> + any password → click Log in.</li>
+            <li>Burp holds a <code>POST /rest/user/login</code> with a JSON body. Change the <code>password</code> to whatever you like and Forward.</li>
+            <li>Response is <code>401</code> with <code>Invalid email or password.</code> Now send that request to Repeater and change <code>email</code> to <code>' or 1=1--</code> (in JSON: <code>"email":"' or 1=1--"</code>). This time you get a <code>200</code> and a real login token. You just walked in as the first user in the table without knowing a password.</li>
+          </ol>
+        </div>
+
+        <div class="callout callout--theory">
+          <span class="callout__icon">🔍</span>
+          <div class="callout__content">
+            <div class="callout__title">What just happened? (the 2-minute version)</div>
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-xs);">
+              Behind the login form, the server asks its database something like this:
+            </p>
+            <pre style="margin:0 0 var(--space-2);white-space:pre-wrap;font-size:var(--font-size-xs);">SELECT * FROM Users WHERE email = 'test@juice-sh.op' AND password = '...'</pre>
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-xs);">
+              It pastes whatever you typed between those quotes. So your "email" turned the question into this:
+            </p>
+            <pre style="margin:0 0 var(--space-2);white-space:pre-wrap;font-size:var(--font-size-xs);">SELECT * FROM Users WHERE email = '' or 1=1--' AND password = '...'</pre>
+            <ul style="margin:0 0 var(--space-2);padding-left:var(--space-4);font-size:var(--font-size-xs);">
+              <li><code>'</code> closes the email string early.</li>
+              <li><code>or 1=1</code> is true for every row, so every user matches.</li>
+              <li><code>--</code> starts a comment, so the password check is ignored.</li>
+            </ul>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              The app takes the first user it gets back, which happens to be the admin. That's SQL injection. Next week you'll see how databases think, and how far this goes past a login form.
+            </p>
+          </div>
+        </div>
+
+        <!-- curl equivalent -->
+        <div class="terminal-window">
+          <div class="terminal-window__header">
+            <div class="terminal-window__controls">
+              <span class="terminal-dot terminal-dot--red"></span>
+              <span class="terminal-dot terminal-dot--yellow"></span>
+              <span class="terminal-dot terminal-dot--green"></span>
+            </div>
+            <span class="terminal-window__title">bash · replay login via curl through Burp</span>
+            <button type="button" class="terminal-copy-btn">Copy</button>
+          </div>
+          <div class="terminal-window__body">
+            <pre><code>curl -x http://127.0.0.1:8080 \
+  -X POST http://localhost:3000/rest/user/login \
+  -H "Content-Type: application/json" \
+  --data '{"email":"test@juice-sh.op","password":"tampered"}'</code></pre>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+          <code>-x</code> sends curl through Burp, so this request shows up in HTTP History too. That's tool number three.
+        </p>
+      </section>
+
+      <!-- Section 10: PortSwigger -->
+      <section>
+        <div class="callout callout--tip">
+          <span class="callout__icon">👯</span>
+          <div class="callout__content">
+            <div class="callout__title">Driver swap #2 (you've tampered a POST and bypassed a login)</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">Swap again. If you're a group of three, it's the third person's turn. Finish §10–12 together.</p>
+          </div>
+        </div>
+
+        <h2 id="portswigger">10. Take-Home: PortSwigger Web Security Academy</h2>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger Web Security Academy</h3>
+                <div class="target-launcher__platform">Hosted · free account required · works everywhere</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Hosted Lab</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #9 · At-home lab (15 min)</span>
+              <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+                Pick one and solve it in Burp before next Saturday.
+              </p>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/essential-skills/using-burp-scanner" target="_blank" rel="noopener noreferrer">Essential: Using Burp Scanner</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">SQLi: Retrieve hidden data</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">Auth: Username enumeration</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Sign in at <code>portswigger.net</code> · start a "Lab" → get a fresh disposable URL</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="callout callout--offline">
+          <span class="callout__icon">📴</span>
+          <div class="callout__content">
+            <div class="callout__title">No internet? The in-class work still runs.</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              Everything from §3 to §9 runs against your local Juice Shop container and Burp, so it works with the wifi completely dead (once the image is pulled). DO #1 hits <code>httpbin.org</code>, so that one needs a connection, and so do the PortSwigger take-home and the SQL warm-up below. Save those for when you're back online. Each PortSwigger lab has a written solution and a video on its own page if you get stuck.
+            </p>
+          </div>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">📚</span>
+          <div class="callout__content">
+            <div class="callout__title">Optional: 10-minute SQL warm-up before Lab 03</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              Next week is all SQL injection. It's much easier if you can already read a basic query. Do lessons 1 to 4 of <a href="https://sqlbolt.com/" target="_blank" rel="noopener noreferrer">SQLBolt</a> (<code>SELECT</code>, <code>WHERE</code>, <code>ORDER BY</code>). It runs in the browser, there's nothing to install, and you type real queries. Skip it and you won't fall behind, since we cover the basics at the start of class. Do it and you'll spend that time watching everyone else catch up.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 11: Score Board -->
+      <section>
+        <h2 id="score-board">11. Juice Shop Score Board (Optional Rabbit Hole)</h2>
+
+        <div class="callout callout--warning">
+          <span class="callout__icon">🏆</span>
+          <div class="callout__content">
+            <div class="callout__title">The Score Board is hidden on purpose</div>
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);">
+              Juice Shop tracks solved challenges at <code>/#/score-board</code>. Yes, the scoreboard is hidden behind a challenge. Finding it <em>is</em> the first one. Hint: the route is somewhere in the app's JavaScript files, and Burp's HTTP History has all of them.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">
+              → Your progress is saved per browser. Good low-pressure practice between sessions.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 12: Quiz -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title" id="quiz">Lab 02 Self-Assessment · 8 questions</h2>
+          <span class="quiz-xp-badge">🖐️ DO #10</span>
+        </div>
+
+        <!-- Q1 MCQ -->
+        <div class="quiz-card" data-question-id="lab02-q1">
+          <div class="quiz-question">
+            Q1: Burp's "Intercept is off" toggle. What is Burp still doing?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="If Burp saw nothing, HTTP History would be empty. Off means it stops pausing. It still watches.">
+              A) Nothing. The browser talks straight to the server.
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Intercept controls pausing. HTTP History logs everything either way, so you can retro-inspect after the fact.">
+              B) Observing every request/response and logging it to HTTP History, without pausing.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Burp doesn't rewrite traffic on its own unless you set up match-and-replace rules. Intercept OFF just lets things through.">
+              C) Automatically modifying requests based on a saved rule.
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q2 Which tool -->
+        <div class="quiz-card" data-question-id="lab02-q2">
+          <div class="quiz-question">
+            Q2 [Which tool?]: You need to fuzz the <code>id</code> parameter of <code>/user?id=1</code> with 5,000 numeric values and diff response lengths. Best tool?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="DevTools can't loop over a wordlist. You'd end up writing a script, and at that point just use Intruder or ffuf.">
+              A) Browser DevTools "Edit and Resend"
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Intruder is Burp's wordlist fuzzer. Community edition is throttled, so 5k values takes a while (go get a coffee), but it's the right tool in Burp.">
+              B) Burp Intruder
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Repeater is for hand-made tweaks. 5,000 by hand would take you until Week 14.">
+              C) Burp Repeater
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A curl loop works, but you lose Burp's response-length column for spotting the odd one out. Fine if you're already scripting.">
+              D) A shell for-loop with curl
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q3 Spot the difference -->
+        <div class="quiz-card" data-question-id="lab02-q3">
+          <div class="quiz-question">
+            Q3 [Spot the difference]: Which line has been tampered by Burp compared to the browser's original?
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);margin-top:var(--space-3);font-family:var(--font-mono);font-size:var(--font-size-xs);">
+              <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
+                <strong style="color:var(--color-cyan);">Original (browser)</strong>
+                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;">GET /rest/products/search?q=apple HTTP/1.1
+Host: localhost:3000
+User-Agent: Mozilla/5.0
+Cookie: token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoidGVzdCJ9
+Accept: application/json</pre>
+              </div>
+              <div style="background:var(--color-bg-alt);border:1px solid var(--color-border);padding:var(--space-2);border-radius:var(--radius-sm);">
+                <strong style="color:var(--color-warn);">Forwarded (Burp)</strong>
+                <pre style="margin:var(--space-1) 0 0;white-space:pre-wrap;">GET /rest/products/search?q=apple HTTP/1.1
+Host: localhost:3000
+User-Agent: Mozilla/5.0
+Cookie: token=eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyIjoiYWRtaW4ifQ
+Accept: application/json</pre>
+              </div>
+            </div>
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The method and path are identical in both.">A) The <code>GET</code> line</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Host is unchanged.">B) The <code>Host</code> header</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. The header names match but the token value doesn't. Base64-decode the middle part: {&quot;user&quot;:&quot;test&quot;} became {&quot;user&quot;:&quot;admin&quot;}. Bold move.">C) The <code>Cookie</code> header value</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Accept is identical.">D) The <code>Accept</code> header</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q4 MCQ scope -->
+        <div class="quiz-card" data-question-id="lab02-q4">
+          <div class="quiz-question">
+            Q4: In a paid pentest, why is Burp's Target → Scope more than a UI convenience?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Scope doesn't make Burp faster. Nothing makes Burp faster.">A) It makes Burp faster.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Traffic to anything outside scope is traffic you weren't authorized to send. Scope keeps you inside what the contract allows.">B) It keeps you inside the legal boundary. Out-of-scope traffic counts as unauthorized access.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Scope filters what you see. It doesn't send anything by itself.">C) It automatically injects payloads only in-scope.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q5 Terminal challenge: curl through Burp -->
+        <div class="quiz-card" data-question-id="lab02-q5"
+             data-expected-regex="^curl\s+.*-x\s+http://127\.0\.0\.1:8080.*http://localhost:3000"
+             data-solution-rationale="Traffic now goes curl → Burp (127.0.0.1:8080) → Juice Shop. Check HTTP History. Your request is sitting there."
+             data-hint="Use curl's -x flag to set an HTTP proxy at 127.0.0.1:8080, then hit http://localhost:3000 (any path).">
+          <div class="quiz-question">
+            Q5 [Terminal]: Write a <code>curl</code> command that pipes a GET to <code>http://localhost:3000</code> <em>through</em> Burp on <code>127.0.0.1:8080</code>.
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali:~# curl -x ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q6 Terminal challenge: docker run juice shop -->
+        <div class="quiz-card" data-question-id="lab02-q6"
+             data-expected-regex="^docker\s+run\s+.*-p\s+3000:3000.*bkimminich/juice-shop"
+             data-solution-rationale="Juice Shop is now reachable at http://localhost:3000."
+             data-hint="Use docker run, publish port 3000:3000, and reference the image bkimminich/juice-shop.">
+          <div class="quiz-question">
+            Q6 [Terminal]: Write the <code>docker run</code> command to start Juice Shop, publishing container port 3000 to host port 3000.
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="root@kali:~# docker run ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q7 Which tool -->
+        <div class="quiz-card" data-question-id="lab02-q7">
+          <div class="quiz-question">
+            Q7 [Which tool?]: You want to prove a suspected auth bug by sending the exact same login POST 4 times, each with a slightly different <code>password</code>, and compare the 4 responses side-by-side. Best tool?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Intercept holds one request at a time, so you'd have to log in 4 times in the browser and keep the responses in your head.">A) Burp Proxy Intercept</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Repeater keeps the request loaded; edit → Send → each response is preserved in its own tab for diffing.">B) Burp Repeater</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Intruder is for wordlists. For 4 hand-made variants it's overkill (and slower).">C) Burp Intruder</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The Application panel shows storage. It doesn't send requests.">D) DevTools Application panel</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q8 MCQ: three-ways -->
+        <div class="quiz-card" data-question-id="lab02-q8">
+          <div class="quiz-question">
+            Q8: A pentester asks you to change one header before it hits an iOS app's backend. Neither DevTools nor curl helps you here. Why does Burp?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="DevTools only sees its own browser. It has no idea your phone exists.">A) DevTools works fine on mobile via remote debugging.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Point the phone's proxy at Burp's IP:8080 and install Burp's CA on it. Now all the app's traffic goes through Burp, where you can read it and change it.">B) The iOS app can be pointed at Burp's proxy at the network layer, independent of any browser.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="curl doesn't intercept traffic authored by other processes.">C) curl can attach to the iOS process and intercept its sockets.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+    </main>
+
+    <aside class="toc-sidebar">
+      <div class="toc-label">On this page</div>
+      <nav class="toc-nav" id="toc-nav" aria-label="Table of contents"></nav>
+    </aside>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

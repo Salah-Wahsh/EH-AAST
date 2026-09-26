@@ -7,6 +7,22 @@ This repository hosts the static, student-facing lab portal for **CCY4202: Ethic
 
 ---
 
+## 🤖 Multi-LLM Entry Point
+
+Any AI assistant working on this project (Claude Code, ChatGPT, Gemini, Cursor, Aider, GitHub Copilot Chat, etc.) should read these files **before** making changes. They are plain markdown with no LLM-specific syntax and safe to load into any tool:
+
+1. **[`.agents/context/README.md`](.agents/context/README.md)** — index of persistent course context
+2. **[`.agents/context/master-context.md`](.agents/context/master-context.md)** — pedagogical philosophy, professor's directive, 14-week syllabus
+3. **[`.agents/context/classroom-context.md`](.agents/context/classroom-context.md)** — physical classroom constraints (Saturdays × 2 sections, 50–60 students each, far projector)
+4. **[`.agents/context/student-profile.md`](.agents/context/student-profile.md)** — attention profile + mixed-background learner constraints
+5. **This file (`AGENTS.md`)** — hard prohibitions, visual standards, architecture, registration rules
+
+## 📚 Pedagogical Source of Truth
+
+The instructor's full teaching philosophy, student profile, professor's directive, and 14-week semester timeline live in **[`.agents/context/master-context.md`](.agents/context/master-context.md)**. Read that file before authoring any lab or curriculum change. It codifies the "Prerequisite Refresher Rule", the "Visuals Over Text Rule", the "Skip & Navigate" strategy, and the OWASP Juice Shop + PortSwigger practice-platform strategy.
+
+---
+
 ## 🚫 Hard Prohibitions (User Directives)
 
 The user has explicitly commanded the following constraints across all sessions. **NEVER violate or re-introduce any of these:**
@@ -29,6 +45,11 @@ The user has explicitly commanded the following constraints across all sessions.
    - Only include tools and commands actually introduced and taught in the course labs.
 8. **❌ NO Generic Tool Dumps Without Conceptual Grounding**:
    - Do not throw arbitrary lists of tool names and binaries into labs. Focus on deep understanding of foundational concepts (e.g. TCP 3-way handshake state machines vs. UDP statelessness) and explicitly teach **why** ethical hackers and penetration testers must know them.
+
+9. **❌ NO AI-Sounding Copy (Em Dashes, Hype Words, Slogan Closers)**:
+   - Student-facing text must read like the TA wrote it. No em dashes (`—`) in prose, no "It's not X, it's Y" reframes, no hype words (superpower, seamless, leverage, unlock, delve).
+   - Use a plain, conversational voice with contractions and a *light* dry humor (a few jokes per lab, never inside steps or commands).
+   - Full rules and lint command: [`.agents/skills/human-voice/SKILL.md`](.agents/skills/human-voice/SKILL.md).
 
 ---
 
@@ -97,6 +118,12 @@ To keep students engaged, energized, and actively learning without fatigue, ever
      - Local file browsing (`file://`)
      - Local testing server (`http://localhost:8000/`)
      - GitHub Pages subpath (`https://salah-wahsh.github.io/EH-AAST/`)
+
+---
+
+## 📓 Instructor Teaching Notes
+
+Every lab gets a private night-before briefing at `teaching-notes/labXX.md`, produced by the [`instructor-briefing`](.agents/skills/instructor-briefing/SKILL.md) skill: deep background, likely student questions, what breaks in the room, and verified target behavior. This folder (and `.agents`, `scripts`, `AGENTS.md`) is **excluded from the GitHub Pages deploy** by `.github/workflows/deploy.yml`, so answers never reach students. Never put briefing or solution content in `labs/` or any deployed file.
 
 ---
 

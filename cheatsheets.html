@@ -199,6 +199,130 @@
       </div>
     </section>
 
+    <!-- Category: Burp Suite Workflow -->
+    <section class="cheat-section" id="burp-workflow">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🟠</span>
+        <h2 class="cheat-section__title">Burp Suite Workflow (Keyboard &amp; Right-Click)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:35%;">Action</th>
+              <th style="width:25%;">Shortcut / Path</th>
+              <th style="width:30%;">When to Use</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Send to Repeater</strong></td>
+              <td><span class="flag-pill">Ctrl+R</span> or right-click any request</td>
+              <td>You want to iterate on the same request with edits &amp; compare responses.</td>
+              <td><a href="./labs/lab02.html#repeater" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>Send to Intruder</strong></td>
+              <td><span class="flag-pill">Ctrl+I</span> or right-click</td>
+              <td>You want to fuzz a parameter with a wordlist (Lab 04 territory).</td>
+              <td><a href="./labs/lab02.html#tool-comparison" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>Add to Scope</strong></td>
+              <td>Right-click host in Target → Site map → <em>Add to scope</em></td>
+              <td>Filter HTTP History to your target only; enforce authorization boundary.</td>
+              <td><a href="./labs/lab02.html#scope-config" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>Toggle Intercept</strong></td>
+              <td>Proxy → Intercept tab → button</td>
+              <td>Pause requests to edit before Forward. Off = observe only via History.</td>
+              <td><a href="./labs/lab02.html#intercept-get" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>New Repeater tab</strong></td>
+              <td><span class="flag-pill">Ctrl+T</span></td>
+              <td>Preserve the current request while starting a fresh iteration.</td>
+              <td><a href="./labs/lab02.html#repeater" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>URL-encode key characters</strong></td>
+              <td>Select text in Repeater → right-click → Convert selection → URL</td>
+              <td>You typed <code>';--</code> and want it encoded as <code>%27%3B--</code>.</td>
+              <td><a href="./labs/lab02.html#tamper-get" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category: Curl for Web Testing (Lab 02) -->
+    <section class="cheat-section" id="curl-web-testing">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🌊</span>
+        <h2 class="cheat-section__title">curl for Web Testing (Lab 02)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Command / Primitive</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">Flags Breakdown</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -x http://127.0.0.1:8080 http://localhost:3000</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -x http://127.0.0.1:8080 http://localhost:3000')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Pipe curl through Burp Proxy</strong></td>
+              <td><span class="flag-pill">-x</span> Route request via HTTP proxy at 127.0.0.1:8080</td>
+              <td><a href="./labs/lab02.html#post-tamper" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -v https://httpbin.org/get</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -v https://httpbin.org/get')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Verbose HTTP anatomy view</strong></td>
+              <td><span class="flag-pill">-v</span> Print request (&gt;) and response (&lt;) headers</td>
+              <td><a href="./labs/lab02.html#http-anatomy" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -X POST -H "Content-Type: application/json" --data '{"email":"a","password":"b"}' http://localhost:3000/rest/user/login</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -X POST -H &quot;Content-Type: application/json&quot; --data \'{&quot;email&quot;:&quot;a&quot;,&quot;password&quot;:&quot;b&quot;}\' http://localhost:3000/rest/user/login')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Replay JSON POST (SPA login)</strong></td>
+              <td><span class="flag-pill">-X POST</span> Verb, <span class="flag-pill">-H</span> Header, <span class="flag-pill">--data</span> Body</td>
+              <td><a href="./labs/lab02.html#post-tamper" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Launch OWASP Juice Shop</strong></td>
+              <td><span class="flag-pill">-d</span> Detached, <span class="flag-pill">--rm</span> Auto-remove, <span class="flag-pill">-p</span> Publish port</td>
+              <td><a href="./labs/lab02.html#target-juice-shop" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">

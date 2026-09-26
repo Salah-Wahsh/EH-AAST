@@ -35,7 +35,7 @@
 
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--correct';
-          var rationale = btn.dataset.feedback || 'Correct! Concept masterfully demonstrated.';
+          var rationale = btn.dataset.feedback || 'Correct. Nice one.';
           feedbackBox.innerHTML = '<strong>[+] ACCESS GRANTED:</strong> ' + rationale;
         }
 
@@ -47,7 +47,7 @@
 
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--incorrect';
-          var rationale = btn.dataset.feedback || 'Incorrect. Inspect the theory above and try again.';
+          var rationale = btn.dataset.feedback || 'Not quite. Scroll up, check the section again, and have another go.';
           feedbackBox.innerHTML = '<strong>[-] EXPLOIT FAILED:</strong> ' + rationale;
         }
       }
@@ -73,7 +73,7 @@
 
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--correct';
-          var rationale = card.dataset.solutionRationale || 'Command executed successfully! Target shell secured.';
+          var rationale = card.dataset.solutionRationale || 'That works. Nice.';
           feedbackBox.innerHTML = '<strong>[+] PAYLOAD DELIVERED:</strong> ' + rationale;
         }
 
@@ -84,7 +84,7 @@
 
         if (feedbackBox) {
           feedbackBox.className = 'quiz-feedback is-visible quiz-feedback--incorrect';
-          var hint = card.dataset.hint || 'Invalid syntax or missing required flags. Review the command usage above.';
+          var hint = card.dataset.hint || 'Close, but something is off. Check the flags against the command above.';
           feedbackBox.innerHTML = '<strong>[-] PARSE ERROR:</strong> ' + hint;
         }
       }

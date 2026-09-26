@@ -126,7 +126,7 @@
       </article>
 
       <!-- Burp Suite -->
-      <article class="tool-setup-card">
+      <article class="tool-setup-card" id="burp-suite">
         <div class="tool-setup-card__header">
           <div class="tool-setup-card__title-group">
             <span class="tool-setup-card__icon">🟠</span>
@@ -144,10 +144,108 @@
             <span class="tool-setup-step-label">Launch Command</span>
             <code>burpsuite &amp;</code>
           </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify Listener</span>
+            <code>curl -x http://127.0.0.1:8080 http://example.com</code>
+          </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a> <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
           <span>Desktop GUI Proxy</span>
+        </div>
+      </article>
+
+      <!-- OWASP Juice Shop -->
+      <article class="tool-setup-card" id="juice-shop">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🧃</span>
+            <h2 class="tool-setup-card__title">OWASP Juice Shop</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">TARGET / SPA</span>
+        </div>
+        <p class="tool-setup-card__desc">Deliberately vulnerable Angular/Node SPA — the classroom's primary attack target. Runs offline after first Docker pull.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Pull &amp; Run (Docker)</span>
+            <code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Open URL</span>
+            <code>http://localhost:3000</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify container</span>
+            <code>docker ps --filter name=juice</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Stop when done</span>
+            <code>docker stop juice</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
+          <span>Docker · offline-capable</span>
+        </div>
+      </article>
+
+      <!-- PortSwigger Web Security Academy -->
+      <article class="tool-setup-card" id="portswigger">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🎓</span>
+            <h2 class="tool-setup-card__title">PortSwigger Academy</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">HOSTED LAB PLATFORM</span>
+        </div>
+        <p class="tool-setup-card__desc">Free hosted micro-labs from Burp's makers. Enrichment / at-home reinforcement path — every core exercise still runs on Juice Shop first (wifi unreliable).</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Create account</span>
+            <code>https://portswigger.net/users/register</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Start a lab</span>
+            <code>Web Security Academy → pick topic → "Access the lab"</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Offline fallback</span>
+            <code>labs/offline-cache/portswigger-labXX.pdf</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
+          <span>Hosted · account required</span>
+        </div>
+      </article>
+
+      <!-- Docker Engine (target host) -->
+      <article class="tool-setup-card" id="docker">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🐳</span>
+            <h2 class="tool-setup-card__title">Docker Engine / Desktop</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">TARGET RUNTIME</span>
+        </div>
+        <p class="tool-setup-card__desc">Container runtime — hard prerequisite from Lab 02 onward. Every classroom target ships as a Docker image so wifi isn't in the critical path.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Linux)</span>
+            <code>curl -fsSL https://get.docker.com | sh</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (macOS / Windows)</span>
+            <code>Docker Desktop — https://docker.com/products/docker-desktop</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify</span>
+            <code>docker ps</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
+          <span>Runtime · Day-1 gate</span>
         </div>
       </article>
 

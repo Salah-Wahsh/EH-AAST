@@ -28,7 +28,9 @@ All authoring must strictly comply with the [Anti-Cognitive Overload Skill](../a
    - Compatible with `[ 🖥️ Projector View ]` (18px+ font, clean outlines) and Dark/Light mode toggles.
 4. **No Gamification Bloat**:
    - Do NOT add points, XP badges, or score meters.
-5. **Cognitive Load Audit**:
+5. **Human Voice**:
+   - All copy follows the [Human Voice Skill](../human-voice/SKILL.md): no em dashes, no hype words, contractions, a light touch of dry humor.
+6. **Cognitive Load Audit**:
    - Every lab must pass the 6-point Cognitive Load Audit checklist prior to deployment.
 
 
@@ -90,6 +92,9 @@ Before pushing to production, verify:
 - [ ] Mobile view (narrow viewport) displays single-column without horizontal scrolling.
 - [ ] Quizzes provide instant pass/fail validation.
 - [ ] `cheatsheets.html` and `tools.html` reflect newly harvested items.
+
+### Step 5.5: Instructor Briefing (Zero User Overhead)
+After the lab is built, generate the TA's private teaching notes with the [Instructor Briefing Skill](../instructor-briefing/SKILL.md) → `teaching-notes/labXX.md`. Deep background, likely student questions, room failures, verified target behavior. Never deployed to students.
 
 ### Step 6: Automated GitHub Pages Deployment
 
