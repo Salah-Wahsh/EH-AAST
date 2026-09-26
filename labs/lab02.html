@@ -701,9 +701,125 @@
         </div>
       </section>
 
-      <!-- Section 6: Intercept a GET -->
+      <!-- Section 6: Recon & App Mapping -->
       <section>
-        <h2 id="intercept-get">6. Intercept a GET Request</h2>
+        <h2 id="recon-mapping">6. Recon: Get to Know the Target</h2>
+        <p class="lab-lead">
+          Before you attack anything, you use it. Click through Juice Shop like a bored customer. You're behind Burp, so every click is quietly logged. Browsing the app <em>is</em> recon.
+        </p>
+
+        <!-- HANDS-ON #5: the manual tour -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #5 · The 3-minute tour</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">3 min</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Don't hack anything yet. Just poke every corner of the app. The more features you touch, the more of the attack surface lands in Burp for the next step.
+          </p>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Browse the shop, open a product, read its reviews.</li>
+            <li>Register an account, then log in.</li>
+            <li>Drop something in the basket.</li>
+            <li>Open the Customer Feedback form.</li>
+            <li>Switch the language from the top menu.</li>
+          </ol>
+        </div>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">🚶 Walk the app</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">USE EVERY FEATURE</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> Every feature you click shows up in <strong>Site map</strong> and <strong>HTTP History</strong>.</li>
+              <li><span class="comparison-icon">🔹</span> You learn what the app <em>does</em>: its forms, its logins, its API calls.</li>
+              <li><span class="comparison-icon">🔹</span> Zero skill required. This is just using the website.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">📖 Read what it ships</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">DIG IN THE TRAFFIC</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> The JS bundle (<code>main.js</code>) and API responses reveal routes you never clicked.</li>
+              <li><span class="comparison-icon">🔹</span> Endpoints often leak version numbers, config, and internal fields.</li>
+              <li><span class="comparison-icon">🔹</span> This is where you find the stuff the UI tries to hide.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- HANDS-ON #6: read the trail + spot a leak -->
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Read your own trail in Burp</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li><strong>Target → Site map</strong>. Expand <code>localhost:3000</code>. This is the tree of everything you touched on the tour.</li>
+            <li><strong>Proxy → HTTP History</strong>. Scan the URL column for API calls: <code>/rest/*</code> and <code>/api/*</code>. Those are the app's real moving parts.</li>
+            <li>Find <code>GET /rest/admin/application-version</code>. It hands you the exact Juice Shop version. That's <strong>version disclosure</strong>, and it's a finding: an attacker looks up known CVEs for that version.</li>
+            <li>Find <code>GET /rest/admin/application-config</code>. Click it. The response is probably <code>304 Not Modified</code> with an empty body, because your browser cached it. We'll force a fresh copy in Repeater shortly. For now, just log it.</li>
+          </ol>
+          <details class="thought-accordion">
+            <summary>Why 304 and no body? (you'll hit this again in Repeater)</summary>
+            <div class="thought-accordion__content">
+              <p>Your browser already fetched that file once, so it re-asks with an <code>If-None-Match</code> header carrying the cached ETag. The server checks, sees nothing changed, and replies <code>304 Not Modified</code> with no body to save bandwidth. Burp shows the honest wire truth: an empty 304. The browser secretly fills in the cached copy, which is why the page still looks fine. To read the real body, you strip <code>If-None-Match</code> and the server has to send the whole thing again. That's the first thing you'll do in Repeater.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="diagram-card" style="margin:var(--space-4) 0;">
+          <div class="diagram-card__title">
+            <span>📓 FINDINGS LOG</span>
+            <span style="color:var(--color-accent);">write it down as you go</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>What you found</th><th>Where it showed up</th><th>Why it matters</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>/rest/products/search?q=</code></td><td>the search bar</td><td>your text reaches a backend query (we weaponize this next week)</td></tr>
+                <tr><td><code>/rest/admin/application-version</code></td><td>HTTP History</td><td>exact version leaks → search public CVEs for it</td></tr>
+                <tr><td><code>/rest/admin/application-config</code></td><td>HTTP History</td><td>backend config metadata → force a 200 in Repeater to read it</td></tr>
+                <tr><td><code>/rest/user/login</code></td><td>the login page</td><td>auth endpoint, JSON POST (we tamper it in §10)</td></tr>
+                <tr><td><code>main.js</code></td><td>every page load</td><td>ships every client-side route, including hidden ones</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">This little table is the seed of every pentest report you'll ever write. Findings are the deliverable, not the exploits.</p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🎨</span>
+          <div class="callout__content">
+            <div class="callout__title">Pro move: color-code your History</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              Right-click any HTTP History row → <strong>Highlight</strong>. Pick a convention and stick to it: red for a confirmed finding, yellow for endpoints tied to it, blue for "interesting, come back later." And name your Repeater tabs instead of leaving them "1, 2, 3". On a multi-day test with 4,000 requests, this is the difference between finding your evidence and rediscovering it.
+            </p>
+          </div>
+        </div>
+
+        <!-- Prediction Prompt #2 -->
+        <div class="prediction-prompt">
+          <div class="prediction-prompt__question">🤔 You never clicked an admin page anywhere in the app. So how could you still find one?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            Juice Shop is one big Angular app, so every route it knows how to reach is written into <code>main.js</code>, which is sitting in your HTTP History right now. Read that file and you find pages the menu never links to. That's exactly how you'll crack the hidden Score Board later.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: Intercept a GET -->
+      <section>
+        <h2 id="intercept-get">7. Intercept a GET Request</h2>
         <p class="lab-lead">
           Now turn Intercept ON. Every request stops at Burp and waits for you to click Forward, like a very patient bouncer. This is where you get to edit traffic in flight.
         </p>
@@ -764,7 +880,7 @@
         <!-- HANDS-ON #5: toggle intercept, inspect -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #5 · Catch your first request</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #7 · Catch your first request</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">4 min</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
@@ -786,14 +902,14 @@
         </div>
       </section>
 
-      <!-- Section 7: Modify & Forward -->
+      <!-- Section 8: Modify & Forward -->
       <section>
-        <h2 id="tamper-get">7. Tamper the GET, Then Forward</h2>
+        <h2 id="tamper-get">8. Tamper the GET, Then Forward</h2>
         <p class="lab-lead">
           You caught the search request. Now change it before the server sees it: swap <code>q=apple</code> for a payload and see what Juice Shop's backend gives away.
         </p>
 
-        <!-- Prediction Prompt #2 -->
+        <!-- Prediction Prompt #3 -->
         <div class="prediction-prompt">
           <div class="prediction-prompt__question">🤔 Predict: what happens when we send <code>q=';--</code> to Juice Shop's product search?</div>
           <div class="prediction-prompt__input-group">
@@ -802,14 +918,14 @@
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            The server throws a <code>500</code> and the page title reads <code>Error: SQLITE_ERROR: near &quot;;&quot;: syntax error</code>. It doesn't hand you the full query (the stack trace is empty), but that one line is already a <strong>leak</strong>: it confirms your input reached a SQLite database and broke the query. Real apps usually hide this behind a generic 500. Week 3 is all SQLi, so today you're just proving you can reach the database.
+            The server throws a <code>500</code> and the page title reads <code>Error: SQLITE_ERROR: near &quot;;&quot;: syntax error</code>. It doesn't hand you the full query (the stack trace is empty), but that one line is already a <strong>finding</strong>: it confirms your input reached a SQLite database and broke the query. Log it. We don't exploit it today, that's all of next week. Right now you're just proving the input reaches the database.
           </div>
         </div>
 
         <!-- HANDS-ON #6: tamper GET live -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Live tamper</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #8 · Live tamper</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
@@ -826,28 +942,11 @@
           </details>
         </div>
 
-        <!-- Stretch challenge -->
-        <div class="bento-card bento-card--stretch" style="margin:var(--space-4) 0;">
-          <div style="margin-bottom:var(--space-2);padding-right:6rem;">
-            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Bonus · Trigger a different error</strong>
-          </div>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0;">
-            Instead of <code>';--</code>, try <code>%27+UNION+SELECT+NULL--</code>. Compare the two responses in HTTP History. Did the error change? (Skip it if you're short on time. UNION gets its own lab next week.)
-          </p>
-        </div>
-
-        <div class="callout callout--tip">
-          <span class="callout__icon">👯</span>
-          <div class="callout__content">
-            <div class="callout__title">Driver swap #1 (you've done your first live tamper)</div>
-            <p style="margin:0;font-size:var(--font-size-xs);">If you've been typing, hand over the keyboard. Yes, even if you were on a roll. Continue from §8.</p>
-          </div>
-        </div>
       </section>
 
-      <!-- Section 8: Send to Repeater -->
+      <!-- Section 9: Send to Repeater -->
       <section>
-        <h2 id="repeater">8. Send to Repeater: Try Again Without Reloading</h2>
+        <h2 id="repeater">9. Send to Repeater: Try Again Without Reloading</h2>
         <p class="lab-lead">
           Intercept gives you one shot per request. Repeater lets you keep the request and fire it as many times as you like: edit, send, compare. You'll basically live here during the SQLi lab.
         </p>
@@ -952,14 +1051,14 @@
           </div>
         </div>
 
-        <!-- HANDS-ON #7: 3 payloads in Repeater -->
+        <!-- HANDS-ON #7: Repeater: search probes + the info leak -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #7 · Three payloads, one Repeater tab</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #9 · Iterate in Repeater</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            In real Burp: HTTP History → right-click the <code>?q=apple</code> row → Send to Repeater. Send each payload below and note the status code and response length.
+            <strong>Part A: the search.</strong> HTTP History → right-click the <code>?q=apple</code> row → Send to Repeater. Send each payload, note the status and length.
           </p>
           <div class="info-dense-card info-dense-card--warn" style="margin:var(--space-2) 0;">
             <div class="info-dense-card__title">Payloads to send</div>
@@ -972,21 +1071,20 @@
                 <span class="info-dense-card__label">SQL sink probe</span>
                 <code>q=%27%3B--</code>
               </div>
-              <div class="info-dense-card__cell">
-                <span class="info-dense-card__label">Union probe</span>
-                <code>q=%27+UNION+SELECT+NULL--</code>
-              </div>
             </div>
           </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-3) 0 var(--space-2);">
+            <strong>Part B: cash in the recon finding.</strong> Remember the <code>application-config</code> row that came back <code>304</code> with no body? Send that row to Repeater, then in the request panel <strong>delete the <code>If-None-Match</code> line</strong> and click Send. With no cached ETag to match, the server can't answer 304, so you get a fresh <code>200 OK</code> with the full config body. Read it.
+          </p>
           <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;font-family:var(--font-mono);">
-            Compare the response bodies. Which ones broke the query?
+            This is the everyday Repeater loop: keep one request, change one thing, send, compare.
           </p>
         </div>
       </section>
 
-      <!-- Section 9: POST -->
+      <!-- Section 10: POST -->
       <section>
-        <h2 id="post-tamper">9. Tamper a POST: The Login Form</h2>
+        <h2 id="post-tamper">10. Tamper a POST: The Login Form</h2>
         <p class="lab-lead">
           GET puts data in the URL. POST puts it in the body. Juice Shop's login is a JSON POST, so it's the same tampering, just in a different spot.
         </p>
@@ -1019,7 +1117,7 @@
         <!-- HANDS-ON #8: tamper login POST -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #8 · Intercept &amp; edit the login POST</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #10 · Intercept &amp; edit the login POST</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
@@ -1033,22 +1131,9 @@
         <div class="callout callout--theory">
           <span class="callout__icon">🔍</span>
           <div class="callout__content">
-            <div class="callout__title">What just happened? (the 2-minute version)</div>
-            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-xs);">
-              Behind the login form, the server asks its database something like this:
-            </p>
-            <pre style="margin:0 0 var(--space-2);white-space:pre-wrap;font-size:var(--font-size-xs);">SELECT * FROM Users WHERE email = 'test@juice-sh.op' AND password = '...'</pre>
-            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-xs);">
-              It pastes whatever you typed between those quotes. So your "email" turned the question into this:
-            </p>
-            <pre style="margin:0 0 var(--space-2);white-space:pre-wrap;font-size:var(--font-size-xs);">SELECT * FROM Users WHERE email = '' or 1=1--' AND password = '...'</pre>
-            <ul style="margin:0 0 var(--space-2);padding-left:var(--space-4);font-size:var(--font-size-xs);">
-              <li><code>'</code> closes the email string early.</li>
-              <li><code>or 1=1</code> is true for every row, so every user matches.</li>
-              <li><code>--</code> starts a comment, so the password check is ignored.</li>
-            </ul>
+            <div class="callout__title">Wait, how did that work?</div>
             <p style="margin:0;font-size:var(--font-size-xs);">
-              The app takes the first user it gets back, which happens to be the admin. That's SQL injection. Next week you'll see how databases think, and how far this goes past a login form.
+              Your fake "email" wasn't an email, it was a snippet of database logic that tricked the login check into matching every user and skipping the password. That's SQL injection, and it's the whole of next week. Today the point is smaller and just as important: Burp let you put that snippet on the wire, and the server ran it because it trusted whatever arrived. Don't worry about the syntax yet. We build it from zero in Lab 03.
             </p>
           </div>
         </div>
@@ -1076,9 +1161,9 @@
         </p>
       </section>
 
-      <!-- Section 10: PortSwigger -->
+      <!-- Section 11: PortSwigger -->
       <section>
-        <h2 id="portswigger">10. Take-Home: PortSwigger Web Security Academy</h2>
+        <h2 id="portswigger">11. Take-Home: PortSwigger Web Security Academy</h2>
 
         <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
           <div class="target-launcher__header">
@@ -1093,7 +1178,7 @@
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">🖐️ DO #9 · At-home lab (15 min)</span>
+              <span class="target-launcher__step-label">🖐️ DO #11 · At-home lab (15 min)</span>
               <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
                 Pick one and solve it in Burp before next Saturday.
               </p>
@@ -1110,9 +1195,9 @@
 
       </section>
 
-      <!-- Section 11: Score Board -->
+      <!-- Section 12: Score Board -->
       <section>
-        <h2 id="score-board">11. Juice Shop Score Board (Optional Rabbit Hole)</h2>
+        <h2 id="score-board">12. Juice Shop Score Board (Optional Rabbit Hole)</h2>
 
         <div class="callout callout--warning">
           <span class="callout__icon">🏆</span>
@@ -1128,11 +1213,11 @@
         </div>
       </section>
 
-      <!-- Section 12: Quiz -->
+      <!-- Section 13: Quiz -->
       <section class="quiz-section">
         <div class="quiz-section__header">
           <h2 class="quiz-section__title" id="quiz">Lab 02 Self-Assessment · 8 questions</h2>
-          <span class="quiz-xp-badge">🖐️ DO #10</span>
+          <span class="quiz-xp-badge">🖐️ DO #12</span>
         </div>
 
         <!-- Q1 MCQ -->
@@ -1280,10 +1365,7 @@ Accept: application/json</pre>
       </section>
     </main>
 
-    <aside class="toc-sidebar">
-      <div class="toc-label">On this page</div>
-      <nav class="toc-nav" id="toc-nav" aria-label="Table of contents"></nav>
-    </aside>
+
   </div>
 
   <div data-site-footer></div>

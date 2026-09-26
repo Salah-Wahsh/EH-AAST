@@ -80,7 +80,7 @@
   // --- Search Index Database ---
   var searchCatalog = [
     { title: 'Lab 01: Security Concepts & Web Prerequisites', desc: 'Threat actors, 5 pentest phases, TCP handshake vs UDP, HTTP headers, DevTools.', url: 'labs/lab01.html', tag: 'Lab' },
-    { title: 'Lab 02: Web App Basics & Burp Suite', desc: 'Intercept, tamper, and repeat HTTP traffic against Juice Shop; three ways in DevTools / Burp / curl.', url: 'labs/lab02.html', tag: 'Lab' },
+    { title: 'Lab 02: Web App Basics & Burp Suite', desc: 'Recon and map Juice Shop, log findings, then intercept, tamper, and repeat HTTP traffic; three ways in DevTools / Burp / curl.', url: 'labs/lab02.html', tag: 'Lab' },
     { title: 'Command Cheat Sheets: Web & Network', desc: 'Fast, copyable terminal primitives and flags extracted from labs.', url: 'cheatsheets.html', tag: 'Reference' },
     { title: 'Tools & Environment Setup', desc: 'Attack rigs, verification commands, and tooling catalog.', url: 'tools.html', tag: 'Setup' },
     { title: 'TCP 3-Way Handshake & Port State Deduction', desc: 'Kernel responses (SYN-ACK, RST, Drop), SYN stealth scanning, and TCP vs UDP.', url: 'cheatsheets.html#tcp-handshake', tag: 'CheatSheet' },
@@ -94,6 +94,7 @@
     { title: 'Web Request Lifecycle (Click to Response)', desc: 'From /etc/hosts & DNS to TCP handshake, Burp proxy, server execution, and DOM render.', url: 'labs/lab01.html#section-3', tag: 'Concept' },
     { title: 'DevTools vs Burp vs curl (Tool Comparison)', desc: 'When to reach for which — inspect, tamper, replay, fuzz, cookies, mobile proxy.', url: 'labs/lab02.html#tool-comparison', tag: 'Concept' },
     { title: 'Burp Suite Scope Configuration', desc: 'Target → Scope funnel — filter noise, enforce authorization boundary.', url: 'labs/lab02.html#scope-config', tag: 'Concept' },
+    { title: 'Web App Recon & Application Mapping', desc: 'Walk the app behind Burp, read Site map / HTTP History, spot version + config disclosure, keep a findings log.', url: 'labs/lab02.html#recon-mapping', tag: 'Concept' },
     { title: 'Tool Setup: OWASP Juice Shop', desc: 'docker run -p 3000:3000 bkimminich/juice-shop — the classroom target.', url: 'tools.html#juice-shop', tag: 'Tool' },
     { title: 'Tool Setup: PortSwigger Web Security Academy', desc: 'Free hosted micro-labs — enrichment / at-home reinforcement path.', url: 'tools.html#portswigger', tag: 'Tool' },
     { title: 'Tool Setup: Docker Engine / Desktop', desc: 'Container runtime — hard prereq from Lab 02 onward.', url: 'tools.html#docker', tag: 'Tool' },

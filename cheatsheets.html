@@ -252,6 +252,18 @@
               <td>You typed <code>';--</code> and want it encoded as <code>%27%3B--</code>.</td>
               <td><a href="./labs/lab02.html#tamper-get" class="badge-lab-ref">Lab 02</a></td>
             </tr>
+            <tr>
+              <td><strong>Force a fresh 200 (defeat caching)</strong></td>
+              <td>In Repeater, delete the <code>If-None-Match</code> request header → Send</td>
+              <td>A request keeps coming back <code>304 Not Modified</code> with an empty body. Strip the ETag so the server resends the full body.</td>
+              <td><a href="./labs/lab02.html#repeater" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+            <tr>
+              <td><strong>Highlight / color-code rows</strong></td>
+              <td>Right-click a HTTP History row → <em>Highlight</em></td>
+              <td>Mark findings and related endpoints so you can find your evidence on a long test. Pair with "Show highlighted items only".</td>
+              <td><a href="./labs/lab02.html#recon-mapping" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
           </tbody>
         </table>
       </div>
