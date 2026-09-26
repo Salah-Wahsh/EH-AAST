@@ -261,16 +261,41 @@
       });
     }
 
-    // QR generation: uses window.QRCodeMini if a library is loaded; otherwise
-    // renders a "QR" placeholder — URL + copy button still provide full value.
+    // QR generation: uses the vendored qrcode-generator library (window.qrcode).
+    // Falls back to a "QR" placeholder if it isn't loaded — URL + copy button
+    // still provide full value.
+    var qrSvg = null;
     if (codeEl) {
-      if (window.QRCodeMini && typeof window.QRCodeMini.generateSvg === 'function') {
-        try { codeEl.innerHTML = window.QRCodeMini.generateSvg(currentUrl); }
-        catch (e) { codeEl.classList.add('qr-jump__code--placeholder'); codeEl.textContent = 'QR'; }
+      try {
+        if (typeof window.qrcode === 'function') {
+          var qr = window.qrcode(0, 'M'); // type 0 = auto-size, M = ~15% error correction
+          qr.addData(currentUrl);
+          qr.make();
+          qrSvg = qr.createSvgTag({ cellSize: 6, margin: 1, scalable: true, title: 'Lab URL QR code' });
+        } else if (window.QRCodeMini && typeof window.QRCodeMini.generateSvg === 'function') {
+          qrSvg = window.QRCodeMini.generateSvg(currentUrl);
+        }
+      } catch (e) { qrSvg = null; }
+
+      if (qrSvg) {
+        codeEl.innerHTML = qrSvg;
+        codeEl.classList.add('qr-jump__code--live');
       } else {
         codeEl.classList.add('qr-jump__code--placeholder');
         codeEl.textContent = 'QR';
       }
+    }
+
+    // Projector view: pin a scannable QR to the upper-right corner so late
+    // arrivals can grab the URL at any point, not just at the top of the page.
+    if (qrSvg && !document.querySelector('.qr-projector')) {
+      var floater = document.createElement('div');
+      floater.className = 'qr-projector';
+      floater.setAttribute('aria-hidden', 'true');
+      floater.innerHTML =
+        '<div class="qr-projector__code">' + qrSvg + '</div>' +
+        '<div class="qr-projector__cap">Scan to follow</div>';
+      document.body.appendChild(floater);
     }
   };
 

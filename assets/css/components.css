@@ -85,6 +85,38 @@
 body.projector-mode .qr-jump__url { font-size: 1.4rem !important; }
 body.projector-mode .qr-jump__code { width: 120px !important; height: 120px !important; }
 
+/* Projector view: QR pinned to the upper-right corner at all times */
+.qr-projector { display: none; }
+body.projector-mode .qr-projector {
+  display: block;
+  position: fixed;
+  top: 5.5rem;
+  right: 1.25rem;
+  z-index: 1200;
+  padding: 8px;
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+body.projector-mode .qr-projector__code {
+  width: 150px;
+  height: 150px;
+}
+body.projector-mode .qr-projector__code svg { width: 100%; height: 100%; display: block; }
+body.projector-mode .qr-projector__cap {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
+  color: #111111;
+}
+@media (max-width: 640px) {
+  body.projector-mode .qr-projector { display: none; } /* no room on phones */
+}
+
 /* --- You-Are-Here Persistent Section Indicator (bottom-right pill) --- */
 .you-are-here {
   position: fixed;
