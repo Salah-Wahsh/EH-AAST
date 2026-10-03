@@ -41,7 +41,7 @@
         </div>
         <h1 class="lab-header__title">Lab 03: SQL Injection</h1>
         <p class="lab-header__lead">
-          Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app leak its own query, then pull the whole user table out through the search bar.
+          Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app spill a database error, then pull the whole user table out through the search bar.
         </p>
         <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
           👯 <strong>Pair up.</strong> One person types, the other reads the steps out loud. Swap every 15 min.
@@ -410,7 +410,7 @@ FROM users</code></pre></div>
             <li>Click <strong>Log in</strong>. You're in, and the top bar shows you're the administrator.</li>
           </ol>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-1);">
-            <strong>Peek under the hood:</strong> press <kbd>F12</kbd> → <strong>Network</strong> tab, then log in again. You'll see a <code>POST /rest/user/login</code> go out with your payload sitting in the JSON body, and a <code>200</code> come back carrying a <code>token</code> (a JWT) and <code>"email":"admin@juice-sh.op"</code>. That token <em>is</em> the admin session. The form just typed the request for you.
+            <strong>Peek under the hood:</strong> press <kbd>F12</kbd> → <strong>Network</strong> tab, then log in again. You'll see a <code>POST /rest/user/login</code> go out with your payload sitting in the JSON body, and a <code>200</code> come back carrying a <code>token</code> (a JWT) and <code>"umail":"admin@juice-sh.op"</code>. That token <em>is</em> the admin session. The form just typed the request for you.
           </p>
           <details class="thought-accordion" style="margin-top:var(--space-2);">
             <summary>Got a 401 / "Invalid email or password"?</summary>
@@ -792,7 +792,7 @@ ORDER BY name</code></pre></div>
           <div class="callout__content">
             <div class="callout__title">Why this is a grind (and why sqlmap exists)</div>
             <p style="margin:0;font-size:var(--font-size-sm);">
-              One request buys you <strong>one yes/no</strong>, basically one bit of information. A 20-character password is roughly 20 × 5 ≈ <strong>100 requests</strong>, and that's for a single value. Now multiply by every user and every column you want. Nobody does this by hand past proving it works. This exact loop, guess, send, check the page or the clock, narrow, is what <code>sqlmap</code> automates in the next section.
+              One request buys you <strong>one yes/no</strong>, basically one bit of information. A 20-character password is roughly 20 × 7 ≈ <strong>140 requests</strong>, and that's for a single value. Now multiply by every user and every column you want. Nobody does this by hand past proving it works. This exact loop, guess, send, check the page or the clock, narrow, is what <code>sqlmap</code> automates in the next section.
             </p>
           </div>
         </div>
