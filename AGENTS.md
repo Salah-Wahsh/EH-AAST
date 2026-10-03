@@ -51,6 +51,9 @@ The user has explicitly commanded the following constraints across all sessions.
    - Use a plain, conversational voice with contractions and a *light* dry humor (a few jokes per lab, never inside steps or commands).
    - Full rules and lint command: [`.agents/skills/human-voice/SKILL.md`](.agents/skills/human-voice/SKILL.md).
 
+10. **❌ NO Lab Readiness Checklist**:
+   - The `.checklist-card` "Lab Readiness Checklist" was removed from every lab on 2026-09-29 (students didn't use it). Do not re-add it to any lab or the template. Prerequisites that genuinely matter go inline in the relevant step or the `.target-launcher`, not a standalone checklist.
+
 ---
 
 

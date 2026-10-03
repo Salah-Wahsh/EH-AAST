@@ -81,6 +81,7 @@
   var searchCatalog = [
     { title: 'Lab 01: Security Concepts & Web Prerequisites', desc: 'Threat actors, 5 pentest phases, TCP handshake vs UDP, HTTP headers, DevTools.', url: 'labs/lab01.html', tag: 'Lab' },
     { title: 'Lab 02: Web App Basics & Burp Suite', desc: 'Recon and map Juice Shop, log findings, then intercept, tamper, and repeat HTTP traffic; three ways in DevTools / Burp / curl.', url: 'labs/lab02.html', tag: 'Lab' },
+    { title: 'Lab 03: SQL Injection', desc: 'Auth bypass, error-based and UNION extraction on Juice Shop, blind SQLi and sqlmap automation, then write the finding. Builds from zero SQL.', url: 'labs/lab03.html', tag: 'Lab' },
     { title: 'Command Cheat Sheets: Web & Network', desc: 'Fast, copyable terminal primitives and flags extracted from labs.', url: 'cheatsheets.html', tag: 'Reference' },
     { title: 'Tools & Environment Setup', desc: 'Attack rigs, verification commands, and tooling catalog.', url: 'tools.html', tag: 'Setup' },
     { title: 'TCP 3-Way Handshake & Port State Deduction', desc: 'Kernel responses (SYN-ACK, RST, Drop), SYN stealth scanning, and TCP vs UDP.', url: 'cheatsheets.html#tcp-handshake', tag: 'CheatSheet' },
@@ -95,10 +96,17 @@
     { title: 'DevTools vs Burp vs curl (Tool Comparison)', desc: 'When to reach for which — inspect, tamper, replay, fuzz, cookies, mobile proxy.', url: 'labs/lab02.html#tool-comparison', tag: 'Concept' },
     { title: 'Burp Suite Scope Configuration', desc: 'Target → Scope funnel — filter noise, enforce authorization boundary.', url: 'labs/lab02.html#scope-config', tag: 'Concept' },
     { title: 'Web App Recon & Application Mapping', desc: 'Walk the app behind Burp, read Site map / HTTP History, spot version + config disclosure, keep a findings log.', url: 'labs/lab02.html#recon-mapping', tag: 'Concept' },
+    { title: 'SQL Injection: Auth Bypass', desc: "Break the login WHERE clause with ' OR 1=1-- to walk in as admin without a password.", url: 'labs/lab03.html#auth-bypass', tag: 'Concept' },
+    { title: 'SQLi Tool-Agnostic: DevTools & Burp', desc: 'Same injection run two ways: browser DevTools for the login bypass and error probe, Burp Repeater to count columns and dump. Pick the tool the job needs.', url: 'labs/lab03.html#skip-and-navigate', tag: 'Concept' },
+    { title: 'SQL Injection: UNION Extraction', desc: 'Count columns with ORDER BY, then UNION SELECT to pull the users table out through the search bar.', url: 'labs/lab03.html#union-extraction', tag: 'Concept' },
+    { title: 'Blind SQL Injection (Boolean & Time-based)', desc: 'Infer data when the app shows nothing: true/false page changes and SLEEP() time delays.', url: 'labs/lab03.html#going-pro', tag: 'Concept' },
+    { title: 'SQLi Remediation: Parameterized Queries', desc: 'Prepared statements keep input as data so a quote can never become code. The root-cause fix.', url: 'labs/lab03.html#the-fix', tag: 'Concept' },
     { title: 'Tool Setup: OWASP Juice Shop', desc: 'docker run -p 3000:3000 bkimminich/juice-shop — the classroom target.', url: 'tools.html#juice-shop', tag: 'Tool' },
     { title: 'Tool Setup: PortSwigger Web Security Academy', desc: 'Free hosted micro-labs — enrichment / at-home reinforcement path.', url: 'tools.html#portswigger', tag: 'Tool' },
     { title: 'Tool Setup: Docker Engine / Desktop', desc: 'Container runtime — hard prereq from Lab 02 onward.', url: 'tools.html#docker', tag: 'Tool' },
-    { title: 'Tool Setup: Burp Suite Community', desc: 'HTTP/HTTPS interception proxy — listener at 127.0.0.1:8080.', url: 'tools.html#burp-suite', tag: 'Tool' }
+    { title: 'Tool Setup: Burp Suite Community', desc: 'HTTP/HTTPS interception proxy — listener at 127.0.0.1:8080.', url: 'tools.html#burp-suite', tag: 'Tool' },
+    { title: 'Tool Setup: sqlmap', desc: 'Automated SQL injection detection and database dumping. Active in Lab 03.', url: 'tools.html#sqlmap', tag: 'Tool' },
+    { title: 'Cheat Sheet: SQL Injection', desc: "Auth bypass, error probe, ORDER BY column count, UNION extraction, time-based blind, sqlmap dump.", url: 'cheatsheets.html#sql-injection', tag: 'Cheatsheet' }
   ];
 
   // --- Nav Template Generator ---

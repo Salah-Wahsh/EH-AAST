@@ -59,7 +59,8 @@ At the top of `<main class="main-content">` (after the breadcrumbs, before the `
 
 1. **`.qr-jump`** — top-of-lab QR + short URL for students on their own laptops (fixes far-projector problem)
 2. **`.callout--theory` "Skip & Navigate"** (Lab 02+ only) — explain which phase of the 5-phase pentest lifecycle this lab jumps to and why
-3. **`.checklist-card`** — 3-item Lab Readiness Checklist (Docker up, target reachable, tools verified)
+
+> **Do not add a Lab Readiness Checklist** (`.checklist-card`). Salah removed it from every lab on 2026-09-29 (students didn't use it). Any prerequisite that genuinely matters goes inline in the relevant section's steps or a `.target-launcher`, not a standalone checklist.
 
 ### Step 3: For each section from the outline, apply the tri-layer pattern
 

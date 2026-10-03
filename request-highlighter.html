@@ -1,0 +1,318 @@
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Request Highlighter — CCY4202</title>
+<style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  /* Layout: a lecture-display tool — paste boxes with one big highlighted panel each; single or request+response split. */
+  :root {
+    --bg: #f4f6f8;
+    --surface: #ffffff;
+    --surface-2: #eef1f4;
+    --border: #d4dae1;
+    --fg: #1f2733;
+    --muted: #6b7784;
+    --accent: #1f8a5b;
+    --c-method: #b0266e;
+    --c-path:   #a85d00;
+    --c-ver:    #6b7784;
+    --c-key:    #1a6fb5;
+    --c-val:    #1f2733;
+    --c-colon:  #9aa5b1;
+    --c-body:   #2d3a46;
+    --st-ok:    #1f8a5b;
+    --st-warn:  #b0820a;
+    --st-err:   #cf2d2d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0c1117; --surface: #121820; --surface-2: #1a222c; --border: #2a333f;
+      --fg: #e6edf3; --muted: #8c98a6; --accent: #3ddc91;
+      --c-method: #ff5fa2; --c-path: #ffb454; --c-ver: #8c98a6; --c-key: #58b6ff;
+      --c-val: #e6edf3; --c-colon: #5a6676; --c-body: #c7d2dd;
+      --st-ok: #3ddc91; --st-warn: #ffcf4d; --st-err: #ff6b6b;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0c1117; --surface: #121820; --surface-2: #1a222c; --border: #2a333f;
+    --fg: #e6edf3; --muted: #8c98a6; --accent: #3ddc91;
+    --c-method: #ff5fa2; --c-path: #ffb454; --c-ver: #8c98a6; --c-key: #58b6ff;
+    --c-val: #e6edf3; --c-colon: #5a6676; --c-body: #c7d2dd;
+    --st-ok: #3ddc91; --st-warn: #ffcf4d; --st-err: #ff6b6b;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Inter", system-ui, -apple-system, sans-serif; }
+  .wrap { max-width: 1400px; margin: 0 auto; padding-block: 20px 48px; padding-left: 16px; padding-right: 16px; display: flex; flex-direction: column; gap: 14px; }
+
+  header h1 { font-size: 1.1rem; font-weight: 700; margin: 0; letter-spacing: -0.01em; }
+  header h1 .dot { color: var(--accent); }
+  .sub { font-size: 0.8rem; color: var(--muted); margin: 4px 0 0; }
+
+  .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; }
+  .toolbar .group { display: flex; align-items: center; gap: 6px; }
+  .toolbar .spacer { flex: 1 1 auto; min-width: 0; }
+  .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
+  button { font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--fg); background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 6px 11px; cursor: pointer; line-height: 1; }
+  button:hover { border-color: var(--accent); }
+  button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.icon { min-width: 34px; font-size: 1rem; }
+  button.on { background: var(--accent); color: #06130d; border-color: var(--accent); }
+  button.sm { padding: 3px 9px; font-size: 0.72rem; font-weight: 600; }
+  #sizeVal { font-family: "JetBrains Mono", monospace; font-size: 0.8rem; color: var(--muted); min-width: 42px; text-align: center; }
+
+  .panes { display: grid; grid-template-columns: 1fr; gap: 14px; }
+  .panes.split { grid-template-columns: 1fr 1fr; }
+  @media (max-width: 820px) { .panes.split { grid-template-columns: 1fr; } }
+  .editor { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+
+  textarea { width: 100%; min-height: 110px; resize: vertical; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 0.85rem; line-height: 1.5; color: var(--fg); background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .panel__bar { display: flex; align-items: center; gap: 8px; padding: 9px 12px; border-bottom: 1px solid var(--border); background: var(--surface-2); font-size: 0.75rem; color: var(--muted); font-family: "JetBrains Mono", monospace; }
+  .panel__bar .d { width: 11px; height: 11px; border-radius: 50%; }
+  .panel__bar .d.r { background: #ff5f57; } .panel__bar .d.y { background: #febc2e; } .panel__bar .d.g { background: #28c840; }
+  .panel__bar .name { margin-left: 6px; }
+  .panel__bar .bar-actions { margin-left: auto; display: flex; gap: 6px; }
+
+  .out { margin: 0; padding: 16px 18px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 22px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; tab-size: 2; }
+  .out.nowrap { white-space: pre; word-break: normal; overflow-wrap: normal; overflow-x: auto; }
+  .ln { min-height: 1em; }
+
+  .method { color: var(--c-method); font-weight: 700; }
+  .path   { color: var(--c-path); }
+  .ver    { color: var(--c-ver); }
+  .key    { color: var(--c-key); font-weight: 500; }
+  .colon  { color: var(--c-colon); }
+  .val    { color: var(--c-val); }
+  .body   { color: var(--c-body); }
+  .reason { color: var(--fg); font-weight: 600; }
+  .st-ok  { color: var(--st-ok); font-weight: 700; }
+  .st-warn{ color: var(--st-warn); font-weight: 700; }
+  .st-err { color: var(--st-err); font-weight: 700; }
+  .empty { color: var(--muted); font-style: italic; padding: 16px 18px; font-family: "Inter", sans-serif; font-size: 0.9rem; }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1><span class="dot">▍</span>Request Highlighter</h1>
+    <p class="sub">Paste a raw HTTP request or response. Big, colorized, zoomable. No Burp, no cloud.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="group">
+      <span class="lbl">Font</span>
+      <button class="icon" id="smaller" title="Smaller">A−</button>
+      <span id="sizeVal">22px</span>
+      <button class="icon" id="bigger" title="Bigger">A+</button>
+    </div>
+    <div class="group"><button id="wrapBtn" class="on" title="Toggle line wrapping">Wrap</button></div>
+    <div class="group"><button id="modeBtn" title="Show request and response side by side">Split view</button></div>
+    <div class="spacer"></div>
+    <div class="group"><button class="icon" id="themeBtn" title="Light / dark">◐</button></div>
+  </div>
+
+  <div class="panes" id="panes">
+    <div class="editor" id="ed-req">
+      <textarea id="inReq" spellcheck="false" aria-label="Paste request here"></textarea>
+      <div class="panel">
+        <div class="panel__bar">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="name" id="nameReq">highlighted view</span>
+          <span class="bar-actions">
+            <button class="sm" data-copy="inReq">Copy</button>
+            <button class="sm" data-clear="inReq">Clear</button>
+          </span>
+        </div>
+        <div class="out" id="outReq"></div>
+      </div>
+    </div>
+
+    <div class="editor" id="ed-resp" hidden>
+      <textarea id="inResp" spellcheck="false" aria-label="Paste response here"></textarea>
+      <div class="panel">
+        <div class="panel__bar">
+          <span class="d r"></span><span class="d y"></span><span class="d g"></span>
+          <span class="name">response</span>
+          <span class="bar-actions">
+            <button class="sm" data-copy="inResp">Copy</button>
+            <button class="sm" data-clear="inResp">Clear</button>
+          </span>
+        </div>
+        <div class="out" id="outResp"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  var SAMPLE_REQ = [
+    "GET /rest/products/search?q=') HTTP/1.1",
+    "Host: localhost:3000",
+    'sec-ch-ua-platform: "macOS"',
+    "Accept-Language: en-US,en;q=0.9",
+    "Accept: application/json, text/plain, */*",
+    'sec-ch-ua: "Chromium";v="151", "Not=A?Brand";v="99"',
+    "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36",
+    "sec-ch-ua-mobile: ?0",
+    "Sec-Fetch-Site: same-origin",
+    "Sec-Fetch-Mode: cors",
+    "Sec-Fetch-Dest: empty",
+    "Referer: http://localhost:3000/",
+    "Accept-Encoding: gzip, deflate, br",
+    "Cookie: language=en; welcomebanner_status=dismiss; continueCode=xYj5K86Bp7Nq2kjrWRX591myLQzdgOSVYdYxJMoPKgwnVv4EaDbZe3OlR87y",
+    'If-None-Match: W/"40b3-L1FytSUQbgddmkyJ3KWpSPwzt80"',
+    "Connection: keep-alive"
+  ].join("\n");
+
+  var SAMPLE_RESP = [
+    "HTTP/1.1 500 Internal Server Error",
+    "X-Content-Type-Options: nosniff",
+    "Content-Type: text/html; charset=utf-8",
+    "Vary: Accept-Encoding",
+    "Connection: keep-alive",
+    "",
+    "<!DOCTYPE html>",
+    "<html lang=\"en\">",
+    "  <head>",
+    "    <title>Error: SQLITE_ERROR: near \")\": syntax error</title>",
+    "  </head>",
+    "  <body>",
+    "    <h1>SQLITE_ERROR: near \")\": syntax error</h1>",
+    "    <h2></h2>",
+    "    <pre>SELECT * FROM Products WHERE ((name LIKE '%')%' OR ...",
+    "        at Database.&lt;anonymous&gt; (/juice-shop/build/routes/search.js:53)</pre>",
+    "    <footer>OWASP Juice Shop (Express ^4.22.1)</footer>",
+    "  </body>",
+    "</html>"
+  ].join("\n");
+
+  function el(tag, cls, txt) { var e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+
+  function render(inputEl, outEl) {
+    var text = inputEl.value;
+    outEl.textContent = "";
+    if (text.trim() === "") { outEl.appendChild(el("div", "empty", "Paste a request or response to see it highlighted.")); return; }
+    var lines = text.split("\n"), started = false, headersDone = false;
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i], row = el("div", "ln");
+      if (!headersDone && line.trim() === "") { headersDone = true; outEl.appendChild(el("div", "ln")); continue; }
+      if (headersDone) { row.appendChild(el("span", "body", line)); outEl.appendChild(row); continue; }
+      if (!started) {
+        started = true;
+        if (/^HTTP\//i.test(line.trim())) {
+          var s = line.match(/^(\S+)\s+(\d{3})\s*(.*)$/);
+          if (s) {
+            row.appendChild(el("span", "ver", s[1] + " "));
+            var n = parseInt(s[2], 10), cls = "st-ok";
+            if (n >= 400) cls = "st-err"; else if (n >= 300) cls = "st-warn";
+            row.appendChild(el("span", cls, s[2]));
+            if (s[3]) row.appendChild(el("span", "reason", " " + s[3]));
+          } else { row.appendChild(el("span", "ver", line)); }
+        } else {
+          var r = line.match(/^(\S+)\s+(\S+)\s+(HTTP\/\S+)\s*$/);
+          if (r) {
+            row.appendChild(el("span", "method", r[1]));
+            row.appendChild(document.createTextNode(" "));
+            row.appendChild(el("span", "path", r[2]));
+            row.appendChild(document.createTextNode(" "));
+            row.appendChild(el("span", "ver", r[3]));
+          } else { row.appendChild(el("span", "method", line)); }
+        }
+        outEl.appendChild(row); continue;
+      }
+      var idx = line.indexOf(":");
+      if (idx > 0) {
+        row.appendChild(el("span", "key", line.slice(0, idx)));
+        row.appendChild(el("span", "colon", ":"));
+        row.appendChild(el("span", "val", line.slice(idx + 1)));
+      } else { row.appendChild(el("span", "val", line)); }
+      outEl.appendChild(row);
+    }
+  }
+
+  var inReq = document.getElementById("inReq"), outReq = document.getElementById("outReq");
+  var inResp = document.getElementById("inResp"), outResp = document.getElementById("outResp");
+  var sizeVal = document.getElementById("sizeVal");
+  function renderAll() { render(inReq, outReq); render(inResp, outResp); }
+
+  // font size
+  var size = 22;
+  try { var sv = localStorage.getItem("rh_size"); if (sv) size = parseInt(sv, 10) || 22; } catch (e) {}
+  function applySize() {
+    size = Math.max(12, Math.min(60, size));
+    var outs = document.querySelectorAll(".out");
+    for (var i = 0; i < outs.length; i++) outs[i].style.fontSize = size + "px";
+    sizeVal.textContent = size + "px";
+    try { localStorage.setItem("rh_size", String(size)); } catch (e) {}
+  }
+  document.getElementById("bigger").onclick = function () { size += 2; applySize(); };
+  document.getElementById("smaller").onclick = function () { size -= 2; applySize(); };
+
+  // wrap
+  var wrapBtn = document.getElementById("wrapBtn"), wrap = true;
+  try { if (localStorage.getItem("rh_wrap") === "0") wrap = false; } catch (e) {}
+  function applyWrap() {
+    var outs = document.querySelectorAll(".out");
+    for (var i = 0; i < outs.length; i++) outs[i].classList.toggle("nowrap", !wrap);
+    wrapBtn.classList.toggle("on", wrap);
+    try { localStorage.setItem("rh_wrap", wrap ? "1" : "0"); } catch (e) {}
+  }
+  wrapBtn.onclick = function () { wrap = !wrap; applyWrap(); };
+
+  // split mode
+  var modeBtn = document.getElementById("modeBtn"), panes = document.getElementById("panes");
+  var edResp = document.getElementById("ed-resp"), nameReq = document.getElementById("nameReq");
+  var split = false;
+  try { if (localStorage.getItem("rh_split") === "1") split = true; } catch (e) {}
+  function applyMode() {
+    panes.classList.toggle("split", split);
+    edResp.hidden = !split;
+    modeBtn.classList.toggle("on", split);
+    modeBtn.textContent = split ? "Single view" : "Split view";
+    nameReq.textContent = split ? "request" : "highlighted view";
+    try { localStorage.setItem("rh_split", split ? "1" : "0"); } catch (e) {}
+  }
+  modeBtn.onclick = function () { split = !split; applyMode(); };
+
+  // theme
+  var themeBtn = document.getElementById("themeBtn");
+  try { var t = localStorage.getItem("rh_theme"); if (t === "dark" || t === "light") document.documentElement.setAttribute("data-theme", t); } catch (e) {}
+  themeBtn.onclick = function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("rh_theme", next); } catch (e) {}
+  };
+
+  // per-panel copy / clear (event delegation)
+  document.addEventListener("click", function (ev) {
+    var b = ev.target.closest ? ev.target.closest("button") : null;
+    if (!b) return;
+    var cp = b.getAttribute("data-copy"), cl = b.getAttribute("data-clear");
+    if (cp) {
+      var ta = document.getElementById(cp);
+      function done() { var old = b.textContent; b.textContent = "Copied"; setTimeout(function () { b.textContent = old; }, 1200); }
+      try { navigator.clipboard.writeText(ta.value).then(done, function () { ta.select(); done(); }); }
+      catch (e) { ta.select(); done(); }
+    }
+    if (cl) { var t2 = document.getElementById(cl); t2.value = ""; renderAll(); t2.focus(); }
+  });
+
+  inReq.addEventListener("input", function () { render(inReq, outReq); });
+  inResp.addEventListener("input", function () { render(inResp, outResp); });
+
+  // boot
+  inReq.value = SAMPLE_REQ;
+  inResp.value = SAMPLE_RESP;
+  applySize(); applyWrap(); applyMode(); renderAll();
+</script>
+</body></html>

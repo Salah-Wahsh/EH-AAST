@@ -184,7 +184,7 @@
           </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
+          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a> <a href="./labs/lab03.html" class="badge-lab-ref">Lab 03</a></span>
           <span>Docker · offline-capable</span>
         </div>
       </article>
@@ -214,7 +214,7 @@
           </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
+          <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a> <a href="./labs/lab03.html" class="badge-lab-ref">Lab 03</a></span>
           <span>Hosted · account required</span>
         </div>
       </article>
@@ -246,6 +246,40 @@
         <div class="tool-setup-card__footer">
           <span>Active in: <a href="./labs/lab02.html" class="badge-lab-ref">Lab 02</a></span>
           <span>Runtime · Day-1 gate</span>
+        </div>
+      </article>
+
+      <!-- sqlmap -->
+      <article class="tool-setup-card" id="sqlmap">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">💉</span>
+            <h2 class="tool-setup-card__title">sqlmap</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">SQLi AUTOMATION</span>
+        </div>
+        <p class="tool-setup-card__desc">Automated SQL injection detection and database dumping. In Lab 03 you learn it last, after doing UNION by hand, so it stays a tool you understand instead of a magic button.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has it)</span>
+            <code>sudo apt install -y sqlmap</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify</span>
+            <code>sqlmap --version</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Detect + list databases</span>
+            <code>sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch --dbs</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Dump a table</span>
+            <code>sqlmap -u "&lt;url&gt;" --batch -T Users --dump</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab03.html" class="badge-lab-ref">Lab 03</a></span>
+          <span>CLI · exploitation</span>
         </div>
       </article>
 

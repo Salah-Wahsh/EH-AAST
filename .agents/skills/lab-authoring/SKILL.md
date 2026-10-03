@@ -53,7 +53,6 @@ All authoring must strictly comply with the [Anti-Cognitive Overload Skill](../a
 Consult the component guide:
 [references/components-guide.md](./references/components-guide.md)
 
-- **Readiness Checklist**: `<section class="checklist-card">` with 3–4 prerequisite checkboxes.
 - **Concept Comparisons**: `<div class="comparison-grid">` comparing techniques (e.g., Active vs Passive scanning, TCP Connect vs SYN Stealth).
 - **SVG Diagrams**: Responsive `<svg viewBox="...">` styled with CSS variables (`var(--color-accent)`, `var(--color-cyan)`, `var(--color-border)`).
 - **Tool / Command Cards**: Code blocks wrapped in `.code-block-wrapper` with copy-to-clipboard functionality.

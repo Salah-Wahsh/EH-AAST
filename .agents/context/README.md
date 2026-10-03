@@ -9,6 +9,7 @@
 | [`master-context.md`](master-context.md) | Always — pedagogical philosophy, professor's directive, 14-week syllabus, TA teaching persona |
 | [`classroom-context.md`](classroom-context.md) | Anytime designing UX, navigation, or lab pacing — physical classroom constraints (Saturday × 2 sections, 50-60 students, far projector) |
 | [`student-profile.md`](student-profile.md) | Anytime writing content or designing interactions — learner backgrounds, attention profile, engagement triggers, anti-patterns |
+| [`lab-design-standard.md`](lab-design-standard.md) | Before authoring any lab from Lab 03 onward — the v2 format (three depth tiers, methodology spine, one-finding report, cert/framework tags) and why we adopted it |
 
 ## Purpose
 
