@@ -106,6 +106,7 @@
     { title: 'Tool Setup: Docker Engine / Desktop', desc: 'Container runtime — hard prereq from Lab 02 onward.', url: 'tools.html#docker', tag: 'Tool' },
     { title: 'Tool Setup: Burp Suite Community', desc: 'HTTP/HTTPS interception proxy — listener at 127.0.0.1:8080.', url: 'tools.html#burp-suite', tag: 'Tool' },
     { title: 'Tool Setup: sqlmap', desc: 'Automated SQL injection detection and database dumping. Active in Lab 03.', url: 'tools.html#sqlmap', tag: 'Tool' },
+    { title: 'Request Highlighter', desc: 'Paste a raw HTTP request or response, colorized and zoomable. Readable on a projector when Burp is too small. In-browser, no install.', url: 'request-highlighter.html', tag: 'Tool' },
     { title: 'Cheat Sheet: SQL Injection', desc: "Auth bypass, error probe, ORDER BY column count, UNION extraction, time-based blind, sqlmap dump.", url: 'cheatsheets.html#sql-injection', tag: 'Cheatsheet' }
   ];
 

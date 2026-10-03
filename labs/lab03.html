@@ -602,8 +602,11 @@ ORDER BY name</code></pre></div>
           <span class="callout__icon">🧭</span>
           <div class="callout__content">
             <div class="callout__title">Get the request into Repeater</div>
-            <p style="margin:0;font-size:var(--font-size-sm);">
+            <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);">
               With Juice Shop proxied through Burp (same setup as Lab 02), do one search so a <code>GET /rest/products/search?q=apple</code> lands in <strong>Proxy → HTTP history</strong>. Right-click it → <strong>Send to Repeater</strong>. From here you type payloads raw in the request pane, no URL-encoding needed, and hit <strong>Send</strong> as many times as you like.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);">
+              Request pane too small to read? Paste it into the <a href="../request-highlighter.html" target="_blank" rel="noopener"><strong>Request Highlighter</strong></a> (opens in a new tab) to blow it up, colorize it, and read it comfortably.
             </p>
           </div>
         </div>
