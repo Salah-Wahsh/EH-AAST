@@ -314,7 +314,7 @@
       </article>
 
       <!-- Metasploit Framework -->
-      <article class="tool-setup-card">
+      <article class="tool-setup-card" id="metasploit">
         <div class="tool-setup-card__header">
           <div class="tool-setup-card__title-group">
             <span class="tool-setup-card__icon">🎯</span>
@@ -322,7 +322,7 @@
           </div>
           <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">EXPLOIT ENGINE</span>
         </div>
-        <p class="tool-setup-card__desc">Comprehensive offensive framework for vulnerability verification, payload delivery, and reverse shells.</p>
+        <p class="tool-setup-card__desc">Packages known exploits into a point-and-shoot console: pick a module, set the target and your IP, type <code>exploit</code>. Learn the five-step flow once and it runs every module.</p>
         <div class="tool-setup-steps">
           <div class="tool-setup-step">
             <span class="tool-setup-step-label">Install Package</span>
@@ -332,10 +332,44 @@
             <span class="tool-setup-step-label">Verify Console</span>
             <code>msfconsole -v</code>
           </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">The flow</span>
+            <code>search &lt;cve&gt; → use &lt;module&gt; → set RHOSTS/LHOST → exploit</code>
+          </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Active in: <a href="./labs/lab08.html" class="badge-lab-ref">Lab 08</a></span>
           <span>Framework CLI</span>
+        </div>
+      </article>
+
+      <!-- searchsploit -->
+      <article class="tool-setup-card" id="searchsploit">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🔎</span>
+            <h2 class="tool-setup-card__title">searchsploit (Exploit-DB)</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">EXPLOIT LOOKUP</span>
+        </div>
+        <p class="tool-setup-card__desc">A local, offline copy of Exploit-DB you grep from the terminal. Turn a service version from your scan into a known exploit, then read the raw script before you run it.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has it)</span>
+            <code>sudo apt install -y exploitdb</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Search by service + version</span>
+            <code>searchsploit vsftpd 2.3.4</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Read the raw exploit</span>
+            <code>searchsploit -x &lt;path&gt;</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab08.html" class="badge-lab-ref">Lab 08</a></span>
+          <span>CLI · exploitation</span>
         </div>
       </article>
 

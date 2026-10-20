@@ -27,7 +27,8 @@
       title: 'Module 02: Network & System',
       badge: 'Systems',
       labs: [
-        { id: 'lab07', name: 'Lab 07: Recon, Scanning & Enumeration', href: 'labs/lab07.html', time: '60m' }
+        { id: 'lab07', name: 'Lab 07: Recon, Scanning & Enumeration', href: 'labs/lab07.html', time: '60m' },
+        { id: 'lab08', name: 'Lab 08: Service Exploitation & Initial Access', href: 'labs/lab08.html', time: '60m' }
       ]
     }
   ];

