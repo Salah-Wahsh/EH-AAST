@@ -21,6 +21,14 @@
         { id: 'lab05', name: 'Lab 05: Broken Access Control', href: 'labs/lab05.html', time: '60m' },
         { id: 'lab06', name: 'Lab 06: File Upload to Web Shell & Command Injection', href: 'labs/lab06.html', time: '60m' }
       ]
+    },
+    {
+      id: 'mod02',
+      title: 'Module 02: Network & System',
+      badge: 'Systems',
+      labs: [
+        { id: 'lab07', name: 'Lab 07: Recon, Scanning & Enumeration', href: 'labs/lab07.html', time: '60m' }
+      ]
     }
   ];
 

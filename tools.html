@@ -74,7 +74,7 @@
       </article>
 
       <!-- Nmap -->
-      <article class="tool-setup-card">
+      <article class="tool-setup-card" id="nmap">
         <div class="tool-setup-card__header">
           <div class="tool-setup-card__title-group">
             <span class="tool-setup-card__icon">📡</span>
@@ -82,7 +82,7 @@
           </div>
           <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">PORT SCANNER</span>
         </div>
-        <p class="tool-setup-card__desc">Industry-standard network exploration, host discovery, port scanner, and OS detection engine.</p>
+        <p class="tool-setup-card__desc">Industry-standard network exploration, host discovery, port scanner, and OS detection engine. The first tool you reach for on any box.</p>
         <div class="tool-setup-steps">
           <div class="tool-setup-step">
             <span class="tool-setup-step-label">Install Package</span>
@@ -92,9 +92,13 @@
             <span class="tool-setup-step-label">Verify Version</span>
             <code>nmap --version</code>
           </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Default first scan</span>
+            <code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code>
+          </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a> · <a href="./labs/lab07.html" class="badge-lab-ref">Lab 07</a></span>
           <span>Standard CLI</span>
         </div>
       </article>
@@ -356,8 +360,98 @@
           </div>
         </div>
         <div class="tool-setup-card__footer">
-          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a></span>
+          <span>Active in: <a href="./labs/lab01.html" class="badge-lab-ref">Lab 01</a> · <a href="./labs/lab06.html" class="badge-lab-ref">Lab 06</a></span>
           <span>Lightweight CLI</span>
+        </div>
+      </article>
+
+      <!-- TryHackMe -->
+      <article class="tool-setup-card" id="tryhackme">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🧩</span>
+            <h2 class="tool-setup-card__title">TryHackMe</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">HOSTED LABS · FREE TIER</span>
+        </div>
+        <p class="tool-setup-card__desc">Browser-based hacking labs with real target machines. From Lab 07 on, the network, privilege-escalation, and Active Directory practice runs here, so you don't need a 16 GB local VM lab. A free account covers every room this course uses.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Make a free account</span>
+            <a class="target-launcher__url" href="https://tryhackme.com" target="_blank" rel="noopener noreferrer">tryhackme.com</a>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Two ways to connect</span>
+            <code>Use the in-browser AttackBox, or OpenVPN from your own Kali</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Start a room</span>
+            <code>Open the room → Start Machine → wait for the target IP</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab07.html" class="badge-lab-ref">Lab 07</a> onward</span>
+          <span>Hosted · browser/VPN</span>
+        </div>
+      </article>
+
+      <!-- Gobuster -->
+      <article class="tool-setup-card" id="gobuster">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🗂️</span>
+            <h2 class="tool-setup-card__title">Gobuster</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">CONTENT DISCOVERY</span>
+        </div>
+        <p class="tool-setup-card__desc">Brute-forces hidden directories and files on a web server, the pages that aren't linked from the homepage: admin panels, backups, <code>/dev</code>, upload folders.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has it)</span>
+            <code>sudo apt install -y gobuster</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Verify</span>
+            <code>gobuster version</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Find hidden paths</span>
+            <code>gobuster dir -u http://&lt;IP&gt; -w /usr/share/wordlists/dirb/common.txt</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab07.html" class="badge-lab-ref">Lab 07</a></span>
+          <span>CLI · enumeration</span>
+        </div>
+      </article>
+
+      <!-- enum4linux -->
+      <article class="tool-setup-card" id="enum4linux">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🗄️</span>
+            <h2 class="tool-setup-card__title">enum4linux &amp; smbclient</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">SMB ENUMERATION</span>
+        </div>
+        <p class="tool-setup-card__desc">Pull usernames, shares, and OS info off a Samba/SMB service (ports 139/445). <code>smbclient</code> lists and browses shares; <code>enum4linux</code> wraps the whole enumeration in one command.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has them)</span>
+            <code>sudo apt install -y enum4linux smbclient</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">List shares, no login</span>
+            <code>smbclient -L //&lt;IP&gt;/ -N</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Full enumeration</span>
+            <code>enum4linux -a &lt;IP&gt;</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab07.html" class="badge-lab-ref">Lab 07</a></span>
+          <span>CLI · enumeration</span>
         </div>
       </article>
     </div>

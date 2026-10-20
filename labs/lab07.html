@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 07: Recon, Scanning &amp; Enumeration — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab07" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 02</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 07</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 07: Recon, Scanning &amp; Enumeration</h1>
+        <p class="lab-header__lead">
+          Last week a web bug dropped you onto a Linux box. We skipped a step to get you hacking early: how you find a target in the first place. Now we zoom out. You're handed a single IP address and nothing else. Today you turn that one number into a full map of every open port, every running service, and the one weak door that gets you in. This is the phase that every real engagement actually starts with.
+        </p>
+      </header>
+
+      <!-- Career band (v2) -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Scanning &amp; Enumeration</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1046 · T1595</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>Scanning Networks</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · CPTS</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0: where we are -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The loop-back we promised in Week 2</div>
+            <p style="margin:0;">
+              <strong>Recon → Map</strong> → Identify → Exploit → Document. For six weeks you jumped straight to Exploit on a target we handed you. That was on purpose, so you'd have something to hack on day one. Now you earn the first two steps. On a real job nobody gives you a login page and says "go." They give you an IP range, and everything depends on what you find before you touch a thing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: why recon wins + anchor -->
+      <section>
+        <h2 id="why-recon">1. You Can't Hack What You Can't See <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">📡</span>
+          <div class="callout__content">
+            <div class="callout__title">October 2016: a botnet built entirely by scanning</div>
+            <p style="margin:0 0 var(--space-2);">
+              The Mirai botnet did one thing: it fired probes at random IP addresses across the whole internet, looking for one open port, TCP 23 (Telnet), left on by default on cheap cameras and routers. Every device that answered got a handful of factory passwords tried against it. Hundreds of thousands of devices answered. On October 21st, 2016, Mirai pointed all of them at the DNS provider Dyn and knocked Twitter, Reddit, Netflix, and Spotify off the internet for most of a day.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              No clever exploit. The entire attack was recon: find the open port, try the obvious door. Attackers scan the whole internet constantly. Your job today is to scan one target properly, which is harder than it sounds.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          Enumeration is the part beginners rush and pros obsess over. The exploit is usually easy once you've found the right service; finding it is the work. The rule the whole week runs on: <strong>a port is just a number until you know exactly what's listening on it and which version.</strong>
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 You scan a box and find port 80 open. A teammate says "cool, it's a website, let's go." What's the one thing you still don't know that decides whether this is a 5-minute win or a dead end? Write your guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><strong>What's actually running there, and which version.</strong> Port 80 could be a patched, boring Nginx, or an ancient Apache with a public exploit, or a login panel for admin software with default creds. "Port 80 is open" is almost no information. "Port 80 runs Apache 2.4.49" is a lead you can look up. That gap is the difference between the two tiers of this lab.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: how scanning works, TCP handshake prereq -->
+      <section>
+        <h2 id="how-scanning-works">2. How a Scan Actually Works <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          Remember the TCP handshake from Lab 01: <code>SYN</code> → <code>SYN/ACK</code> → <code>ACK</code>. A port scan is just that handshake, started on purpose against every port, watching who answers. Nmap has two main ways to do it, and the difference matters on a real engagement.
+        </p>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">-sT · TCP connect</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">no root needed</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>SYN  →
+     ← SYN/ACK
+ACK  →          full handshake,
+                then hang up</code></pre></div></div>
+            <ul class="comparison-list" style="margin-top:var(--space-2);">
+              <li><span class="comparison-icon">📝</span> Completes the connection, so the target's app logs it. Reliable, but loud.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">-sS · SYN / half-open</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">needs sudo</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>SYN  →
+     ← SYN/ACK
+RST  →          tear it down before
+                the connection completes</code></pre></div></div>
+            <ul class="comparison-list" style="margin-top:var(--space-2);">
+              <li><span class="comparison-icon">🥷</span> Never finishes the handshake, so many apps never log it. Faster, quieter, the default when you have root.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🔎</span>
+          <div class="callout__content">
+            <div class="callout__title">Open vs closed, in one line</div>
+            <p style="margin:0;">A <code>SYN/ACK</code> back means the port is <strong>open</strong> (something's listening). A <code>RST</code> back means <strong>closed</strong> (nobody home). Silence usually means a firewall <strong>dropped</strong> your packet. Same three answers you learned in Lab 01, now you're reading them off a scan.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: your first scan -->
+      <section>
+        <h2 id="first-scan">3. Your First Real Scan <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· recon · identify</span></h2>
+        <p class="lab-lead">
+          These run on TryHackMe. You get a target machine in your browser (or over the OpenVPN) and a real IP to point Nmap at. Start with the room that teaches Nmap itself.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Further Nmap</h3>
+                <div class="target-launcher__platform">Hosted · free room · browser or OpenVPN</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start the room, note the target IP</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/furthernmap" target="_blank" rel="noopener noreferrer">tryhackme.com/room/furthernmap</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free account. Start the machine, wait for its IP, then scan from the AttackBox or your own VPN'd Kali.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · the scan you'll run on every box forever</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Run the bread-and-butter scan against the target IP:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>nmap -sC -sV -oN scan.txt &lt;TARGET_IP&gt;</code></pre></div>
+            </li>
+            <li>Read <strong>every line</strong>. Don't skim. Each open port with its service and version is a lead.</li>
+            <li>Save it (<code>-oN scan.txt</code>) so you're not re-scanning every two minutes. Your scan output is your notes.</li>
+          </ol>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">nmap -sC -sV · representative output from a vulnerable box</span></div>
+          <div class="terminal-window__body"><pre><code>PORT     STATE SERVICE     VERSION
+22/tcp   open  ssh         OpenSSH 7.2p2 Ubuntu 4ubuntu2.8
+80/tcp   open  http        Apache httpd 2.4.18 ((Ubuntu))
+139/tcp  open  netbios-ssn Samba smbd 3.X - 4.X
+445/tcp  open  netbios-ssn Samba smbd 4.3.11-Ubuntu
+8080/tcp open  http        Apache Tomcat 9.0.7
+
+# this is the shape of nmap output, not a specific room's answer.
+# your room's real ports/versions come from the scan you run.</code></pre></div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 Look at the output above. SSH on 22, a web server on 80, Samba on 139/445, Tomcat on 8080. If you only get to look at one service first, which do you pick, and why? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">There's no single right answer, and that's the lesson. SSH is almost never the way in (you'd need creds). The web ports (80, 8080) and Samba (139/445) are where things usually live. A pentester reads versions first and pivots to whichever one looks oldest or most exposed. The skill is not having a favorite port, it's reading the whole map before you move.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: enumerate the services -->
+      <section>
+        <h2 id="enumerate">4. Dig Into What You Found <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· enumerate</span></h2>
+        <p class="lab-lead">
+          The scan tells you a service is there. Enumeration tells you how to get in. Two of the most common services you'll meet, and the tools that open them up.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Network Services</h3>
+                <div class="target-launcher__platform">Hosted · free room · SMB, Telnet, FTP enumeration</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · Work the room's SMB and FTP tasks</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/networkservices" target="_blank" rel="noopener noreferrer">tryhackme.com/room/networkservices</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. It walks you through enumerating each service hands-on.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · open up HTTP and SMB</h3>
+          </div>
+          <div class="info-dense-card info-dense-card--cyan" style="margin:var(--space-2) 0 0;">
+            <div class="info-dense-card__title">Web server on 80/8080</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Find hidden pages/dirs</span>
+                <code>gobuster dir -u http://&lt;IP&gt; -w /usr/share/wordlists/dirb/common.txt</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Why</span>
+                <span>Admin panels, <code>/dev</code>, backups and uploads rarely link from the homepage. You brute-force the paths.</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-dense-card info-dense-card--accent" style="margin:var(--space-3) 0 0;">
+            <div class="info-dense-card__title">Samba on 139/445</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">List shares (no login)</span>
+                <code>smbclient -L //&lt;IP&gt;/ -N</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Full SMB enum</span>
+                <code>enum4linux -a &lt;IP&gt;</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">What you're after</span>
+                <span>Usernames, open shares, OS version. Usernames feed the next lab's login attacks.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: full enum methodology -->
+      <section>
+        <h2 id="attack-surface-map">5. Build the Attack Surface Map <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· enumerate · exploit</span></h2>
+        <p class="lab-lead">
+          Now do it all on one box, start to finish, with no one holding your hand. This room gives you a raw machine. Scan it, enumerate every service, and decide which one is the real way in. That decision is the whole skill.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Basic Pentesting</h3>
+                <div class="target-launcher__platform">Hosted · free room · a full scan-to-foothold chain</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #3 · 🔴 Map it yourself, no walkthrough</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/basicpentestingjt" target="_blank" rel="noopener noreferrer">tryhackme.com/room/basicpentestingjt</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Try to reach a foothold using only your own enumeration before reading any hints.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · the enumeration loop a real tester runs</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li><strong>Scan everything.</strong> <code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code>. Note every open port.</li>
+            <li><strong>Enumerate each service in turn.</strong> Web → <code>gobuster</code>. SMB → <code>enum4linux -a</code>. Read the version of each and look it up.</li>
+            <li><strong>Collect the loose threads.</strong> A hidden directory, a username off SMB, a readable share, an old service version. Write each one down.</li>
+            <li><strong>Pick the entry point.</strong> The way in is usually the oldest service, the exposed share, or the hidden page, not the hardened SSH. Pull the thread that looks weakest.</li>
+          </ol>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            This loop is the entire job in Weeks 7 and 8. Boxes don't get hacked by one magic command, they get hacked by someone who enumerated patiently and noticed the one thing out of place.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 6: the recon deliverable -->
+      <section>
+        <h2 id="recon-log">6. Write the Target Map <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          There's no single vulnerability to report this week. The deliverable is the map itself: every service you found, its version, and what you'd try next. This is the first page of every real engagement report, and the thing you'll reach for all through Weeks 8 and 9.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 ATTACK SURFACE MAP · one box</span>
+            <span style="color:var(--color-cyan);">recon deliverable</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>Port</th><th>Service &amp; version</th><th>What you found</th><th>Priority</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><code>22</code></td><td>OpenSSH 7.2p2</td><td>No creds yet, hardened</td><td>Low</td></tr>
+                <tr><td><code>80</code></td><td>Apache 2.4.18</td><td><code>gobuster</code> found <code>/development</code></td><td><strong>High</strong></td></tr>
+                <tr><td><code>139/445</code></td><td>Samba 4.3.11</td><td>Anonymous share lists usernames</td><td><strong>High</strong></td></tr>
+                <tr><td><code>8080</code></td><td>Tomcat 9.0.7</td><td>Login panel, creds unknown</td><td>Medium</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Fill this in from your own scan of the Basic Pentesting box. The "Priority" column is you thinking like an attacker: where would you spend your next hour?</p>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 07 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #4 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab07-q1">
+          <div class="quiz-question">Q1: Why isn't "port 80 is open" enough to act on?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Port 80 being open doesn't tell you it's slow or fast. It tells you almost nothing useful on its own.">A) Because port 80 is always too slow to attack.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. You need the service and version. Apache 2.4.49 (exploitable) and a patched Nginx both show as 'port 80 open'. The version is the lead.">B) You don't know the service or version yet, which is what decides if it's exploitable.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Port 80 is plain HTTP, but that's not why the info is incomplete. You still need to know what software is serving it.">C) Because port 80 means the site has no HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab07-q2">
+          <div class="quiz-question">Q2: What's the difference between <code>-sS</code> and <code>-sT</code>?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. -sS sends SYN then RST (half-open, stealthier, needs root); -sT completes the full handshake (works without root, but the app logs it).">A) -sS half-opens with SYN then RST (needs root); -sT completes the full handshake (logged).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. -sT is the one that completes the handshake; -sS is the half-open stealth scan.">B) -sT is the stealth scan; -sS completes the handshake.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Both scan TCP. Neither is a UDP scan, that's -sU.">C) -sS scans TCP; -sT scans UDP.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab07-q3">
+          <div class="quiz-question">Q3: A scanned port sends back a <code>RST</code>. What does that mean?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A SYN/ACK means open. RST is the opposite answer.">A) Open, something is listening.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. RST means closed, nothing is listening on that port. Silence (a dropped packet) usually means a firewall.">B) Closed, nothing is listening there.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A reset isn't a firewall signal. A dropped packet (no answer at all) is what usually points to filtering.">C) Filtered by a firewall.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab07-q4">
+          <div class="quiz-question">Q4: You find Samba open on 139/445. What are you hoping <code>enum4linux -a</code> gives you?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="enum4linux doesn't crack passwords. It enumerates what SMB will tell you without creds.">A) The admin's cracked password.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Usernames, shares, and OS info. Usernames especially feed the login attacks in Lab 08.">B) Usernames, shares, and OS version, which feed the next attacks.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="That's a web tool's job (gobuster). enum4linux is for SMB, not hidden web directories.">C) Hidden web directories.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab07-q5">
+          <div class="quiz-question">Q5: On the box above, which service do you dig into first and why?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="SSH with no creds is a wall, not a door. It's almost never the first thing you work.">A) SSH on 22, it's the most important port.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The web app and SMB are where footholds usually live. You read versions and chase the weakest, not a favorite port.">B) The web app or SMB, because footholds usually live there, and you chase the weakest.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Picking by port number is backwards. You pick by what's exposed and exploitable, not by the lowest number.">C) Always the lowest-numbered port first.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab07-q6"
+          data-expected-regex="nmap\s+.*-(s\w|A)\b"
+          data-solution-rationale="The bread-and-butter scan is nmap -sC -sV -oN scan.txt &lt;IP&gt;. Any reasonable nmap command with a scan/version/script flag and a target is accepted; the drill is reaching for -sC/-sV by habit."
+          data-hint="Start with nmap, add the default scripts (-sC) and version detection (-sV), save it (-oN file), then the target IP.">
+          <div class="quiz-question">Q6 [Command]: Write the default scan you'd run first against a target IP, with version detection, default scripts, and output saved to a file.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="nmap -sC -sV ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

@@ -709,6 +709,83 @@
       </div>
     </section>
 
+    <!-- Category 3e: Recon, Scanning & Enumeration -->
+    <section class="cheat-section" id="recon-enum">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">📡</span>
+        <h2 class="cheat-section__title">Recon, Scanning &amp; Enumeration (Lab 07)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nmap -sC -sV -oN scan.txt <IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>The default first scan</strong></td>
+              <td><span class="flag-pill">-sC</span> default scripts, <span class="flag-pill">-sV</span> service/version, <span class="flag-pill">-oN</span> save to a file. Run this on every box</td>
+              <td><a href="./labs/lab07.html#first-scan" class="badge-lab-ref">Lab 07</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nmap -sS -p- &lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nmap -sS -p- <IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Stealth scan, all ports</strong></td>
+              <td><span class="flag-pill">-sS</span> SYN half-open (needs root, quieter), <span class="flag-pill">-p-</span> all 65535 ports. <span class="flag-pill">-sT</span> is the full-handshake fallback without root</td>
+              <td><a href="./labs/lab07.html#how-scanning-works" class="badge-lab-ref">Lab 07</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>gobuster dir -u http://&lt;IP&gt; -w &lt;wordlist&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Brute-force hidden web paths</strong></td>
+              <td>Finds admin panels, <code>/dev</code>, backups and uploads that aren't linked from the homepage</td>
+              <td><a href="./labs/lab07.html#enumerate" class="badge-lab-ref">Lab 07</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>smbclient -L //&lt;IP&gt;/ -N</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('smbclient -L //<IP>/ -N')">Copy</button>
+                </div>
+              </td>
+              <td><strong>List SMB shares (no login)</strong></td>
+              <td><span class="flag-pill">-L</span> list shares, <span class="flag-pill">-N</span> no password. Anonymous access often lists shares and sometimes lets you read them</td>
+              <td><a href="./labs/lab07.html#enumerate" class="badge-lab-ref">Lab 07</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>enum4linux -a &lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('enum4linux -a <IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Full SMB/Samba enumeration</strong></td>
+              <td><span class="flag-pill">-a</span> everything: usernames, shares, OS version, password policy. Usernames feed the Lab 08 login attacks</td>
+              <td><a href="./labs/lab07.html#enumerate" class="badge-lab-ref">Lab 07</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
