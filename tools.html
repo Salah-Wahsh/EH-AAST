@@ -544,6 +544,88 @@
           <span>In-browser · reference</span>
         </div>
       </article>
+
+      <!-- BloodHound -->
+      <article class="tool-setup-card" id="bloodhound">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🩸</span>
+            <h2 class="tool-setup-card__title">BloodHound</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">AD ATTACK PATHS</span>
+        </div>
+        <p class="tool-setup-card__desc">Collects every object and permission in a Windows domain and graphs it, then finds the shortest path from your account to Domain Admin. The single most valuable Active Directory tool. <code>bloodhound-python</code> is the collector you run from Linux.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install collector</span>
+            <code>pip install bloodhound</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Collect with a domain account</span>
+            <code>bloodhound-python -d &lt;domain&gt; -u &lt;user&gt; -p &lt;pass&gt; -c all -ns &lt;DC_IP&gt;</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Then</span>
+            <code>Load the JSON → run "Shortest Path to Domain Admins"</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab10.html" class="badge-lab-ref">Lab 10</a></span>
+          <span>GUI + CLI · AD</span>
+        </div>
+      </article>
+
+      <!-- kerbrute -->
+      <article class="tool-setup-card" id="kerbrute">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🎟️</span>
+            <h2 class="tool-setup-card__title">kerbrute</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.3);">AD USER ENUM</span>
+        </div>
+        <p class="tool-setup-card__desc">Enumerates valid domain usernames and sprays passwords through Kerberos. Because it asks the DC pre-authentication, it finds valid accounts with no failed logins and no lockouts.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Get it</span>
+            <code>Download the release binary from the kerbrute repo</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Enumerate users</span>
+            <code>kerbrute userenum -d &lt;domain&gt; --dc &lt;DC_IP&gt; users.txt</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab10.html" class="badge-lab-ref">Lab 10</a></span>
+          <span>CLI · AD</span>
+        </div>
+      </article>
+
+      <!-- impacket -->
+      <article class="tool-setup-card" id="impacket">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🧰</span>
+            <h2 class="tool-setup-card__title">Impacket</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">AD TOOLKIT</span>
+        </div>
+        <p class="tool-setup-card__desc">A collection of Python tools for Windows/AD protocols. You'll use <code>GetNPUsers</code> (AS-REP roast), <code>GetUserSPNs</code> (Kerberoast), <code>secretsdump</code> (DCSync), and <code>psexec</code> across the AD labs.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has it)</span>
+            <code>sudo apt install -y impacket-scripts</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Example: AS-REP roast</span>
+            <code>impacket-GetNPUsers &lt;domain&gt;/&lt;user&gt; -no-pass -dc-ip &lt;IP&gt;</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab11.html" class="badge-lab-ref">Lab 11</a> · <a href="./labs/lab12.html" class="badge-lab-ref">Lab 12</a></span>
+          <span>CLI · AD</span>
+        </div>
+      </article>
     </div>
   </main>
 

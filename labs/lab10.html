@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 10: Active Directory Foundations &amp; Enumeration — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab10" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 03</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 10</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 10: Active Directory Foundations &amp; Enumeration</h1>
+        <p class="lab-header__lead">
+          Single boxes were the warm-up. Real companies don't run one Linux server, they run a Windows domain: hundreds of machines and thousands of users all managed from one place called Active Directory. It's what nearly every medium and large organization uses, and it's where most real penetration tests actually happen. This week you learn to read a domain. The next two weeks you take it over.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>AD Enumeration</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1087 · T1069</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>CPTS · OSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">New module: the three-week AD flagship</div>
+            <p style="margin:0;">
+              You still run the same spine (Recon → Map → Identify → Exploit → Document), but the target changes shape. For the next three weeks the target is a <strong>domain</strong>, not a box. This week is Map: learn the pieces and enumerate what's there. Lab 11 steals credentials from it. Lab 12 takes the whole thing over. Most working pentesters spend more time in Active Directory than anywhere else, so this is the most job-relevant stretch of the course.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: what AD is + anchor -->
+      <section>
+        <h2 id="what-ad-is">1. What Active Directory Is <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">📑</span>
+          <div class="callout__content">
+            <div class="callout__title">2021: the attackers wrote down the playbook</div>
+            <p style="margin:0 0 var(--space-2);">
+              When the Conti ransomware group's internal documents leaked in 2021, they included a step-by-step manual for their own affiliates. It reads like a pentest course: get a foothold, find the Domain Controller, hunt for domain and enterprise admin accounts, enumerate Active Directory, escalate, move sideways, then encrypt everything. That's not a coincidence. Ransomware crews make their money by going from one phished laptop to Domain Admin, because once you own Active Directory, you own every machine it manages.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              The exact steps in that leaked playbook are the exact steps in these three labs. You're learning the attack that actually ends most companies' worst days.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          Active Directory is the central directory for a Windows network: every user, every computer, every group, every permission, all managed from one or more servers called <strong>Domain Controllers</strong>. Log into any machine in the domain and the DC decides who you are and what you can touch. That central control is convenient for admins, and it's exactly what makes it a graph an attacker can walk.
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 You compromise one ordinary employee's laptop on a 5,000-machine domain. Why is that often most of the way to owning all 5,000, not just the one? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Because one domain account can <em>query the entire directory</em>. From that one laptop you can list every user, every group, and who has power over what, then find a chain of permissions that leads from your nobody account to Domain Admin. AD is a graph of who-can-control-whom, and any member can read the map. The attack is finding the shortest path.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: the pieces -->
+      <section>
+        <h2 id="the-pieces">2. The Pieces You Need to Know <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          A handful of terms carry the whole topic. Learn these six and the attacks in Labs 11 and 12 make sense.
+        </p>
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Domain Controller (DC)</span>
+              <span>The server running AD. It authenticates everyone and holds the whole directory. The crown jewel.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Domain</span>
+              <span>The managed group of users and computers, e.g. <code>corp.local</code>. One login works across all of it.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Users &amp; Groups</span>
+              <span>Accounts and the groups they belong to. <strong>Domain Admins</strong> is the group that owns everything.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">OU (Organizational Unit)</span>
+              <span>A folder for organizing users/computers, so policy can be applied to a slice of the domain.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">GPO (Group Policy)</span>
+              <span>Settings pushed to machines from the DC. Control a GPO and you control the machines it applies to.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Kerberos</span>
+              <span>How AD proves who you are, using tickets instead of sending passwords. Labs 11–12 abuse exactly this.</span>
+            </div>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🕸️</span>
+          <div class="callout__content">
+            <div class="callout__title">Why "graph" is the right word</div>
+            <p style="margin:0;">Think of every user, group, and computer as a dot, and every "can control" relationship as an arrow: a user is a <em>member of</em> a group, a group has <em>admin rights on</em> a computer, an account can <em>reset the password of</em> another. Your foothold is one dot. Domain Admin is another. The attack is finding a path of arrows between them, which is exactly what the BloodHound tool draws for you in §5.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: enumerate the domain -->
+      <section>
+        <h2 id="enumerate-domain">3. Enumerate the Domain <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· recon · enumerate</span></h2>
+        <p class="lab-lead">
+          These three labs run on one TryHackMe room: Attacktive Directory. It gives you a real Domain Controller to attack. Start by scanning it and pulling a list of valid usernames, with no credentials at all.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Attacktive Directory</h3>
+                <div class="target-launcher__platform">Hosted · free room · a real Domain Controller (used across Labs 10–12)</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start the DC, scan it, note the domain name</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/attacktivedirectory" target="_blank" rel="noopener noreferrer">tryhackme.com/room/attacktivedirectory</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Install its tools (impacket, bloodhound, kerbrute) as the first task walks you through.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · scan a DC, then enumerate users</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Scan it. A Domain Controller has a signature set of open ports, learn to recognize it on sight:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>53   DNS          88   Kerberos      # 88 is the dead giveaway: this is a DC
+135  RPC          139/445 SMB
+389  LDAP         3268 Global Catalog</code></pre></div>
+            </li>
+            <li>Get the domain name from the scan (nmap's output and <code>enum4linux</code> both show it).</li>
+            <li>Ask the DC for valid usernames with Kerberos, no password needed:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>kerbrute userenum -d &lt;DOMAIN&gt; --dc &lt;DC_IP&gt; userlist.txt</code></pre></div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">kerbrute userenum · example output format</span></div>
+          <div class="terminal-window__body"><pre><code>[+] VALID USERNAME:  svc-admin@&lt;domain&gt;
+[+] VALID USERNAME:  backup@&lt;domain&gt;
+[+] VALID USERNAME:  &lt;more users…&gt;
+
+# kerbrute asks the DC "does this user exist?" via Kerberos and the DC
+# answers differently for real vs fake names, no login, no lockouts.
+# your room's real user list is what you harvest here. write them down.</code></pre></div>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🔑</span>
+          <div class="callout__content">
+            <div class="callout__title">Why this works with no password</div>
+            <p style="margin:0;">Kerberos leaks whether a username is valid before you've authenticated: the DC responds one way for a real user and another for a fake one. So you get a clean list of accounts to attack, without a single failed login showing up. Those usernames are the ammunition for Lab 11.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: authenticated enum -->
+      <section>
+        <h2 id="authenticated-enum">4. Enumerate Again, This Time With a Login <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· enumerate</span></h2>
+        <p class="lab-lead">
+          The moment you get even one low-privilege account (you'll crack one in Lab 11), the domain opens up. An authenticated user can read almost the entire directory. Same enumeration, far more returned.
+        </p>
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · what one account gets you</h3>
+          </div>
+          <div class="info-dense-card info-dense-card--cyan" style="margin:var(--space-2) 0 0;">
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">List SMB shares with creds</span>
+                <code>smbclient -L //&lt;DC_IP&gt;/ -U '&lt;user&gt;%&lt;pass&gt;'</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Query the directory over LDAP</span>
+                <code>ldapsearch -x -H ldap://&lt;DC_IP&gt; -b "dc=&lt;domain&gt;,dc=&lt;tld&gt;"</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">What you're hunting</span>
+                <span>Readable shares (backups, scripts with passwords), group memberships, and accounts with too much power.</span>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">A single <code>backup</code> or <code>service</code> share with a credentials file in it has ended more domains than any zero-day. Always read the shares.</p>
+        </div>
+      </section>
+
+      <!-- Section 5: BloodHound -->
+      <section>
+        <h2 id="bloodhound">5. Going Pro: Read the Graph with BloodHound <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· enumerate</span></h2>
+        <p class="lab-lead">
+          You could trace permission chains by hand. Nobody does. BloodHound collects the whole directory and draws it as a graph, then finds the shortest path from your account to Domain Admin for you. Learning to read that graph is the single most valuable AD skill.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · collect, then trace the path</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Run the collector with a domain account to gather every object and relationship:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>bloodhound-python -d &lt;domain&gt; -u &lt;user&gt; -p &lt;pass&gt; -c all -ns &lt;DC_IP&gt;</code></pre></div>
+            </li>
+            <li>Load the data into BloodHound and run <strong>"Shortest Path to Domain Admins."</strong></li>
+            <li>Read the path it draws. Each arrow is a right you can abuse. Here's the shape you're looking for:</li>
+          </ol>
+          <div class="diagram-card" style="margin-top:var(--space-3);">
+            <div class="diagram-card__title"><span>A BLOODHOUND ATTACK PATH</span></div>
+            <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--font-mono);">
+              <defs>
+                <marker id="ah" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="var(--color-accent)"></path>
+                </marker>
+              </defs>
+              <!-- nodes -->
+              <circle cx="60" cy="45" r="26" fill="var(--color-surface)" stroke="var(--color-danger)" stroke-width="2"></circle>
+              <text x="60" y="49" text-anchor="middle" fill="var(--color-text)" font-size="11">YOU</text>
+              <text x="60" y="88" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">owned user</text>
+
+              <circle cx="235" cy="45" r="26" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="2"></circle>
+              <text x="235" y="49" text-anchor="middle" fill="var(--color-text)" font-size="10">IT GROUP</text>
+
+              <circle cx="430" cy="45" r="26" fill="var(--color-surface)" stroke="var(--color-cyan)" stroke-width="2"></circle>
+              <text x="430" y="42" text-anchor="middle" fill="var(--color-text)" font-size="9">svc-sql</text>
+              <text x="430" y="54" text-anchor="middle" fill="var(--color-text)" font-size="9">account</text>
+
+              <circle cx="620" cy="45" r="30" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="2.5"></circle>
+              <text x="620" y="42" text-anchor="middle" fill="var(--color-accent)" font-size="9">DOMAIN</text>
+              <text x="620" y="54" text-anchor="middle" fill="var(--color-accent)" font-size="9">ADMINS</text>
+
+              <!-- edges -->
+              <line x1="88" y1="45" x2="201" y2="45" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ah)"></line>
+              <text x="144" y="36" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">MemberOf</text>
+
+              <line x1="263" y1="45" x2="396" y2="45" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ah)"></line>
+              <text x="329" y="36" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">GenericAll</text>
+
+              <line x1="458" y1="45" x2="582" y2="45" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ah)"></line>
+              <text x="520" y="36" text-anchor="middle" fill="var(--color-text-muted)" font-size="9">MemberOf</text>
+
+              <text x="340" y="120" text-anchor="middle" fill="var(--color-text-secondary)" font-size="11">you are in IT GROUP, which has GenericAll over svc-sql (so you can take it over),</text>
+              <text x="340" y="136" text-anchor="middle" fill="var(--color-text-secondary)" font-size="11">and svc-sql is a member of DOMAIN ADMINS. Abuse the middle arrow and you win.</text>
+            </svg>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            The edge labels (<code>MemberOf</code>, <code>GenericAll</code>, <code>WriteDacl</code>, <code>ForceChangePassword</code>) each name a concrete abuse. The whole skill is reading the chain and knowing which arrow to pull. That's what Labs 11 and 12 teach you to actually do.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 6: finding -->
+      <section>
+        <h2 id="write-finding">6. Write the Domain Map <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Like the recon lab, the deliverable is the map: what the domain is, which accounts you found, and the path BloodHound drew. It's the foundation for the credential attacks next week.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 DOMAIN ENUMERATION · what you found</span>
+            <span style="color:var(--color-cyan);">recon deliverable</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>Item</th><th>What you found</th><th>Why it matters</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Domain / DC</strong></td><td>The domain name and DC IP from your scan</td><td>Target of everything that follows</td></tr>
+                <tr><td><strong>Users</strong></td><td>The valid usernames from <code>kerbrute</code></td><td>Targets for Lab 11's credential attacks</td></tr>
+                <tr><td><strong>Shares</strong></td><td>Readable SMB shares (once authenticated)</td><td>Often hold passwords in plain files</td></tr>
+                <tr><td><strong>Attack path</strong></td><td>BloodHound's shortest path to Domain Admins</td><td>Your route to owning the domain</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Keep this open through Labs 11 and 12. Every credential you crack and every host you move to gets added to it.</p>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 10 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #2 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab10-q1">
+          <div class="quiz-question">Q1: What is a Domain Controller?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A firewall filters traffic. The DC runs the directory and authenticates everyone, a different job.">A) The firewall that protects the network.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The DC runs Active Directory, authenticates every user, and holds the whole directory. Own it and you own the domain.">B) The server running AD that authenticates everyone and holds the directory.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not an individual's PC. It's the central server the whole domain depends on.">C) The CEO's personal workstation.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab10-q2">
+          <div class="quiz-question">Q2: Why is compromising one domain user often most of the way to the whole domain?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Any domain account can read the directory, so you can map every user, group, and permission and find a path to Domain Admin.">A) Any domain account can read the directory and map a path to Domain Admin.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="One user account isn't automatically admin. The point is it can enumerate the graph, not that it's already privileged.">B) Every domain user is secretly an administrator.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Passwords aren't shared across accounts. It's about read access to the directory, not a shared password.">C) All users share the same password.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab10-q3">
+          <div class="quiz-question">Q3: On a scan, which open port most clearly says "this is a Domain Controller"?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="80 is just a web server. Lots of machines run it; it says nothing about AD.">A) 80 (HTTP)</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. 88 is Kerberos, the AD authentication service. Seeing 88 (with 389 LDAP and 445 SMB) is the DC signature.">B) 88 (Kerberos)</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="22 is SSH, typical of Linux boxes, not a Windows DC's giveaway.">C) 22 (SSH)</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab10-q4">
+          <div class="quiz-question">Q4: How can <code>kerbrute</code> list valid usernames with no password?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't crack anything here. It's only checking which names exist, not their passwords.">A) It cracks each user's password instantly.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Kerberos answers differently for a real username vs a fake one before you authenticate, so you learn which accounts exist without a login or a lockout.">B) Kerberos replies differently for real vs fake usernames, before authentication.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="There's no public user list to download. kerbrute infers validity from the DC's Kerberos responses.">C) It downloads the user list from a public website.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab10-q5">
+          <div class="quiz-question">Q5: What does BloodHound actually do for you?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't exploit anything. It maps the domain so you know what to exploit.">A) Automatically exploits the Domain Controller.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. It collects the directory and graphs the permission relationships, then finds the shortest path from your account to Domain Admin.">B) Graphs the domain's permissions and finds the shortest path to Domain Admin.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not antivirus. It's an offensive mapping tool for attackers (and defenders checking their own exposure).">C) Scans the network for malware.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab10-q6"
+          data-expected-regex="kerbrute\s+userenum|enum4linux\s+-a|ldapsearch\s+-"
+          data-solution-rationale="Unauthenticated user discovery is kerbrute userenum -d <domain> --dc <IP> <wordlist>. enum4linux -a <IP> and ldapsearch are also accepted enumeration moves. The drill is reaching for user/directory enumeration against the DC.">
+          <div class="quiz-question">Q6 [Command]: You've scanned a Domain Controller and have the domain name. Write a command to pull valid usernames from it (no credentials).</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="kerbrute userenum ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

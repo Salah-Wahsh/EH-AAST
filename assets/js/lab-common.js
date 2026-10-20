@@ -31,6 +31,14 @@
         { id: 'lab08', name: 'Lab 08: Service Exploitation & Initial Access', href: 'labs/lab08.html', time: '60m' },
         { id: 'lab09', name: 'Lab 09: Privilege Escalation', href: 'labs/lab09.html', time: '60m' }
       ]
+    },
+    {
+      id: 'mod03',
+      title: 'Module 03: Active Directory',
+      badge: 'AD',
+      labs: [
+        { id: 'lab10', name: 'Lab 10: AD Foundations & Enumeration', href: 'labs/lab10.html', time: '60m' }
+      ]
     }
   ];
 

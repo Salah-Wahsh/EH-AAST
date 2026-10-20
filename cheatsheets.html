@@ -951,6 +951,61 @@
       </div>
     </section>
 
+    <!-- Category 3h: Active Directory -->
+    <section class="cheat-section" id="active-directory">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🏛️</span>
+        <h2 class="cheat-section__title">Active Directory (Labs 10–12)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>kerbrute userenum -d &lt;domain&gt; --dc &lt;IP&gt; users.txt</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('kerbrute userenum -d <domain> --dc <IP> users.txt')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Enumerate users, no password</strong></td>
+              <td>Kerberos answers differently for real vs fake usernames, so you harvest valid accounts with no login and no lockouts</td>
+              <td><a href="./labs/lab10.html#enumerate-domain" class="badge-lab-ref">Lab 10</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>bloodhound-python -d &lt;domain&gt; -u &lt;user&gt; -p &lt;pass&gt; -c all -ns &lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('bloodhound-python -d <domain> -u <user> -p <pass> -c all -ns <IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Collect the domain for BloodHound</strong></td>
+              <td>Gathers every object and permission edge, then BloodHound graphs the shortest path to Domain Admins</td>
+              <td><a href="./labs/lab10.html#bloodhound" class="badge-lab-ref">Lab 10</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>smbclient -L //&lt;IP&gt;/ -U '&lt;user&gt;%&lt;pass&gt;'</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('smbclient -L //<IP>/ -U \'<user>%<pass>\'')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Authenticated share listing</strong></td>
+              <td>One domain account opens the shares. Backup/script shares with a credentials file in them end domains</td>
+              <td><a href="./labs/lab10.html#authenticated-enum" class="badge-lab-ref">Lab 10</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
