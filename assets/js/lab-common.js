@@ -38,7 +38,8 @@
       badge: 'AD',
       labs: [
         { id: 'lab10', name: 'Lab 10: AD Foundations & Enumeration', href: 'labs/lab10.html', time: '60m' },
-        { id: 'lab11', name: 'Lab 11: AD Credential Attacks', href: 'labs/lab11.html', time: '60m' }
+        { id: 'lab11', name: 'Lab 11: AD Credential Attacks', href: 'labs/lab11.html', time: '60m' },
+        { id: 'lab12', name: 'Lab 12: Lateral Movement & Domain Dominance', href: 'labs/lab12.html', time: '60m' }
       ]
     }
   ];

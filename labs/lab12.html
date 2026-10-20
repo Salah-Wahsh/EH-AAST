@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 12: Lateral Movement &amp; Domain Dominance — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab12" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 03</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 12</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 12: Lateral Movement &amp; Domain Dominance</h1>
+        <p class="lab-header__lead">
+          You have one cracked password. Today you turn it into the entire domain. You'll use it to find more credentials lying around, dump the Domain Controller's secrets, and log in as the Administrator of the whole domain, without ever knowing the Administrator's actual password. This is the top of the mountain the last three labs were climbing.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Lateral Movement · Domain Dominance</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1003 · T1550.002 · T1021</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>CPTS · OSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The last climb</div>
+            <p style="margin:0;">
+              Recon → Map → Identify → Exploit → <strong>(spread and own)</strong> → Document. Lab 10 mapped the domain, Lab 11 got you one password. Lateral movement is using that one credential to reach the next machine and the next account, collecting keys until one of them opens the Domain Controller. Once you own the DC, you own every machine in the company. That's "Domain Admin," the finish line of an internal pentest.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: three forms of a credential + PtH + anchor -->
+      <section>
+        <h2 id="credential-forms">1. A Password, a Hash, and a Ticket <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🧠</span>
+          <div class="callout__content">
+            <div class="callout__title">mimikatz: why one admin login infects everything</div>
+            <p style="margin:0 0 var(--space-2);">
+              Windows keeps the credentials of everyone currently logged into a machine in memory, in a process called LSASS, so it doesn't have to ask for your password every five minutes. In 2011 a tool called mimikatz made reading those credentials out of memory trivial. Dump LSASS on one machine and you get the password hashes (and sometimes plaintext) of every account that's touched it, including any admin who logged in to fix something. Those credentials then open the next machine. This is the engine of nearly every ransomware outbreak: dump creds, reuse them, repeat, until you hit a Domain Admin.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              The uncomfortable part: you usually don't even need to crack anything. In Windows, the hash is often as good as the password.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          A credential shows up in three forms, and you need to recognize all three. The last one is the one that breaks people's intuition.
+        </p>
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Cleartext password</span>
+              <span>The actual password. Best case, sometimes sitting in LSASS memory or a config file.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">NTLM hash</span>
+              <span>A fixed scramble of the password. You might crack it with hashcat, or you might not need to.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Kerberos ticket</span>
+              <span>A time-limited proof of identity from the DC. Steal it and you're that user until it expires.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You dump an admin's NTLM hash from memory but you can't crack it, it's long and random. Most people think they're stuck. Why are you actually already done? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><strong>Pass-the-Hash.</strong> Windows authentication (NTLM) proves you know the password by using the <em>hash</em> directly in the handshake, never the plaintext. So if you have the hash, you can authenticate as that user without ever knowing or cracking the password. The hash <em>is</em> the password as far as NTLM cares. That's why dumping one admin's hash is often game over.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: pillage + lateral -->
+      <section>
+        <h2 id="pillage">2. Pillage and Move Laterally <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· lateral movement</span></h2>
+        <p class="lab-lead">
+          Same Domain Controller as the last two labs. Take the account you cracked in Lab 11 and use it to read what you couldn't before. The fastest path up is often a password someone left in a file.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Attacktive Directory</h3>
+                <div class="target-launcher__platform">Hosted · free room · the finish of the three-lab chain</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Log in with your Lab 11 creds, read the shares</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/attacktivedirectory" target="_blank" rel="noopener noreferrer">tryhackme.com/room/attacktivedirectory</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. The account you cracked last week is your key in.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · find the next credential in a share</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>List the shares with your cracked account, and look for ones a normal user shouldn't see (<code>backup</code>, <code>scripts</code>, <code>IT</code>):
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>smbclient -L //&lt;DC_IP&gt;/ -U '&lt;user&gt;%&lt;pass&gt;'</code></pre></div>
+            </li>
+            <li>Connect to an interesting share and pull any files out of it:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>smbclient //&lt;DC_IP&gt;/backup -U '&lt;user&gt;%&lt;pass&gt;'
+smb&gt; get &lt;file&gt;</code></pre></div>
+            </li>
+            <li>Read it. Credential files are often base64-encoded, not encrypted. Decode and you have a better account:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>echo '&lt;base64 string&gt;' | base64 -d</code></pre></div>
+            </li>
+          </ol>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🗝️</span>
+          <div class="callout__content">
+            <div class="callout__title">This is lateral movement</div>
+            <p style="margin:0;">You started as one low-priv user and used them to reach a second, more useful account. That's the whole pattern: each credential gets you the next one. Do it enough times and you reach an account with the keys to the Domain Controller.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: DCSync -->
+      <section>
+        <h2 id="dcsync">3. DCSync: Steal Every Password in the Domain <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· credential access</span></h2>
+        <p class="lab-lead">
+          Some accounts have the right to ask the Domain Controller to replicate its data, which includes every account's password hash. If your pillaged account has that right, you don't attack the DC, you just politely ask it for all the hashes. That's DCSync.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · dump the domain's hashes</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>With an account that has replication rights, run secretsdump against the DC:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>impacket-secretsdump -just-dc &lt;domain&gt;/&lt;user&gt;:&lt;pass&gt;@&lt;DC_IP&gt;</code></pre></div>
+            </li>
+            <li>It prints every account and its NTLM hash, including the domain <code>Administrator</code>:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>Administrator:500:aad3b…:&lt;the admin's NTLM hash&gt;:::
+# format is  user:RID:LM-hash:NTLM-hash:::  (you want the NTLM, 4th field)</code></pre></div>
+            </li>
+            <li>You now hold the Administrator's hash. You won't crack it, you don't need to.</li>
+          </ol>
+        </div>
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>The on-host way: mimikatz</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0;">If you're on a Windows box as admin instead of attacking over the network, <code>mimikatz</code> does the memory version: <code>sekurlsa::logonpasswords</code> dumps credentials of everyone logged into that machine, and <code>lsadump::sam</code> reads the local accounts. Same goal, different vantage point. <code>secretsdump</code> is the remote tool; <code>mimikatz</code> is the one you run once you're standing on the box.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 4: pass the hash -->
+      <section>
+        <h2 id="pass-the-hash">4. Going Pro: Pass-the-Hash to Domain Admin <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· lateral movement</span></h2>
+        <p class="lab-lead">
+          You have the Administrator's NTLM hash but not the password. Pass-the-Hash authenticates with the hash directly. One command and you have an interactive shell as the Domain Admin.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · log in with a hash, own the domain</h3>
+          </div>
+          <div class="terminal-window" style="margin:var(--space-2) 0 0;">
+            <div class="terminal-window__header"><span class="terminal-window__title">evil-winrm · a shell as Administrator, using only the hash</span></div>
+            <div class="terminal-window__body"><pre><code>evil-winrm -i &lt;DC_IP&gt; -u Administrator -H &lt;NTLM_hash&gt;
+
+*Evil-WinRM* PS C:\Users\Administrator\Desktop&gt; whoami
+&lt;domain&gt;\administrator        # Domain Admin. the whole company is yours.</code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            No password was ever cracked or typed. The <code>-H</code> flag passes the hash straight into the NTLM handshake. From here you can read any file, reset any account, and deploy to every machine in the domain. That is total compromise, the thing the whole module was building toward.
+          </p>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>When the DC is on an internal-only network: pivoting</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0;">Often the machine you first land on can reach the DC, but <em>you</em> can't directly. You pivot: turn your foothold into a tunnel. <code>chisel</code> sets up the tunnel and <code>proxychains</code> pushes your tools (<code>evil-winrm</code>, <code>secretsdump</code>) through it, so they reach the internal subnet as if you were on it. You meet this properly in the capstone; for now, know that "I can't reach the DC directly" is a routing problem, not a dead end.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 5: finding -->
+      <section>
+        <h2 id="write-finding">5. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          The report that documents full domain compromise is the most important one you'll write. It should make the chain obvious: one weak password led, step by step, to everything.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Full domain compromise via credential reuse and Pass-the-Hash</span>
+            <span style="color:var(--color-danger);">severity: Critical</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Low-privilege foothold escalated to Domain Admin via credential reuse, DCSync, and Pass-the-Hash</td></tr>
+                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.8</code> (full control of the domain and every machine in it)</td></tr>
+                <tr><td><strong>Affected scope</strong></td><td>The entire Active Directory domain</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Authenticated SMB with a cracked account exposes a credentials file in a readable share. 2. That account has replication rights, so <code>impacket-secretsdump -just-dc</code> dumps the domain hashes including Administrator. 3. <code>evil-winrm -H &lt;hash&gt;</code> logs in as Administrator with no password. Evidence: <code>whoami</code> returns the domain admin.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Complete, unrecoverable compromise. The attacker can read all data, deploy ransomware domain-wide, and persist indefinitely. This is the endgame of every real AD intrusion.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Don't store passwords in shares; use a vault. Remove unneeded replication rights. Tier administration so DAs never log into normal workstations (stops the LSASS dump). Enforce LAPS for local admin passwords, and consider disabling NTLM where possible.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">That's the full internal attack chain: enumerate (Lab 10), steal a credential (Lab 11), spread it to Domain Admin (Lab 12). Next week you learn to write all of it up like a professional.</p>
+        </div>
+      </section>
+
+      <!-- Section 6: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 12 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #2 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab12-q1">
+          <div class="quiz-question">Q1: You have an admin's NTLM hash but can't crack it. Why might you be done anyway?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. NTLM authentication uses the hash directly, so Pass-the-Hash lets you log in as that user without the plaintext.">A) Pass-the-Hash: NTLM authenticates with the hash directly, no plaintext needed.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="An uncrackable hash isn't automatically the password. The point is you don't need the password at all.">B) An uncrackable hash means the password is blank.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="You don't have to wait for anything. The hash works right now via Pass-the-Hash.">C) The hash expires and resets to a default.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab12-q2">
+          <div class="quiz-question">Q2: What does mimikatz read to dump credentials on a Windows host?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Not the registry alone. The headline module reads a running process's memory.">A) The Windows registry backups.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. LSASS memory holds the credentials of everyone logged into the machine; sekurlsa::logonpasswords reads them out.">B) LSASS process memory, where logged-in users' credentials are cached.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Browser passwords are a different target. mimikatz's core trick is LSASS memory.">C) Saved browser passwords.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab12-q3">
+          <div class="quiz-question">Q3: What is DCSync?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not a brute force. It abuses a legitimate replication right, no password guessing.">A) Brute-forcing the Domain Controller's password.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. With replication rights, you ask the DC to send account data (including every NTLM hash) as if you were another DC syncing.">B) Abusing replication rights to make the DC hand over every account's hash.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't sync your files. It replicates the directory's secrets to you.">C) Backing up your files to the Domain Controller.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab12-q4">
+          <div class="quiz-question">Q4: Why does dumping LSASS on one machine often lead to the whole domain?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Every account that logged into that machine may be recoverable, including an admin who logged in once, and those creds open the next machine.">A) Any account that logged into that machine, including admins, may be recoverable and reused.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="LSASS holds credentials, not the whole domain database. The spread comes from reusing those creds, not from LSASS containing everything.">B) LSASS contains a full copy of Active Directory.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about network shares. It's about cached credentials in memory.">C) Because LSASS shares files with every machine.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab12-q5">
+          <div class="quiz-question">Q5: Which fix most directly stops the LSASS-dump-to-Domain-Admin chain?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A longer DA password doesn't help when the attack uses the hash and never cracks it.">A) Give the Domain Admin a longer password.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Tiering admin access so Domain Admins never log into normal workstations means their creds are never cached where an attacker can dump them.">B) Tier admin access so Domain Admins never log into normal workstations.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Disabling the firewall makes things worse, not better, and doesn't address cached credentials.">C) Disable the Windows firewall everywhere.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab12-q6"
+          data-expected-regex="secretsdump|evil-winrm\s+.*-H|mimikatz|sekurlsa"
+          data-solution-rationale="DCSync is impacket-secretsdump -just-dc <domain>/<user>:<pass>@<IP>; Pass-the-Hash is evil-winrm -i <IP> -u Administrator -H <hash>; mimikatz sekurlsa::logonpasswords is the on-host dump. Any is accepted.">
+          <div class="quiz-question">Q6 [Command]: Write a command for either dumping the domain hashes (DCSync) or logging in with a hash (Pass-the-Hash).</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="impacket-secretsdump ...  (or)  evil-winrm -H ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
