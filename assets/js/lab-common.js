@@ -16,7 +16,8 @@
       labs: [
         { id: 'lab01', name: 'Lab 01: Security Concepts & Web Prerequisites', href: 'labs/lab01.html', time: '45m' },
         { id: 'lab02', name: 'Lab 02: Web App Basics & Burp Suite', href: 'labs/lab02.html', time: '60m' },
-        { id: 'lab03', name: 'Lab 03: SQL Injection', href: 'labs/lab03.html', time: '60m' }
+        { id: 'lab03', name: 'Lab 03: SQL Injection', href: 'labs/lab03.html', time: '60m' },
+        { id: 'lab04', name: 'Lab 04: Cross-Site Scripting (XSS)', href: 'labs/lab04.html', time: '60m' }
       ]
     }
   ];

