@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 05: Broken Access Control — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab05" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 05</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 05: Broken Access Control</h1>
+        <p class="lab-header__lead">
+          The last two labs made the app do something it shouldn't. This one is quieter and more common: the app works exactly as built, you just ask it for things that aren't yours, and it hands them over. No payload, no injection. You change one number and read someone else's data. It's the single most common serious bug in real web apps, and it's number one on the OWASP list for a reason.
+        </p>
+      </header>
+
+      <!-- Career band (v2): where this sits in the real world -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">OWASP Top 10</span>
+            <code>A01: Broken Access Control</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">OWASP API Top 10</span>
+            <code>API1: BOLA</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1190</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · BSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0: where we are -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">Still Phase 3, still the same five steps</div>
+            <p style="margin:0;">
+              Same spine as the last two labs: Recon → Map → <strong>Identify → Exploit → Document</strong>. SQLi broke the query. XSS broke the browser. Today nothing breaks at all. You just send normal requests for objects that belong to other people, and the server never checks whether you're allowed. The skill this week is spotting where that check is missing.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: what broken access control is + the anchor + authz vs authn -->
+      <section>
+        <h2 id="what-bac-is">1. What Broken Access Control Really Is <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <!-- Real-world anchor: First American Financial -->
+        <div class="callout callout--tip">
+          <span class="callout__icon">🏦</span>
+          <div class="callout__content">
+            <div class="callout__title">May 2019: 885 million documents, one number in a URL</div>
+            <p style="margin:0 0 var(--space-2);">
+              First American Financial, one of the biggest title-insurance companies in the US, put its customers' mortgage documents online behind links that looked like <code>.../document/<strong>75849621</strong></code>. The number was sequential, and the page asked for no login. Subtract one from the number, and you were reading a stranger's file: bank account numbers, Social Security numbers, tax records, driver's license images. About 885 million documents, going back to 2003, sitting there for anyone who could count backwards.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              Nobody broke in. The server did exactly what it was told. It just never asked "wait, is this your document?" That missing question is the entire bug, and you're going to exploit the same one today.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          Two different checks happen when you ask a server for something, and people mix them up constantly. <strong>Authentication</strong> is "who are you" (you logged in). <strong>Authorization</strong> is "are you allowed to have <em>this specific thing</em>". Broken access control is when the app nails the first and forgets the second.
+        </p>
+
+        <!-- Artifact-first: the two checks, side by side -->
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title"><span>TWO CHECKS, AND THE ONE THAT GETS SKIPPED</span></div>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--cyan">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">Authentication · who are you</h3>
+                <span class="comparison-badge" style="color:var(--color-cyan);">usually fine</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>Authorization: Bearer eyJ...
+# server: "ok, you're user 28" ✓</code></pre></div></div>
+              <ul class="comparison-list" style="margin-top:var(--space-2);">
+                <li><span class="comparison-icon">🪪</span> You log in, the server knows you're user 28. Apps get this part right, it's the first thing anyone tests.</li>
+              </ul>
+            </div>
+            <div class="comparison-card comparison-card--accent">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">Authorization · is it yours</h3>
+                <span class="comparison-badge" style="color:var(--color-accent);">often skipped</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>GET /rest/basket/1
+# server: is basket 1 yours? (never asks) ✗</code></pre></div></div>
+              <ul class="comparison-list" style="margin-top:var(--space-2);">
+                <li><span class="comparison-icon">🔓</span> You ask for basket 1. The server confirms you're logged in, fetches basket 1, and hands it over. It never checked that basket 1 is <em>yours</em>. That's the whole class of bug.</li>
+              </ul>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            Being logged in is not the same as being allowed. The server treats "you have a valid token" as "you can have anything you ask for." Those are different questions, and today you exploit the gap between them.
+          </p>
+        </div>
+
+        <!-- Prediction prompt before the two-shapes reveal -->
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You're a normal logged-in customer on a shopping site. Name two things you might be able to reach that shouldn't be yours. One that belongs to another customer, and one that belongs to staff. Write your guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Those are the two shapes of the bug. <strong>Horizontal</strong>: another customer's basket, order, or profile (same rank as you, just not your row). <strong>Vertical</strong>: staff powers like the admin user list or a delete button (a rank above you). Same missing check, two directions. You'll do both today.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: the shapes of the bug -->
+      <section>
+        <h2 id="the-shapes">2. The Shapes It Takes <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· map</span></h2>
+        <p class="lab-lead">
+          Access control bugs all come from the same missing check, but they show up in a few recognizable shapes. Learn the shapes and you know what to try on any app.
+        </p>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">IDOR / BOLA</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">horizontal</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔢</span> An ID in the request points straight at a database row. Change <code>id=8</code> to <code>id=7</code> and you get someone else's row. On APIs this exact bug is called BOLA, and it's number one on the OWASP API list.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Forced browsing</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">vertical</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🚪</span> The admin link is hidden from your menu, so the app assumes you'll never find the page. You just type the URL (or call the API behind it) and walk in. Hiding a door is not locking it.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Parameter / role tampering</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">vertical</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎭</span> The app trusts something you control to decide your rank: a <code>role=user</code> field, an <code>Admin=false</code> cookie, an extra form field. Flip it and you're staff. Never let the client vote on its own permissions.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🔎</span>
+          <div class="callout__content">
+            <div class="callout__title">Where to look, every time</div>
+            <p style="margin:0;">Any number in a URL or request body (<code>id</code>, <code>bid</code>, <code>order</code>, <code>user</code>), anything in a menu you can see but aren't using, and any field that smells like a permission (<code>role</code>, <code>isAdmin</code>, <code>Admin</code>). Burp's HTTP history from Lab 02 is where you hunt for these.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: land your first IDOR, live -->
+      <section>
+        <h2 id="idor-live">3. Land Your First IDOR, Live <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify · exploit</span></h2>
+        <p class="lab-lead">
+          Juice Shop gives every shopping basket a number and loads yours with a request like <code>GET /rest/basket/<strong>&lt;your number&gt;</strong></code>. Nothing stops you asking for basket 1 instead. Let's prove it.
+        </p>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Same container as Labs 02–04. If it's still running, skip the start step.</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start it (skip if it's still up)</span>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
+                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Open it, register one account, log in</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>One account is enough. Juice Shop ships with baskets already full of other people's stuff.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🛒</span>
+          <div class="callout__content">
+            <div class="callout__title">The other users are already here</div>
+            <p style="margin:0;">Juice Shop pre-seeds baskets <code>1</code>, <code>2</code>, and <code>3</code> with items: basket 1 belongs to the admin, 2 to Jim, 3 to Bender. So you don't need a second account, just log into your own and go read theirs. (If you'd rather have a fresh cart of your own to compare against, register a second account too. Optional.)</p>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 Your own basket loads with <code>GET /rest/basket/&lt;your number&gt;</code>. You're logged in as yourself the whole time. What comes back if you change that number to <code>1</code> and resend it? Guess before you try.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">You get basket 1 back, in full, with the admin's items and <code>UserId 1</code> stamped on it. The server checks your token is valid, then fetches whatever number you asked for. It never checks the basket is yours. That's IDOR.</p>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · everyone gets this</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Logged in as your own account, make sure Burp is catching traffic (Lab 02 setup). Click your cart so the basket loads.</li>
+            <li>In Burp's HTTP history, find the request <code>GET /rest/basket/&lt;your number&gt;</code>. Send it to Repeater (<kbd>Ctrl+R</kbd>).</li>
+            <li>Change the number in the path to <code>1</code> (the admin's basket) and hit Send. Try <code>2</code> and <code>3</code> too.</li>
+            <li>Read the response. It's someone else's basket, with a different <code>UserId</code>. No error, no password prompt.</li>
+          </ol>
+        </div>
+
+        <!-- Full worked artifact, verified live -->
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · a customer reads the admin's basket</span></div>
+          <div class="terminal-window__body"><pre><code>GET /rest/basket/1 HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJ...   # your own token, unchanged
+
+HTTP/1.1 200 OK
+{"status":"success","data":{
+  "id": 1,
+  "UserId": 1,                         // the admin. not you. that's the point.
+  "Products": [
+    { "id": 1, "name": "Apple Juice (1000ml)",   "BasketItem": { "quantity": 2 } },
+    { "id": 2, "name": "Orange Juice (1000ml)",  "BasketItem": { "quantity": 3 } },
+    { "id": 3, "name": "Eggfruit Juice (500ml)", "BasketItem": { "quantity": 1 } }
+  ]
+}}</code></pre></div>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Got a 401 or an empty basket?</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">A <code>401</code> usually means your <code>Authorization: Bearer</code> header didn't come along when you moved the request to Repeater. Copy it from the original request.</p>
+            <p style="margin:0;">Baskets 1, 2, and 3 are the pre-seeded ones with items in them. Higher numbers are student accounts and may be empty, that's fine, an empty <code>Products</code> array still proves you reached a basket that isn't yours. Walk the numbers: every different <code>UserId</code> that comes back is someone else's cart.</p>
+          </div>
+        </details>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🏦</span>
+          <div class="callout__content">
+            <div class="callout__title">This is First American, shrunk to one laptop</div>
+            <p style="margin:0;">You just did exactly what leaked 885 million documents: changed a sequential number in a request and got back data that wasn't yours. The only difference is scale. The bug is identical.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: escalate to the whole user table + forced browsing -->
+      <section>
+        <h2 id="bola-users">4. From One Row to the Whole Table <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Reading one basket is horizontal: one customer's data at a time. Now go vertical. The admin area has a user list, and Juice Shop hides the link from your menu because you're only a customer. Hiding it is all it does.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · call the admin API as a customer</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-2);">
+            <li>That admin screen is just a table of every user. REST APIs name a path after the resource it serves, so the user list sits at <code>/api/</code> plus the collection's name. Same host and <code>Authorization</code> header as §3, new path. Fill the blank and send it:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>GET /api/______ HTTP/1.1</code></pre></div></div>
+              <span style="display:block;margin-top:var(--space-1);">Rather spot it live? Open <code>/#/administration</code> with DevTools → Network open and watch which <code>/api/</code> call fires.</span>
+            </li>
+            <li>Read the response. You, a customer, just pulled the entire user table.</li>
+            <li>Scan it for the <code>role</code> field. Find the account where <code>role</code> is <code>admin</code>. Now you know who to go after.</li>
+          </ol>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>Stuck on the blank?</summary>
+            <div class="thought-accordion__content"><p style="margin:0;">It's <code>GET /api/Users</code>. The admin screen in the UI is just a pretty table on top of this one call, and the call never checks your role.</p></div>
+          </details>
+        </div>
+
+        <!-- Full worked artifact, verified live -->
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · a customer token reads every account</span></div>
+          <div class="terminal-window__body"><pre><code>GET /api/Users HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer eyJ...            # still your plain customer token
+
+HTTP/1.1 200 OK
+{"status":"success","data":[
+  { "id": 1,  "email": "admin@juice-sh.op",     "role": "admin"    },   // there it is
+  { "id": 2,  "email": "jim@juice-sh.op",       "role": "customer" },
+  { "id": 3,  "email": "bender@juice-sh.op",    "role": "customer" },
+  ...                                                                    // 27 users total
+]}</code></pre></div>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🧾</span>
+          <div class="callout__content">
+            <div class="callout__title">What you got, and what you didn't</div>
+            <p style="margin:0;">Juice Shop strips the password hash out of this response, so you don't get credentials here. What you do get is every email address and exactly who the admins are. On a real test that's the target list for the next attack (password spraying, phishing, the admin takeover). Recon that the app handed you for free.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 5: going pro - HPP write + PortSwigger ladder -->
+      <section>
+        <h2 id="hpp-write">5. Going Pro: Write to a Basket That Isn't Yours <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Reading other people's data is bad. Writing to it is worse. So the Juice Shop devs did add a check on the write path, and for once it works. Watch it block you, then watch it fall over.
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-2);">
+          <div class="prediction-prompt__question">🤔 To add an item to a basket you <code>POST /api/BasketItems</code> with a body like <code>{"BasketId":&lt;yours&gt;,"ProductId":6,"quantity":1}</code>. You try it with <code>"BasketId":2</code> (not yours). The server rejects it. So how could you still get your item into basket 2? Guess before the reveal.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Send <code>BasketId</code> <strong>twice</strong>. The validation code reads the <em>first</em> one (your own, so it passes), but the database layer uses the <em>last</em> one (the victim's). Two parts of the app disagree about which value is real. That's HTTP Parameter Pollution, and it's a genuine technique you'll use on real targets.</p>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · beat the check with HTTP Parameter Pollution</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            See the guard work first, then get past it. Build the pollution request yourself before you peek at the answer.
+          </p>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-2);">
+            <li>In Repeater, <code>POST /api/BasketItems</code> with a normal body aimed at a basket that isn't yours (say basket 2). Watch it get turned away:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">the guard holds…</span></div>
+                <div class="terminal-window__body"><pre><code>{"BasketId":2,"ProductId":6,"quantity":1}
+
+HTTP/1.1 401 Unauthorized
+{'error':'Invalid BasketId'}            # it checked. good for them.</code></pre></div>
+              </div>
+            </li>
+            <li>Now put <code>BasketId</code> in the body <strong>twice</strong>: your own number first so the check passes, the victim's second for the database to actually use. Send it.</li>
+            <li>Confirm your item really landed in the victim's cart with <code>GET /rest/basket/2</code> from §3.</li>
+          </ol>
+          <details class="thought-accordion" style="margin:0 0 var(--space-2);">
+            <summary>Show the working request</summary>
+            <div class="thought-accordion__content">
+              <div class="terminal-window" style="margin:0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">…and the guard falls over</span></div>
+                <div class="terminal-window__body"><pre><code>POST /api/BasketItems HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer eyJ...
+Content-Type: application/json
+
+{"BasketId":9,"ProductId":6,"BasketId":2,"quantity":1}
+          ^ your own (passes the check)   ^ the victim's (used by the DB)
+
+HTTP/1.1 200 OK
+{"status":"success","data":{"id":11,"ProductId":6,"BasketId":2,"quantity":1}}
+# your item is now in basket 2. confirm it with GET /rest/basket/2.</code></pre></div>
+              </div>
+            </div>
+          </details>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+            This is the career-grade move: when a single check guards an action, ask whether every part of the app agrees on the value it's checking. Duplicate parameters, JSON vs query string, type juggling. The gap between "what was validated" and "what was used" is where a lot of real access-control bypasses live.
+          </p>
+        </div>
+
+        <h3 id="portswigger-ladder" style="margin-top:var(--space-4);">Clean reps on PortSwigger</h3>
+        <p class="lab-lead">
+          Juice Shop gave you IDOR, BOLA, and a parameter-pollution bypass. For isolated reps on the other shapes (forced browsing, role tampering, header tricks), PortSwigger's access-control labs each give you a fresh target with exactly one bug in the way.
+        </p>
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger: the access-control ladder</h3>
+                <div class="target-launcher__platform">Hosted · free account · do them in order</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Go Deeper</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · Climb the ladder</span>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality" target="_blank" rel="noopener noreferrer">🟢 Unprotected admin functionality (the path is in /robots.txt)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">🟡 User ID controlled by request parameter (horizontal IDOR)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">🟡 User role controlled by request parameter (flip Admin=false → true)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">🔴 URL-based access control circumvented (X-Original-URL header)</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Sign in at <code>portswigger.net</code> → <strong>Access the lab</strong> → fresh disposable URL</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 In that 🔴 lab the front-end server blocks any request to <code>/admin</code> outright, so you can't reach the page the normal way. But the back-end framework trusts a header called <code>X-Original-URL</code> to decide which path you really wanted. How do you use that to reach <code>/admin</code>? Guess before you climb.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Request a harmless path like <code>/</code> so the front-end lets it through, and add <code>X-Original-URL: /admin</code>. The front-end sees <code>/</code> and allows it; the back-end reads the header and serves <code>/admin</code>. The two servers disagree about which URL you asked for, same idea as the parameter pollution above, different layer.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: finding + fix -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Same rule as always: the report is the deliverable. Turn today's access-control bugs into one clean finding.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Broken access control across the REST API</span>
+            <span style="color:var(--color-danger);">severity: High</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Broken access control: horizontal IDOR, function-level exposure, and a parameter-pollution write bypass</td></tr>
+                <tr><td><strong>Severity</strong></td><td>High · <code>CVSS 8.1</code> (any authenticated user reads and writes other users' data with no special tooling)</td></tr>
+                <tr><td><strong>Affected endpoints</strong></td><td><code>GET /rest/basket/{id}</code> (reads any basket), <code>GET /api/Users</code> (lists every account to a customer), <code>POST /api/BasketItems</code> (write guard bypassed by duplicate <code>BasketId</code>)</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. As a customer, send <code>GET /rest/basket/1</code> → the admin's basket returns. 2. Send <code>GET /api/Users</code> → full user list including the admin account. 3. <code>POST /api/BasketItems</code> with <code>{"BasketId":&lt;yours&gt;,...,"BasketId":&lt;victim&gt;}</code> → item written into the victim's basket (plain <code>BasketId:&lt;victim&gt;</code> returns 401).</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Any logged-in user can read other customers' data, enumerate every account and spot the admins, and modify data they don't own. No privileged access or exploit chain required.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Enforce authorization on every request server-side: scope each query to the session user's own ID, never to a client-supplied one. Deny by default on admin functions, check the role on the server not in the UI. Reject duplicate parameters so validation and persistence can't disagree.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">CVSS is high but not critical here because it needs a logged-in account and doesn't directly leak passwords. On a site like First American, where the same bug exposed SSNs with no login at all, it would score higher. You'll score these properly in Week 13.</p>
+        </div>
+
+        <h3 id="the-fix" style="margin-top:var(--space-4);">The fix, side by side</h3>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 Vulnerable</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trusts the client</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// fetch whatever id the user asked for
+const id = req.params.id
+const basket = await Basket.findByPk(id)
+return res.json(basket)
+// no check that the basket
+// belongs to the caller</code></pre></div>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Fixed</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">scoped to the user</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// the id comes from the token,
+// never from the request path
+const userId = req.user.id
+const basket = await Basket.findOne({
+  where: { UserId: userId }
+})
+return res.json(basket)</code></pre></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-top:var(--space-2);">
+          The whole class of bug dies when the server decides what you're allowed to see from <em>your session</em>, not from a number you handed it. The client can ask for anything. The server's job is to say no.
+        </p>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 05 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #3 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab05-q1">
+          <div class="quiz-question">Q1: What's the difference between authentication and authorization?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. Authentication is who you are; authorization is what you're allowed to do.">A) Authentication is what you can access; authorization is who you are.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Authentication proves who you are (login). Authorization decides whether you're allowed to have this specific thing. Broken access control is a failure of the second.">B) Authentication is who you are; authorization is whether you're allowed this specific thing.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="They're not the same thing. Being logged in doesn't mean you're allowed everything, which is the whole lab.">C) They're two words for the same check.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q2">
+          <div class="quiz-question">Q2: You change <code>GET /rest/basket/9</code> to <code>/rest/basket/1</code> and get the admin's basket. What's this called?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. An Insecure Direct Object Reference: a client-controlled id points straight at a record with no ownership check. On an API it's also called BOLA.">A) IDOR (Insecure Direct Object Reference).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="SQL injection changes the query itself with special characters. Here the request is completely normal, you just asked for a different number.">B) SQL injection.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Nothing is being brute-forced. One request, one valid number, one leaked basket.">C) Brute force.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q3">
+          <div class="quiz-question">Q3: The admin link isn't in your customer menu, but <code>GET /api/Users</code> still returns every account. Why?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Your token is an ordinary customer token. It was never upgraded; the endpoint just doesn't check.">A) Your token secretly has admin rights.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The UI hides the link, but the API behind it never checks your role. Hiding a control is not enforcing access to it.">B) The UI hides the link, but the server never enforces the role on the endpoint.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts traffic. It has nothing to do with who's allowed to call an endpoint.">C) Because the site uses HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q4">
+          <div class="quiz-question">Q4: The naive write <code>{"BasketId":2,...}</code> returns 401, but sending <code>BasketId</code> twice works. What flaw is that?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The server isn't overloaded, and nothing timed out. The duplicate value is doing the work, not volume.">A) A race condition from sending requests too fast.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. HTTP Parameter Pollution: the validation reads one copy of the parameter and the database layer uses the other. The two disagree, and you slip through the gap.">B) HTTP Parameter Pollution, validation and persistence read different copies.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="No script runs here. This is a plain JSON request with a duplicated field, server-side logic only.">C) Cross-site scripting.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q5">
+          <div class="quiz-question">Q5: What's the root-cause fix for the basket IDOR?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding or scrambling the id (an unguessable UUID) raises the bar but still trusts a client-supplied value. Guess it or leak it and you're back in.">A) Use long random basket IDs so they can't be guessed.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Scope the query to the session user's own id from the token. The client never gets to name whose data it wants.">B) Fetch the basket by the user ID in the session token, not by the id in the URL.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Rate limiting slows down bulk abuse but does nothing about reading one specific basket that isn't yours.">C) Add rate limiting to the endpoint.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q6"
+          data-expected-regex="/(rest/basket|api/Users)/|basket/[0-9]|Users/[0-9]|/api/Users\b"
+          data-solution-rationale="Any request that reaches another user's object by changing a client-supplied id counts, e.g. GET /rest/basket/7, GET /api/Users, or GET /api/Users/3. The point is a normal authenticated request for an object that isn't yours."
+          data-hint="You don't need a payload. Write a normal GET line for an object you shouldn't own, e.g. another basket number or the users endpoint.">
+          <div class="quiz-question">Q6 [Request]: You're a logged-in customer. Write one HTTP request line (method + path) that pulls back data that shouldn't be yours.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="GET /rest/basket/…" spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

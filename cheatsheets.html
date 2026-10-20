@@ -533,6 +533,83 @@
       </div>
     </section>
 
+    <!-- Category 3c: Broken Access Control -->
+    <section class="cheat-section" id="broken-access-control">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🔑</span>
+        <h2 class="cheat-section__title">Broken Access Control (Lab 05)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Request / Technique</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>GET /rest/basket/1</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GET /rest/basket/1')">Copy</button>
+                </div>
+              </td>
+              <td><strong>IDOR: read another user's object</strong></td>
+              <td>Change the id in the path to one that isn't yours. The server checks your token is valid, then hands over whatever number you asked for without checking ownership</td>
+              <td><a href="./labs/lab05.html#idor-live" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>GET /api/Users</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GET /api/Users')">Copy</button>
+                </div>
+              </td>
+              <td><strong>BOLA: enumerate every account</strong></td>
+              <td>A plain customer token lists all users and their roles. The UI hides the admin link; the endpoint never enforces the role. Gives you the admin target list for free</td>
+              <td><a href="./labs/lab05.html#bola-users" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>{"BasketId":&lt;yours&gt;,"ProductId":6,"BasketId":&lt;victim&gt;}</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('{&quot;BasketId&quot;:<yours>,&quot;ProductId&quot;:6,&quot;BasketId&quot;:<victim>}')">Copy</button>
+                </div>
+              </td>
+              <td><strong>HTTP Parameter Pollution (write bypass)</strong></td>
+              <td>Duplicate the key in a <code>POST /api/BasketItems</code> body. The auth check reads the first <code>BasketId</code> (yours, passes); the database uses the last (the victim's). Naive single value returns <code>401</code></td>
+              <td><a href="./labs/lab05.html#hpp-write" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>X-Original-URL: /admin</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('X-Original-URL: /admin')">Copy</button>
+                </div>
+              </td>
+              <td><strong>URL-based access-control bypass</strong></td>
+              <td>Front-end blocks <code>/admin</code>, so request <code>/</code> and add this header. The back-end trusts it and serves the admin path the front-end thought it refused</td>
+              <td><a href="./labs/lab05.html#portswigger-ladder" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>/robots.txt</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('/robots.txt')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Forced browsing recon</strong></td>
+              <td>Hidden admin paths are often disclosed in <code>robots.txt</code>, sitemaps, or JS. Hiding a control is not enforcing access to it, request the path directly</td>
+              <td><a href="./labs/lab05.html#portswigger-ladder" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
