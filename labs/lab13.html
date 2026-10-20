@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 13: Reporting &amp; the Engagement Lifecycle — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab13" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 04</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 13</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Core</span>
+        </div>
+        <h1 class="lab-header__title">Lab 13: Reporting &amp; the Engagement Lifecycle</h1>
+        <p class="lab-header__lead">
+          Here's the part nobody posts about: the client never watches you hack. They read your report. It's the only thing they pay for and the only thing they keep. You can own every box in the building, but if the writeup is vague or wrong, the holes don't get fixed and you don't get hired again. Today you turn the findings you've written all semester into a professional report.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Reporting &amp; Delivery</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Standard</span>
+            <code>CVSS v3.1</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>Report Writing</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>OSCP exam report</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The step every lab has been feeding</div>
+            <p style="margin:0;">
+              Recon → Map → Identify → Exploit → <strong>Document</strong>. You've written one finding at the end of every lab all semester, on purpose. This week you learn to score them properly, write them so a stranger can reproduce them, and tie them into one story an executive will actually act on. Reporting is the single biggest thing junior testers are bad at, so doing it well is how you stand out.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: the report is the product + anchor -->
+      <section>
+        <h2 id="report-is-product">1. The Report Is the Product <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">📄</span>
+          <div class="callout__content">
+            <div class="callout__title">You can hack everything and still fail</div>
+            <p style="margin:0 0 var(--space-2);">
+              The OSCP exam, the entry-level cert this course aims at, works like a real engagement: you compromise a set of machines, then you have a full day to write the report. People who root every box and write a sloppy report <em>fail</em>. People who root fewer boxes but document them cleanly <em>pass</em>. The industry built it that way on purpose, because a finding nobody can understand or reproduce is worth nothing to the client who has to fix it.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              Your job isn't to prove you're clever. It's to hand the client a clear, prioritized, reproducible list of what's broken and how to fix it.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          A good report has two audiences in one document. The <strong>executive summary</strong> is for the people who sign the cheques: short, plain, business risk. The <strong>technical findings</strong> are for the engineers who fix it: exact, reproducible, with the command that proves it. Write for both, or you lose half your readers.
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 A junior writes: "Found SQL injection on the login page. Recommend sanitizing input." What are the two biggest things wrong with that as a professional finding? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">First, <strong>it's not reproducible</strong>: no exact URL, parameter, payload, or evidence, so the developer can't confirm or test the fix. Second, <strong>the remediation is a buzzword</strong>: "sanitize input" is what people say when they don't know the real fix, which here is parameterized queries. A good finding lets someone reproduce it in two minutes and fix it correctly on the first try.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: anatomy of a finding -->
+      <section>
+        <h2 id="anatomy">2. Anatomy of a Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          You've been writing these all semester in the "Write the Finding" section of every lab. Here's the full skeleton, and why each part exists.
+        </p>
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Title</span>
+              <span>What and where, in one line. "SQL injection in the login form."</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Severity + CVSS</span>
+              <span>A number and a rating so the client can prioritize. From §3.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Affected endpoint/asset</span>
+              <span>The exact URL, parameter, host, or account.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Steps to reproduce</span>
+              <span>The exact payload/command, numbered, so anyone can repeat it.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Impact</span>
+              <span>What an attacker gets in business terms, not just "RCE."</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Remediation</span>
+              <span>The specific, correct fix. Not "sanitize input."</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: CVSS -->
+      <section>
+        <h2 id="cvss-scoring">3. Score It with CVSS v3.1 <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          "High" and "Critical" aren't opinions, they come from a formula. CVSS turns a bug into a 0–10 number from eight questions about how it's exploited and what it costs. You don't memorize the math, you use the calculator and understand the inputs.
+        </p>
+        <div class="info-dense-card info-dense-card--accent" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__title">The eight metrics (what each asks)</div>
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">AV · Attack Vector</span><span>Network, adjacent, local, or physical? Remote is worse.</span></div>
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">AC · Attack Complexity</span><span>Does it just work, or need special conditions?</span></div>
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">PR · Privileges Required</span><span>None, low, or high? No login needed is worse.</span></div>
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">UI · User Interaction</span><span>Does a victim have to click something?</span></div>
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">S · Scope</span><span>Does it break out beyond the vulnerable component?</span></div>
+            <div class="info-dense-card__cell"><span class="info-dense-card__label">C / I / A</span><span>Confidentiality, Integrity, Availability impact: none/low/high.</span></div>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · score two of your own findings</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">Open the calculator and walk your Lab 03 SQLi and Lab 04 reflected XSS through it. Here's where they land and why:</p>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--accent" style="margin:0;">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">SQLi auth bypass</h3>
+                <span class="comparison-badge" style="color:var(--color-danger);">9.8 Critical</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>AV:N  remote
+AC:L  just works
+PR:N  no login
+UI:N  no click
+S:U   C:H I:H A:H
+→ 9.8</code></pre></div></div>
+            </div>
+            <div class="comparison-card comparison-card--cyan" style="margin:0;">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">Reflected XSS</h3>
+                <span class="comparison-badge" style="color:var(--color-warn,#e0a800);">6.1 Medium</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>AV:N  remote
+AC:L  just works
+PR:N  no login
+UI:R  victim must click
+S:C   C:L I:L A:N
+→ 6.1</code></pre></div></div>
+            </div>
+          </div>
+          <a class="target-launcher__url" style="margin-top:var(--space-2);" href="https://www.first.org/cvss/calculator/3.1" target="_blank" rel="noopener noreferrer">🎯 Open the official CVSS v3.1 calculator</a>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 Both bugs are "remote, no login, easy." Yet SQLi scores 9.8 and reflected XSS only 6.1. Which single metric does most of that gap? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><strong>User Interaction</strong> (plus the impact levels). Reflected XSS needs a victim to click your link (<code>UI:R</code>), and it only leaks a bit at a time (<code>C:L/I:L</code>). SQLi fires on its own (<code>UI:N</code>) and reads the whole database (<code>C:H/I:H</code>). "Needs a click" and "full database" are what separate a 9.8 from a 6.1. That's why you can't eyeball severity, the metrics decide it.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: bad vs good finding -->
+      <section>
+        <h2 id="bad-vs-good">4. Bad Finding vs Good Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Same bug, two write-ups. One gets ignored, one gets fixed. The difference is everything you'll be judged on.
+        </p>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 The junior version</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">gets ignored</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">❌</span> "Found SQLi on login. Fix: sanitize input."</li>
+              <li><span class="comparison-icon">❌</span> No URL, no payload, no evidence.</li>
+              <li><span class="comparison-icon">❌</span> No severity, no impact.</li>
+              <li><span class="comparison-icon">❌</span> A fix that's a buzzword, not a fix.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ The professional version</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">gets fixed</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">✔️</span> Title, CVSS 9.8, affected endpoint <code>POST /login</code>.</li>
+              <li><span class="comparison-icon">✔️</span> Exact payload <code>' OR 1=1--</code> and the response proving bypass.</li>
+              <li><span class="comparison-icon">✔️</span> Impact: full auth bypass + database read.</li>
+              <li><span class="comparison-icon">✔️</span> Fix: parameterized queries, with a code example.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · rewrite a weak finding</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">Take one weak sentence and rebuild it as a full finding, using a bug you actually did this semester. Start with your Lab 05 IDOR:</p>
+          <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>WEAK:  "You can see other users' baskets. Fix: add a check."
+
+YOUR REWRITE: fill in the six parts from §2
+  Title:            ______
+  Severity/CVSS:    ______
+  Affected:         GET /rest/basket/{id}
+  Steps:            ______
+  Impact:           ______
+  Remediation:      ______</code></pre></div></div>
+        </div>
+      </section>
+
+      <!-- Section 5: exec summary + attack chain -->
+      <section>
+        <h2 id="attack-chain">5. Going Pro: The Executive Summary and Attack Chain <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Individual findings are the technical half. The executives read one page: the summary. The most powerful thing you can put there is the <strong>attack chain</strong>, the story of how small issues combined into total compromise. You lived that chain this semester.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · tell the chain in one paragraph</h3>
+          </div>
+          <div class="diagram-card" style="margin:var(--space-2) 0 0;">
+            <div class="diagram-card__title"><span>YOUR SEMESTER, AS ONE ATTACK CHAIN</span></div>
+            <svg viewBox="0 0 680 90" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;font-family:var(--font-mono);">
+              <defs>
+                <marker id="ac" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--color-accent)"></path></marker>
+              </defs>
+              <g font-size="10" fill="var(--color-text)">
+                <rect x="8" y="26" width="110" height="34" rx="6" fill="var(--color-surface)" stroke="var(--color-cyan)"></rect>
+                <text x="63" y="41" text-anchor="middle">web bug</text>
+                <text x="63" y="53" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Lab 06 upload</text>
+
+                <rect x="190" y="26" width="110" height="34" rx="6" fill="var(--color-surface)" stroke="var(--color-cyan)"></rect>
+                <text x="245" y="41" text-anchor="middle">shell (www-data)</text>
+                <text x="245" y="53" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Lab 08</text>
+
+                <rect x="372" y="26" width="110" height="34" rx="6" fill="var(--color-surface)" stroke="var(--color-accent)"></rect>
+                <text x="427" y="41" text-anchor="middle">root</text>
+                <text x="427" y="53" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Lab 09 privesc</text>
+
+                <rect x="554" y="22" width="118" height="42" rx="6" fill="var(--color-surface)" stroke="var(--color-accent)" stroke-width="2"></rect>
+                <text x="613" y="40" text-anchor="middle" fill="var(--color-accent)">Domain Admin</text>
+                <text x="613" y="53" text-anchor="middle" fill="var(--color-text-muted)" font-size="8">Labs 10-12</text>
+              </g>
+              <line x1="120" y1="43" x2="186" y2="43" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ac)"></line>
+              <line x1="302" y1="43" x2="368" y2="43" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ac)"></line>
+              <line x1="484" y1="43" x2="550" y2="43" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#ac)"></line>
+            </svg>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
+            Write that as three or four plain sentences a CFO understands: "An attacker with no access uploaded a file to the website, used it to run commands on the server, escalated to full control of that machine, and from there took over the company's entire Windows domain. Each step used a common, fixable misconfiguration." No jargon. Just the line from "anyone on the internet" to "game over," and the fact that every link was preventable.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 6: deliverable -->
+      <section>
+        <h2 id="deliverable">6. Build the Mini-Report <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          🖐️ DO · Assemble a short report from the semester. This is the deliverable, and it's the most portfolio-worthy thing you'll make in this course.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 MINI-REPORT · your assignment</span>
+            <span style="color:var(--color-cyan);">deliverable</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>Section</th><th>What goes in it</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Executive summary</strong></td><td>Half a page, plain English, including the attack chain from §5</td></tr>
+                <tr><td><strong>3 findings</strong></td><td>Pick three of your semester findings (e.g. SQLi, IDOR, domain compromise), full six-part format, each CVSS-scored</td></tr>
+                <tr><td><strong>Severity table</strong></td><td>A one-glance list of all findings by CVSS score, highest first</td></tr>
+                <tr><td><strong>Remediation summary</strong></td><td>The prioritized to-do list: fix the Criticals first</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Keep it. A clean sample pentest report in your portfolio is worth more to an employer than a stack of certificates. Next week you earn it on a live box.</p>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 13 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab13-q1">
+          <div class="quiz-question">Q1: Why is the report the most important deliverable of a pentest?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The client never watches the test; the report is the only thing they receive, act on, and remember. A great test with a bad report fails the client.">A) It's the only thing the client receives and can act on.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about length. A long vague report is worse than a short precise one.">B) Because longer reports score higher.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The report isn't the exploit code. It explains and prioritizes the findings so they get fixed.">C) It contains the exploit code to re-run the attack.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab13-q2">
+          <div class="quiz-question">Q2: What's wrong with "Found SQLi. Fix: sanitize input."?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not too technical, it's the opposite: too vague and missing the real fix.">A) It's too technical for the client.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. It's not reproducible (no URL/payload/evidence) and the fix is a buzzword, not the real remediation (parameterized queries).">B) It's not reproducible and the fix is a buzzword, not the real remediation.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="SQLi is a perfectly valid finding. The problem is how it's written up, not the bug.">C) SQLi isn't a real vulnerability.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab13-q3">
+          <div class="quiz-question">Q3: Why does reflected XSS (6.1) score lower than SQLi auth bypass (9.8)?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. XSS needs a victim to click (UI:R) and leaks little at a time (C:L/I:L); SQLi fires on its own and reads the whole database (C:H/I:H).">A) XSS needs a victim to click and has lower impact; SQLi fires alone and reads everything.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Age has nothing to do with CVSS. The metrics are about how it's exploited and what it costs.">B) XSS is an older vulnerability.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Both are remotely exploitable. The gap is user interaction and impact, not network reach.">C) XSS can't be exploited over the network.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab13-q4">
+          <div class="quiz-question">Q4: In CVSS, what does <code>UI:R</code> mean, and why does it lower the score?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about the report. UI is a CVSS metric about victim interaction.">A) The report requires review.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. User Interaction: Required. A victim must do something (click a link), which makes the attack less reliable, so the score drops.">B) User Interaction: Required, a victim must act, so the attack is less reliable.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It doesn't mean remote. That's the Attack Vector metric (AV:N).">C) The attack is remote.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab13-q5">
+          <div class="quiz-question">Q5: What belongs in the executive summary, not the technical findings?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Exact payloads are technical-findings detail, not executive-summary material.">A) The exact payloads and commands.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The plain-English business risk and the attack-chain story, so decision-makers understand what's at stake without the jargon.">B) The plain-English business risk and the attack-chain story.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Raw tool output belongs in appendices/findings, never the exec summary.">C) Raw nmap and hashcat output.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab13-q6"
+          data-expected-regex="(title|severity|cvss|affected|steps|impact|remediat).*(title|severity|cvss|affected|steps|impact|remediat)|parameteri[sz]ed"
+          data-solution-rationale="A good finding names several of the six parts (title, severity/CVSS, affected, steps to reproduce, impact, remediation) and gives the real fix (parameterized queries for SQLi). Any answer listing the structure or the correct remediation is accepted.">
+          <div class="quiz-question">Q6 [Write]: List the parts a professional finding must have (or give the real remediation for the SQLi from Lab 03).</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="title, severity/CVSS, affected, steps, impact, remediation..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

@@ -41,6 +41,14 @@
         { id: 'lab11', name: 'Lab 11: AD Credential Attacks', href: 'labs/lab11.html', time: '60m' },
         { id: 'lab12', name: 'Lab 12: Lateral Movement & Domain Dominance', href: 'labs/lab12.html', time: '60m' }
       ]
+    },
+    {
+      id: 'mod04',
+      title: 'Module 04: Deliver',
+      badge: 'Capstone',
+      labs: [
+        { id: 'lab13', name: 'Lab 13: Reporting & the Engagement Lifecycle', href: 'labs/lab13.html', time: '60m' }
+      ]
     }
   ];
 
