@@ -47,7 +47,8 @@
       title: 'Module 04: Deliver',
       badge: 'Capstone',
       labs: [
-        { id: 'lab13', name: 'Lab 13: Reporting & the Engagement Lifecycle', href: 'labs/lab13.html', time: '60m' }
+        { id: 'lab13', name: 'Lab 13: Reporting & the Engagement Lifecycle', href: 'labs/lab13.html', time: '60m' },
+        { id: 'lab14', name: 'Lab 14: Capstone CTF', href: 'labs/lab14.html', time: '90m' }
       ]
     }
   ];

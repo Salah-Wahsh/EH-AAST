@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 14: Capstone CTF — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab14" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 04</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 14</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 90+ Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Capstone</span>
+        </div>
+        <h1 class="lab-header__title">Lab 14: Capstone CTF</h1>
+        <p class="lab-header__lead">
+          No new techniques today. One box, one IP, and everything you've learned. You'll go from a blank terminal to <code>root</code> using only your own judgment, then write it up like a real engagement. This is the exam in miniature: the point isn't a single trick, it's whether the whole process has become yours.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Full Engagement</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Format</span>
+            <code>CTF · discovery to root</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>All phases</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · OSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The whole spine, on your own</div>
+            <p style="margin:0;">
+              <strong>Recon → Map → Identify → Exploit → Document</strong>, all five, no hand-holding. Every other lab walked you through one phase. Today you run all of them on a target you've never seen, decide for yourself what to try, and recover when something doesn't work. That recovery (trying the next thing when the first fails) is the actual skill a CTF trains, and the one every real engagement demands.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: the brief + anchor -->
+      <section>
+        <h2 id="the-brief">1. The Brief <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🏁</span>
+          <div class="callout__content">
+            <div class="callout__title">This is exactly how the exam works</div>
+            <p style="margin:0 0 var(--space-2);">
+              The eJPT and OSCP exams hand you machines and an IP range and say "get in, get root, prove it, write it up." No walkthrough, no hints, a clock running. Everything in this course has been building the two things those exams actually test: a methodology you run without thinking, and the stubbornness to keep enumerating when you're stuck. Today is your dress rehearsal.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              Your mission: own the box end to end, capture both flags (<code>user.txt</code> and <code>root.txt</code>), and hand in a short report that proves how you did it.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          The single most common reason people get stuck in a CTF isn't a missing skill, it's stopping enumeration too early. When you're stuck, you've almost always not looked hard enough at something you already found. Go back and read the output again.
+        </p>
+      </section>
+
+      <!-- Section 2: methodology checklist -->
+      <section>
+        <h2 id="methodology">2. Your Methodology, as a Checklist <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· the spine</span></h2>
+        <p class="lab-lead">
+          Work top to bottom. When you're stuck, you're between two of these steps, so return to the one above and dig deeper. This is the exact loop from Labs 07 through 12, compressed to one card.
+        </p>
+        <div class="info-dense-card info-dense-card--cyan" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">1 · Recon (Lab 07)</span>
+              <span><code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code>. Read every open port and version.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">2 · Enumerate (Lab 07)</span>
+              <span>Web → <code>gobuster</code> for hidden pages. Every service → look up its version.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">3 · Foothold (Labs 06/08)</span>
+              <span>An upload, a known exploit, or a weak login. Get a shell as a low-priv user.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">4 · Privesc (Lab 09)</span>
+              <span><code>sudo -l</code>, SUID hunt (<code>find / -perm -4000</code>), cron, GTFOBins. Become root.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">5 · Loot (Labs 09/12)</span>
+              <span>Grab both flags. Note anything you'd report: how you got in, how you escalated.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">6 · Document (Lab 13)</span>
+              <span>Write the two findings and the attack chain as you go, not after.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: the target -->
+      <section>
+        <h2 id="the-target">3. The Target <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· do it</span></h2>
+        <p class="lab-lead">
+          The capstone box is RootMe on TryHackMe: a clean web-to-root chain that touches recon, a file upload, a reverse shell, and a Linux privesc, every core skill from the course in one target. Try it with no hints first.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: RootMe</h3>
+                <div class="target-launcher__platform">Hosted · free room · a full discovery-to-root chain</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO · Own it start to finish, both flags</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/rrootme" target="_blank" rel="noopener noreferrer">tryhackme.com/room/rrootme</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Run the §2 checklist top to bottom. Open a hint below only when you're genuinely stuck.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="callout callout--theory" style="margin-top:var(--space-3);">
+          <span class="callout__icon">⏱️</span>
+          <div class="callout__content">
+            <div class="callout__title">Bonus boxes if you finish early</div>
+            <p style="margin:0;">Want more reps? <a class="target-launcher__url" style="display:inline;" href="https://tryhackme.com/room/basicpentestingjt" target="_blank" rel="noopener noreferrer">Basic Pentesting</a> (web + SMB to root) and <a class="target-launcher__url" style="display:inline;" href="https://tryhackme.com/room/attacktivedirectory" target="_blank" rel="noopener noreferrer">Attacktive Directory</a> (the full AD chain from Labs 10&ndash;12) make great second and third targets.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: progressive hints -->
+      <section>
+        <h2 id="hints">4. Hints, Only If You're Stuck <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 🔴 open nothing to go pro</span></h2>
+        <p class="lab-lead">
+          Each hint is a nudge toward the right phase, not the answer. The real challenge (🔴) is finishing with all of these closed. If you open one, open the smallest one that unblocks you, then close it and keep going.
+        </p>
+
+        <details class="thought-accordion" style="margin-top:var(--space-2);">
+          <summary>Stuck at the start: what's even on this box?</summary>
+          <div class="thought-accordion__content"><p style="margin:0;">Scan it properly before anything else: <code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code>. Note the web server. Then enumerate the website for pages that aren't linked from the homepage with <code>gobuster dir</code>. You're looking for somewhere that takes input from you, like an upload or a login.</p></div>
+        </details>
+
+        <details class="thought-accordion" style="margin-top:var(--space-2);">
+          <summary>Found an upload form, but my shell won't upload or run</summary>
+          <div class="thought-accordion__content"><p style="margin:0;">Think back to Lab 06. The server is filtering by extension. When <code>.php</code> is blocked, the question is: what <em>other</em> extensions does this server still run as PHP? Try the alternatives, and remember to find <em>where</em> the file lands (the uploads directory you found while enumerating) so you can trigger it. Start your listener (<code>nc -lvnp</code>) before you fire the shell.</p></div>
+        </details>
+
+        <details class="thought-accordion" style="margin-top:var(--space-2);">
+          <summary>I have a shell as a low-priv user, now what?</summary>
+          <div class="thought-accordion__content"><p style="margin:0;">Lab 09, in order. <code>sudo -l</code> first. Then hunt SUID binaries: <code>find / -perm -4000 -type f 2>/dev/null</code>. Read the list carefully, one entry that shouldn't have the SUID bit is your way up. When you spot it, look the binary up on GTFOBins for the exact escalation.</p></div>
+        </details>
+
+        <details class="thought-accordion" style="margin-top:var(--space-2);">
+          <summary>General: I've tried everything and I'm stuck</summary>
+          <div class="thought-accordion__content"><p style="margin:0;">You haven't, and that's not an insult, it's the most reliable fact in hacking. Re-read your <code>nmap</code> and <code>gobuster</code> output line by line. Check versions you skipped. Read every file you can access in the shell you have. The answer is almost always sitting in output you already have and glanced past. Full walkthroughs exist online, but every hint you take is a skill you didn't build, so exhaust your own enumeration first.</p></div>
+        </details>
+      </section>
+
+      <!-- Section 5: deliverable -->
+      <section>
+        <h2 id="capstone-report">5. The Capstone Report <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          🖐️ DO · Owning the box is half the capstone. The other half is the report, exactly as you built it in Lab 13. This is the piece that goes in your portfolio.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 CAPSTONE REPORT · your deliverable</span>
+            <span style="color:var(--color-cyan);">graded</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>Section</th><th>What goes in it</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Executive summary</strong></td><td>A few plain sentences: an attacker with no access reached full root, and the attack chain that got them there</td></tr>
+                <tr><td><strong>Methodology</strong></td><td>The phases you ran (recon → foothold → privesc), briefly, so the work is repeatable</td></tr>
+                <tr><td><strong>Finding 1 · Foothold</strong></td><td>The upload/exploit, full six-part format, CVSS-scored, with the exact steps</td></tr>
+                <tr><td><strong>Finding 2 · Privesc</strong></td><td>The SUID/sudo misconfig, full six-part format, CVSS-scored</td></tr>
+                <tr><td><strong>Evidence</strong></td><td>The two flags and a <code>whoami</code> / <code>id</code> showing root, as proof</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>The prioritized fixes for both findings</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Flags prove you got in. The report proves you can do this for a living.</p>
+        </div>
+      </section>
+
+      <!-- Section 6: where next -->
+      <section>
+        <h2 id="where-next">6. Where to Go From Here <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· next steps</span></h2>
+        <p class="lab-lead">
+          You've done the full chain a real tester does: find a target, break in, escalate, take the domain, write it up. Here's where that goes next if you want it.
+        </p>
+        <div class="info-dense-card info-dense-card--accent" style="margin-top:var(--space-2);">
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Keep practicing (free)</span>
+              <span>TryHackMe's Jr Penetration Tester path, then more boxes. Reps are the whole game.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">First cert to aim at</span>
+              <span><strong>eJPT</strong>: practical, entry-level, exactly this skill set. A realistic next step.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">The serious one</span>
+              <span><strong>OSCP / CPTS</strong>: harder, hands-on, respected. The capstone today is a taste of their exams.</span>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Specialize later</span>
+              <span>Web (BSCP), Active Directory, cloud, red team. Pick what you enjoyed most in this course.</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 14 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO · A synthesis check. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab14-q1">
+          <div class="quiz-question">Q1: You're stuck on a CTF box. What's the most reliable next move?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Nine times out of ten the answer is in output you already have and skimmed. Re-read your nmap and gobuster results line by line.">A) Re-read the scan and enumeration output you already have, carefully.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Reaching for a random exploit without evidence wastes time and often breaks the box. Enumerate first.">B) Fire random exploits until one works.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Restarting the box rarely helps; the vulnerability is still there and so is the output you haven't fully read.">C) Restart the target and start over.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab14-q2">
+          <div class="quiz-question">Q2: What's the first command you run on a brand-new target?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="You can't privesc before you have a shell, and you can't get a shell before you know what's running.">A) <code>sudo -l</code></button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. nmap -sC -sV maps the services and versions, which drives every decision after it.">B) <code>nmap -sC -sV -oN scan.txt &lt;IP&gt;</code></button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="You have no shell yet, so there's nothing to escalate. Recon comes first.">C) <code>find / -perm -4000</code></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab14-q3">
+          <div class="quiz-question">Q3: An upload form rejects <code>shell.php</code>. Best next idea?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The server blocks .php by extension; other extensions it still runs as PHP (like .phtml) often slip through. Lab 06.">A) Try another extension the server still executes as PHP.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Renaming to .jpg makes it upload but it's served as an image, so it never runs. You need it to execute.">B) Rename it to <code>shell.jpg</code> and move on.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Giving up on a filtered upload is premature; extension and content-type bypasses exist (Lab 06).">C) Conclude the upload isn't exploitable.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab14-q4">
+          <div class="quiz-question">Q4: You have a <code>www-data</code> shell. First privesc check?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Downloading a kernel exploit is a last resort, noisy and risky. Check the easy wins first.">A) Download and run a kernel exploit.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. sudo -l and the SUID hunt are the fast, safe first checks. Lab 09.">B) <code>sudo -l</code>, then <code>find / -perm -4000 -type f 2>/dev/null</code>.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Deleting logs isn't escalation and isn't your goal in a CTF. Find a path to root.">C) Delete the logs to stay hidden.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab14-q5">
+          <div class="quiz-question">Q5: Why does the capstone require a report, not just the flags?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not busywork. The report is the actual professional deliverable, the flags just prove access.">A) To make the lab longer.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. In a real job (and the OSCP exam) the report is what you're paid for; flags only prove you got in. Lab 13.">B) Because the report is the real deliverable; flags only prove access.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The report isn't there to hide anything. It documents and prioritizes what you found.">C) To hide how easy the box was.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab14-q6"
+          data-expected-regex="nmap|gobuster|sudo\s+-l|find\s+/.*perm|searchsploit|nc\s+-lvnp"
+          data-solution-rationale="Any core step of the methodology is accepted: nmap recon, gobuster enumeration, sudo -l / find -perm privesc, searchsploit lookup, nc -lvnp listener. The point is naming a concrete step of the loop they'd run.">
+          <div class="quiz-question">Q6 [Command]: Name one concrete command from your methodology and the phase it belongs to.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="e.g. nmap -sC -sV <IP>  (recon)" spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
