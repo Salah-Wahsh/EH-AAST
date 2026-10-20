@@ -626,6 +626,62 @@
           <span>CLI · AD</span>
         </div>
       </article>
+
+      <!-- hashcat -->
+      <article class="tool-setup-card" id="hashcat">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🔓</span>
+            <h2 class="tool-setup-card__title">hashcat</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">OFFLINE CRACKING</span>
+        </div>
+        <p class="tool-setup-card__desc">GPU-accelerated password cracker. You feed it a hash and a wordlist and it runs billions of guesses offline, no lockouts, no logs. The mode number (<code>-m</code>) picks the hash type.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install (Kali has it)</span>
+            <code>sudo apt install -y hashcat</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Crack an AS-REP hash</span>
+            <code>hashcat -m 18200 hash.txt /usr/share/wordlists/rockyou.txt</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Crack a Kerberoast hash</span>
+            <code>hashcat -m 13100 spns.txt rockyou.txt</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab11.html" class="badge-lab-ref">Lab 11</a></span>
+          <span>CLI · cracking</span>
+        </div>
+      </article>
+
+      <!-- NetExec -->
+      <article class="tool-setup-card" id="netexec">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🛰️</span>
+            <h2 class="tool-setup-card__title">NetExec (nxc)</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">AD SWISS ARMY KNIFE</span>
+        </div>
+        <p class="tool-setup-card__desc">The successor to CrackMapExec. Sprays credentials, checks logins, and runs commands across SMB/WinRM/LDAP at scale. The go-to for testing one password against a whole user list, and for confirming where a hash or password works.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Install</span>
+            <code>pipx install netexec</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Password spray (mind the lockout policy)</span>
+            <code>netexec smb &lt;IP&gt; -u users.txt -p 'Season2026!' --continue-on-success</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab11.html" class="badge-lab-ref">Lab 11</a> · <a href="./labs/lab12.html" class="badge-lab-ref">Lab 12</a></span>
+          <span>CLI · AD</span>
+        </div>
+      </article>
     </div>
   </main>
 

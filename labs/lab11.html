@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 11: AD Credential Attacks — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab11" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 03</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 11</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 11: AD Credential Attacks</h1>
+        <p class="lab-header__lead">
+          Last week you walked out with a list of usernames and no passwords. This week you get the passwords, and you get them from Active Directory's own authentication system. Kerberos hands out tickets that are encrypted with account passwords, and it'll hand them to anyone who asks. You take them home and crack them offline, where no lockout and no alarm can stop you.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Credential Access</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1558.003 · T1558.004</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>CPTS · OSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">From a name to a password</div>
+            <p style="margin:0;">
+              Lab 10 gave you the map and a list of accounts. The obvious next question: how do you log in as one of them? Not by guessing passwords against the login (that locks accounts and sets off alarms). You abuse Kerberos to get a password hash you can crack on your own machine, quietly. This is the step that turns "I can see the domain" into "I am a user in the domain."
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: Kerberos + why it leaks -->
+      <section>
+        <h2 id="how-kerberos-leaks">1. Why Kerberos Hands You Crackable Passwords <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🎟️</span>
+          <div class="callout__content">
+            <div class="callout__title">The one design detail that powers these attacks</div>
+            <p style="margin:0 0 var(--space-2);">
+              Kerberos avoids sending passwords over the network by using tickets. To prove who you are, the DC gives you a ticket, and some of those tickets are <strong>encrypted with the target account's password hash</strong>. That's fine as long as nobody can request a ticket they shouldn't. The problem: for certain accounts, anyone can. You ask the DC for the ticket, it encrypts it with the account's password, and you walk away with an offline guessing game you can run for as long as you like.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              This is the number-one way real attackers get their first set of domain credentials, and it leaves almost no trace, because requesting a ticket is a normal, everyday thing.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          Two accounts are vulnerable to two versions of the same trick. The difference is one setting, and it decides whether you even need a login first.
+        </p>
+
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">AS-REP Roasting</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">no login needed</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🎯</span> Targets accounts with "Kerberos pre-authentication" turned off. For those, the DC will send you an encrypted blob <em>before</em> you've proven anything. No credentials required at all.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Kerberoasting</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">any one account</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔧</span> Targets service accounts (ones with an "SPN"). <em>Any</em> logged-in domain user can request their service ticket, encrypted with that service account's password. One cracked low-priv account gives you a shot at every service account.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You get an encrypted ticket but you can't read it without the account's password. Why is cracking it offline so much more dangerous than just trying passwords against the login page? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">No lockouts and no logs. Guessing at the login fails after a few tries (account locked, alarms firing). But the encrypted ticket is already on <em>your</em> machine, so you run billions of guesses against it with <code>hashcat</code>, offline, for days if you want. The domain never sees a single attempt. That's why service accounts with weak passwords are a death sentence.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: AS-REP Roasting -->
+      <section>
+        <h2 id="asrep-roasting">2. AS-REP Roasting <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· credential access</span></h2>
+        <p class="lab-lead">
+          Same room as last week, the Attacktive Directory Domain Controller. Start with the easiest win: an account that doesn't require pre-authentication, so you can grab its hash with no credentials at all, using the usernames you enumerated in Lab 10.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Attacktive Directory</h3>
+                <div class="target-launcher__platform">Hosted · free room · same DC as Lab 10</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Use your Lab 10 user list against the DC</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/attacktivedirectory" target="_blank" rel="noopener noreferrer">tryhackme.com/room/attacktivedirectory</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. You already have the usernames from Lab 10, now turn one into a password.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · roast an account with no password</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Ask the DC for AS-REP hashes for your usernames. Accounts with pre-auth disabled give one up:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>impacket-GetNPUsers &lt;domain&gt;/ -usersfile users.txt -no-pass -dc-ip &lt;DC_IP&gt;</code></pre></div>
+            </li>
+            <li>You get back a hash that starts <code>$krb5asrep$23$</code>. That's the account's password, encrypted. Save it to a file.</li>
+            <li>Crack it offline with hashcat (mode <code>18200</code> is AS-REP):
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>hashcat -m 18200 hash.txt /usr/share/wordlists/rockyou.txt</code></pre></div>
+            </li>
+            <li>hashcat prints the cracked password next to the hash. You now have a real domain login.</li>
+          </ol>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">the hash you're cracking · format, not a specific answer</span></div>
+          <div class="terminal-window__body"><pre><code>$krb5asrep$23$&lt;user&gt;@&lt;DOMAIN&gt;:a1b2c3…(long encrypted blob)…
+
+# hashcat -m 18200 chews through rockyou against this blob offline.
+# when a guess decrypts it cleanly, that guess is the password.
+# the actual account and password are what you recover on the box.</code></pre></div>
+        </div>
+      </section>
+
+      <!-- Section 3: Kerberoasting -->
+      <section>
+        <h2 id="kerberoasting">3. Kerberoasting <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· credential access</span></h2>
+        <p class="lab-lead">
+          AS-REP only works on accounts with pre-auth off, which is rare. Kerberoasting is the one you'll use constantly, because it works against service accounts and only needs <em>one</em> valid login, the one you just cracked.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · roast the service accounts</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>With any domain credentials, request service tickets for every service account:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>impacket-GetUserSPNs &lt;domain&gt;/&lt;user&gt;:&lt;pass&gt; -dc-ip &lt;DC_IP&gt; -request</code></pre></div>
+            </li>
+            <li>Each ticket comes back as a <code>$krb5tgs$23$</code> hash, encrypted with that service account's password.</li>
+            <li>Crack them offline with hashcat (mode <code>13100</code> is Kerberoast):
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>hashcat -m 13100 spns.txt /usr/share/wordlists/rockyou.txt</code></pre></div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">⚖️</span>
+          <div class="callout__content">
+            <div class="callout__title">The difference, in one line</div>
+            <p style="margin:0;"><strong>AS-REP</strong> needs no login but only works on accounts with pre-auth off (rare). <strong>Kerberoasting</strong> needs one login but works on every service account (common). Service accounts are the prize, because they often run with high privileges and have passwords set years ago and never changed.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: password spraying -->
+      <section>
+        <h2 id="password-spraying">4. Going Pro: Password Spraying Without Locking the Domain <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· credential access</span></h2>
+        <p class="lab-lead">
+          Sometimes you crack one weak password and realize people reuse it. Spraying tries <em>one</em> password against <em>every</em> user, which avoids lockouts, but only if you do the math first. Getting this wrong locks out a whole company and ends your engagement.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · read the policy, then spray</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-2);">
+            <li>First, read the lockout policy. You need the <strong>threshold</strong> (how many bad tries before a lock) and the <strong>window</strong> (how long it watches):
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>net accounts        # or query it over SMB with your cracked creds</code></pre></div>
+            </li>
+            <li>One password per user per window stays well under the threshold. Spray a likely password across all users at once:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>netexec smb &lt;DC_IP&gt; -u users.txt -p 'Season2026!' --continue-on-success</code></pre></div>
+            </li>
+            <li>Read the hits. A reused password on a privileged account is often the shortest path to Domain Admin.</li>
+          </ol>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            The lockout math is what separates a professional from someone who takes down the client's whole workforce. Always check the policy before you spray a single password.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: finding -->
+      <section>
+        <h2 id="write-finding">5. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Kerberoastable service accounts with weak passwords are one of the most common high-impact findings in any AD test. The fix is unglamorous and almost never done: long, random, rotated service passwords.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Weak service account passwords recoverable via Kerberoasting</span>
+            <span style="color:var(--color-danger);">severity: High</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Service and pre-auth-disabled accounts expose crackable password hashes via Kerberos</td></tr>
+                <tr><td><strong>Severity</strong></td><td>High · <code>CVSS 8.1</code> (any domain user recovers service account passwords, often privileged)</td></tr>
+                <tr><td><strong>Affected accounts</strong></td><td>Accounts with an SPN (Kerberoastable) and any account with pre-auth disabled (AS-REP roastable)</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. <code>impacket-GetNPUsers</code> (no creds) or <code>impacket-GetUserSPNs -request</code> (one login) returns <code>$krb5asrep$</code> / <code>$krb5tgs$</code> hashes. 2. <code>hashcat -m 18200</code> / <code>-m 13100</code> against a wordlist recovers the plaintext. Evidence: the cracked password.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>An attacker with no (AS-REP) or minimal (Kerberoast) access recovers account passwords offline, undetected. Privileged service accounts lead straight toward Domain Admin.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Give service accounts long random passwords (25+ chars) or use group Managed Service Accounts (gMSA) that rotate automatically. Enable Kerberos pre-authentication for every account. Monitor for abnormal ticket requests.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">You now have one or more real passwords in the domain. Lab 12 turns those credentials into Domain Admin and total control.</p>
+        </div>
+      </section>
+
+      <!-- Section 6: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 11 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #2 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab11-q1">
+          <div class="quiz-question">Q1: Why crack a Kerberos hash offline instead of guessing at the login?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The hash is on your machine, so you run unlimited guesses with no lockouts and no logs. The login path locks accounts and alerts defenders.">A) No lockouts and no logs: unlimited offline guesses, the domain never sees them.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Offline cracking isn't inherently faster per guess; it's that you can make unlimited guesses safely.">B) Offline cracking is faster per guess.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It still needs a wordlist or brute force. Offline doesn't mean the password is handed over.">C) Offline cracking skips needing the password.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab11-q2">
+          <div class="quiz-question">Q2: What makes an account AS-REP roastable?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Being an admin doesn't make it AS-REP roastable. It's about the pre-auth setting, not privilege.">A) It's a Domain Admin.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Kerberos pre-authentication is disabled, so the DC sends an encrypted AS-REP before you authenticate, with no credentials needed.">B) Kerberos pre-authentication is disabled on it.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A weak password makes it crackable once you have the hash, but it's the pre-auth setting that lets you get the hash with no login.">C) It has a weak password.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab11-q3">
+          <div class="quiz-question">Q3: What's the key difference between AS-REP roasting and Kerberoasting?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. AS-REP needs no login but only works on pre-auth-disabled accounts; Kerberoasting needs one domain login but works on any service account.">A) AS-REP needs no login (pre-auth off only); Kerberoast needs one login but hits any service account.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. AS-REP is the one that needs no credentials.">B) Kerberoasting needs no login; AS-REP needs one.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Both recover passwords by cracking a Kerberos hash offline. They're variations of the same idea.">C) One steals passwords, the other steals files.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab11-q4">
+          <div class="quiz-question">Q4: Before password spraying, why read the lockout policy?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about speed. It's about not locking accounts.">A) To spray faster.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. You need the threshold and window so one password per user stays under the lockout limit. Get it wrong and you lock out the whole company.">B) So one try per user stays under the lockout threshold and you don't lock everyone out.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="The policy doesn't contain passwords. It tells you how many attempts are safe.">C) Because the policy lists the passwords.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab11-q5">
+          <div class="quiz-question">Q5: Best fix for Kerberoastable service accounts?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="You can't stop domain users from requesting tickets, that's how Kerberos works. You make the ticket uncrackable instead.">A) Block all users from requesting service tickets.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Long random passwords (or gMSA that rotate automatically) make offline cracking infeasible. Pre-auth on everything stops AS-REP.">B) Long random service passwords or gMSA, and enable pre-auth everywhere.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="An antivirus doesn't change a weak password that's crackable offline.">C) Install antivirus on the Domain Controller.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab11-q6"
+          data-expected-regex="GetNPUsers|GetUserSPNs|hashcat\s+-m\s*(18200|13100)"
+          data-solution-rationale="AS-REP roasting is impacket-GetNPUsers ... -no-pass; Kerberoasting is impacket-GetUserSPNs ... -request; cracking is hashcat -m 18200 (AS-REP) or -m 13100 (Kerberoast). Any of these is accepted.">
+          <div class="quiz-question">Q6 [Command]: Write a command for either half of today: pull AS-REP/Kerberos hashes, or crack them with hashcat.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="impacket-GetNPUsers ...  (or)  hashcat -m 18200 ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
