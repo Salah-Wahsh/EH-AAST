@@ -41,24 +41,32 @@
 
 ---
 
-## 5. RECOMMENDED 14-WEEK SEMESTER TIMELINE
+## 5. 14-WEEK SEMESTER TIMELINE (v2, adopted 2026-10-19)
+
+> Rationale, benchmark, and sources: [`curriculum-plan-v2.md`](curriculum-plan-v2.md).
+> Design bar: eJPT / CPTS entry-level practical skill. Depth over breadth: four phases taught
+> properly (Web → Network/System → Active Directory → Deliver), not a topic sampler. Back half
+> runs on **TryHackMe** (browser / light VPN), not a heavy local VM lab.
 
 | Week | Phase | Topic & Lab Focus | Hands-On Target & Online Platform |
 | :--- | :--- | :--- | :--- |
-| **W01** | **Foundations** | **Course Intro, RoE & Web Prerequisites**<br />• Legal frameworks, HTTP headers, DevTools interception, Base64 decoding, `cURL` banner grabbing. | • Browser DevTools & Terminal<br />• *Source: Lab 01 - EH AAST* |
-| **W02** | **Web Security** | **Web Application Basics & Burp Suite**<br />• Intercepting, modifying, and repeating HTTP GET/POST requests; scope configuration. | • **OWASP Juice Shop** & **PortSwigger**: *Burp Suite Basics* |
-| **W03** | **Web Security** | **SQL Injection (SQLi) & Automation**<br />• DB Refresher, in-band UNION-based SQLi, auth bypass, and automated DB dumping using `sqlmap`. | • **OWASP Juice Shop** & **PortSwigger**: *SQL Injection Labs* |
-| **W04** | **Web Security** | **Cross-Site Scripting (XSS) & Cookie Theft**<br />• DOM/Cookie Refresher, Reflected and Stored XSS, auditing `HttpOnly` flags, stealing session cookies. | • **OWASP Juice Shop** & **PortSwigger**: *XSS Labs* |
-| **W05** | **Web Security** | **Broken Access Control & File Upload Flaws**<br />• IDOR, parameter tampering, uploading PHP web shells, OS command execution. | • **OWASP Juice Shop** & **PortSwigger**: *File Upload & Command Injection* |
-| **W06** | **Network Recon** | **Passive Reconnaissance & OSINT**<br />• Footprinting domains using `WHOIS`, `dig`, DNS zone transfers, Shodan, and Google Dorks. | • **TryHackMe**: *Passive Reconnaissance / OSINT* |
-| **W07** | **Network Recon** | **Active Scanning & Network Enumeration**<br />• TCP 3-Way Handshake, Nmap SYN stealth scans (`-sS`), UDP scans, and NSE vulnerability scripts. | • **TryHackMe**: *Nmap & Network Enumeration* |
-| **W08** | **Traffic Analysis** | **Network Sniffing & ARP Poisoning**<br />• Packet analysis in Wireshark, active sniffing with `Ettercap`, ARP spoofing, and SSL stripping. | • Wireshark & `ettercap` on Kali VM |
-| **W09** | **Vulnerability Mgmt** | **Vulnerability Assessment & CVSS Analysis**<br />• Running Nessus/Qualys scans, interpreting reports, calculating CVSS v2/v3 base scores. | • Local Nessus Scanner on Metasploitable 2 |
-| **W10** | **Exploitation** | **System Exploitation & Metasploit**<br />• MSFConsole, auxiliary scanners, weaponizing MS08-067, spawning reverse TCP shells. | • **TryHackMe**: *Metasploit Intro* |
-| **W11** | **Exploitation** | **Client-Side Attacks & Social Engineering**<br />• Social-Engineer Toolkit (SET), `msfvenom` payload generation, PDF/Office malicious attachments. | • Social-Engineer Toolkit (SET) on Kali |
-| **W12** | **Post-Exploit** | **Post-Exploitation & Meterpreter**<br />• Situational awareness commands, privilege escalation (`getsystem`, LinPEAS), dumping SAM hashes. | • **TryHackMe**: *Post-Exploitation Basics* |
-| **W13** | **Post-Exploit** | **Pivoting & Active Directory Basics**<br />• Port forwarding, SSH tunneling, autoroute via Meterpreter, pivoting into internal subnets. | • **TryHackMe**: *Network Pivoting* |
-| **W14** | **Capstone** | **Final Capstone CTF & Technical Reporting**<br />• Compromising a target machine from discovery to root shell; writing an executive & technical report. | • Final Lab Machine (VulnHub / THM) |
+| **W01** | **Foundations** | **Course Intro & Web Prerequisites**<br />• How the web works, HTTP, DevTools interception, Base64, the pentest methodology spine, legal basics. | • Browser DevTools<br />• *Lab 01* |
+| **W02** | **Web** | **Web App Basics & Burp Suite**<br />• Intercept, modify, repeat HTTP requests; app mapping / recon; scope. | • **Juice Shop** & **PortSwigger**: *Burp Basics* |
+| **W03** | **Web** | **Injection (SQLi + command injection)**<br />• DB refresher, auth bypass, error-based, UNION extraction, `sqlmap`. OWASP A05. | • **Juice Shop** & **PortSwigger**: *SQLi* |
+| **W04** | **Web** | **XSS & Session/Cookie Theft**<br />• DOM/cookie refresher, reflected + stored XSS, `HttpOnly`, stealing sessions. Client-side. | • **Juice Shop** & **PortSwigger**: *XSS* |
+| **W05** | **Web** | **Broken Access Control: IDOR / BOLA / Auth Bypass**<br />• Forced browsing, parameter tampering, object-level auth. OWASP A01 (and API #1). | • **Juice Shop** & **PortSwigger**: *Access Control* |
+| **W06** | **Web → System** | **Security Misconfig & File Upload to Web Shell**<br />• Misconfig, upload filters, a working PHP web shell, content-type / polyglot bypass, OS command injection. The bridge from web into the OS. OWASP A02. | • **PortSwigger**: *File Upload* (real Apache/PHP) is the spine. Juice Shop's upload bugs are different (XXE / Zip Slip / API) and suit a TA demo only. |
+| **W07** | **Network** | **Recon, Scanning & Enumeration**<br />• The promised loop-back to Phase 1-2. Nmap, service identification, enumeration. | • **TryHackMe**: *Nmap / Enumeration* |
+| **W08** | **System** | **Service Exploitation & Initial Access**<br />• Finding and running an exploit, getting a first shell, Metasploit as a tool not a crutch. | • **TryHackMe**: *Exploitation* |
+| **W09** | **System** | **Privilege Escalation**<br />• Linux privesc is the hands-on core (SUID, `sudo -l`, cron, PATH, LinPEAS). Windows privesc (services, tokens, `SeImpersonate`, WinPEAS) is the 🔴 + take-home track, revisited on domain hosts in the AD block. | • **TryHackMe**: *Linux/Windows Privesc* |
+| **W10** | **Active Directory** | **AD Foundations & Enumeration**<br />• How a domain is laid out, users/groups/trusts, BloodHound, finding attack paths. | • **TryHackMe**: *AD* |
+| **W11** | **Active Directory** | **AD Attacks**<br />• Kerberoasting, AS-REP roasting, pass-the-hash, NTLM relay. | • **TryHackMe**: *AD* |
+| **W12** | **Active Directory** | **Lateral Movement & Post-Exploitation**<br />• Pivoting, credential dumping, moving toward domain compromise. | • **TryHackMe**: *AD / Post-Ex* |
+| **W13** | **Deliver** | **Reporting & the Engagement Lifecycle**<br />• Turn the semester's Findings Log into one real report. CVSS, executive vs technical. | • The course's own Findings Log |
+| **W14** | **Capstone** | **Final Capstone CTF + Report**<br />• Compromise a target end to end (discovery to root), then write it up properly. | • Final box (VulnHub / TryHackMe / HTB) |
+
+**Reporting is a thread, not just W13:** every lab from Lab 02 on ends with one written finding
+(Findings Log), so the W13 report and W14 capstone are the drip made whole.
 
 ---
 
@@ -83,5 +91,5 @@
 Whenever asked to draft content, create a lab, or design a module for this course:
 
 - Maintain this exact persona and respect all pedagogical rules.
-- Always include **background technology refreshers**, **ASCII diagrams**, **DevTools/Terminal commands**, **side-by-side secure vs. insecure code**, and **links/exercises for PortSwigger and OWASP Juice Shop**.
+- A lab, taken as a whole, should carry: a **background technology refresher** (at the opening), **visuals** (roomy HTML tables/cards, inline SVG only for genuine diagrams, per [`lab-visuals-readable`] in the standard), **DevTools/Terminal commands**, **side-by-side secure vs. insecure code** (at the remediation/finding step), and **PortSwigger / Juice Shop exercises**. Distribute these across the lab. Do **not** force all of them into every section, and obey [`section-authoring`](../skills/section-authoring/SKILL.md) and [`anti-cognitive-overload`](../skills/anti-cognitive-overload/SKILL.md) per section.
 - Keep tone clear, confident, and conversational, like a senior talking to the room, with a light dry humor. Never AI-sounding (no em dashes, no hype words). See [`human-voice`](../skills/human-voice/SKILL.md).
