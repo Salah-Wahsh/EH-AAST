@@ -28,7 +28,8 @@
       badge: 'Systems',
       labs: [
         { id: 'lab07', name: 'Lab 07: Recon, Scanning & Enumeration', href: 'labs/lab07.html', time: '60m' },
-        { id: 'lab08', name: 'Lab 08: Service Exploitation & Initial Access', href: 'labs/lab08.html', time: '60m' }
+        { id: 'lab08', name: 'Lab 08: Service Exploitation & Initial Access', href: 'labs/lab08.html', time: '60m' },
+        { id: 'lab09', name: 'Lab 09: Privilege Escalation', href: 'labs/lab09.html', time: '60m' }
       ]
     }
   ];

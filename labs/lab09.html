@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 09: Privilege Escalation — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab09" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Course Modules</div>
+      </div>
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 02</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 09</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 09: Privilege Escalation</h1>
+        <p class="lab-header__lead">
+          Every foothold so far landed you as a nobody: <code>www-data</code> from the web shell, a service account from the exploit. You can look around, but you can't own the box. Today you climb. You turn that low-privilege shell into <code>root</code>, and the way you do it is almost never a fancy exploit. It's finding the one thing an admin set up wrong.
+        </p>
+      </header>
+
+      <!-- Career band -->
+      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
+        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
+        <div class="info-dense-card__grid">
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Pentest phase</span>
+            <code>Post-Exploitation</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
+            <code>T1548 · T1068</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">CEH domain</span>
+            <code>System Hacking</code>
+          </div>
+          <div class="info-dense-card__cell">
+            <span class="info-dense-card__label">Builds toward</span>
+            <code>eJPT · CPTS · OSCP</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 0 -->
+      <section>
+        <h2 id="where-we-are">0. Where We Are</h2>
+        <div class="callout callout--theory">
+          <span class="callout__icon">🧭</span>
+          <div class="callout__content">
+            <div class="callout__title">The second half of every box</div>
+            <p style="margin:0;">
+              Recon → Map → Identify → Exploit → <strong>(escalate)</strong> → Document. Getting a shell is initial access. Getting <code>root</code> is privilege escalation, and it's where most of the real time on a box goes. The exploit got you in the door; now you're looking for the keys someone left on the counter.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 1: why privesc + anchor -->
+      <section>
+        <h2 id="why-privesc">1. From Nobody to Root <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🐄</span>
+          <div class="callout__content">
+            <div class="callout__title">Dirty COW: nine years of instant root</div>
+            <p style="margin:0 0 var(--space-2);">
+              In 2016 researchers found a bug in the Linux kernel (<code>CVE-2016-5195</code>, "Dirty COW") that let <em>any</em> logged-in user, no matter how unprivileged, become <code>root</code> in seconds. It had been in the kernel since 2007. For nine years, basically every Linux server and Android phone on earth was one local shell away from total compromise. All an attacker needed was a foothold, exactly what you got in the last two labs.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              Kernel bugs like that are the dramatic version. Most privilege escalation is quieter: a misconfigured <code>sudo</code> rule, a program with the wrong permission bit. You'll do the quiet kind today, because that's what you actually find.
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          Privilege escalation is an enumeration problem, not an exploit problem. The root you're looking for is usually already sitting on the box as a mistake. The skill is knowing the handful of places to look, and looking every time.
+        </p>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 You land a shell as <code>www-data</code>. Before you try any exploit, what's the first command you run to see if root is a 10-second win? Guess.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><code>sudo -l</code>. It lists what you're allowed to run as another user, often <code>root</code>, sometimes with no password. Half of easy privesc is one admin who gave a service account <code>sudo</code> on the wrong program. You check this first, every single time.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: permissions, sudo, SUID prereq -->
+      <section>
+        <h2 id="suid-sudo">2. The Setup: sudo and the SUID Bit <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
+        <p class="lab-lead">
+          Two Linux features let a normal user run something as root, on purpose. Both are safe when used right and a straight path to root when they're not. You need to recognize them on sight.
+        </p>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">sudo</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">allow-list</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>$ sudo -l
+User www-data may run the
+following commands:
+  (ALL) NOPASSWD: /usr/bin/find
+# you can run find AS ROOT,
+# with no password. uh oh.</code></pre></div></div>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">the SUID bit</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">runs as owner</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0 0;"><div class="terminal-window__body"><pre><code>$ ls -l /usr/bin/passwd
+-rwsr-xr-x 1 root root ... passwd
+     ^ that 's' means: runs as
+     the file's owner (root),
+     not as you. normal for passwd.</code></pre></div></div>
+          </div>
+        </div>
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">🔑</span>
+          <div class="callout__content">
+            <div class="callout__title">Why <code>passwd</code> needs the <code>s</code>, and why it's dangerous elsewhere</div>
+            <p style="margin:0;">When you change your password, <code>passwd</code> has to write to <code>/etc/shadow</code>, which only root can touch. The <code>s</code> (SUID) bit lets it run as root for that one job. Fine for <code>passwd</code>. But if an admin puts that same <code>s</code> on <code>find</code>, <code>vim</code>, <code>python</code>, or <code>bash</code>, then anyone who runs it is running root's shell. The whole game is finding an <code>s</code> where it doesn't belong.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: sudo -l + GTFOBins -->
+      <section>
+        <h2 id="sudo-gtfobins">3. The Fastest Win: sudo -l and GTFOBins <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· escalate</span></h2>
+        <p class="lab-lead">
+          These run on TryHackMe. Start the Linux PrivEsc room, get a low-priv shell, and run the one command that wins more boxes than any exploit.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Linux PrivEsc</h3>
+                <div class="target-launcher__platform">Hosted · free room · a box full of misconfigurations</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #1 · Get the shell, then run sudo -l</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/linprivesc" target="_blank" rel="noopener noreferrer">tryhackme.com/room/linprivesc</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. It hands you a low-priv user and a dozen different ways up.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--cyan" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟢 Baseline · sudo rule to root in two commands</h3>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:var(--space-2) 0 0;display:flex;flex-direction:column;gap:var(--space-1);">
+            <li>Run <code>sudo -l</code>. Say it lists <code>(ALL) NOPASSWD: /usr/bin/find</code>. You can run <code>find</code> as root.</li>
+            <li>Look <code>find</code> up on <strong>GTFOBins</strong> (gtfobins.github.io), the catalog of how to abuse normal binaries. For <code>find</code> with sudo, it gives you this:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>sudo find . -exec /bin/sh \; -quit</code></pre></div>
+            </li>
+            <li>You're now a root shell. Confirm it:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code># id
+uid=0(root) gid=0(root) groups=0(root)</code></pre></div>
+            </li>
+          </ol>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-3);">
+          <span class="callout__icon">📖</span>
+          <div class="callout__content">
+            <div class="callout__title">GTFOBins is the cheat sheet, not a crutch</div>
+            <p style="margin:0;">Why does <code>find -exec</code> give a shell? Because <code>find</code> can run commands, and if it's running as root, so is the command. GTFOBins just lists which binaries have a feature like that and the exact syntax. Memorizing it is pointless; knowing to check it the moment you see a SUID or sudo entry is the skill.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 4: SUID + cron -->
+      <section>
+        <h2 id="suid-cron">4. Hunt SUID Binaries and Cron Jobs <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· escalate</span></h2>
+        <p class="lab-lead">
+          No easy sudo rule? Widen the search. Two more of the classic footholds to root, and the commands that find them.
+        </p>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="tryhackme">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧩</span>
+              <div>
+                <h3 class="target-launcher__title">TryHackMe: Common Linux Privesc</h3>
+                <div class="target-launcher__platform">Hosted · free room · SUID, cron, and more</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Launch Room</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">🖐️ DO #2 · 🟡 Find and abuse a SUID binary</span>
+              <a class="target-launcher__url" href="https://tryhackme.com/room/commonlinuxprivesc" target="_blank" rel="noopener noreferrer">tryhackme.com/room/commonlinuxprivesc</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Free room. Enumerate by hand first, then see how a script finds the same things.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#tryhackme">→ platform card</a>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🟡 Stretch · the two commands that find the way up</h3>
+          </div>
+          <div class="info-dense-card info-dense-card--accent" style="margin:var(--space-2) 0 0;">
+            <div class="info-dense-card__title">Find every SUID binary on the box</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Command</span>
+                <code>find / -perm -4000 -type f 2>/dev/null</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Then</span>
+                <span>Cross-check each result against GTFOBins. Anything unusual (<code>find</code>, <code>vim</code>, <code>nmap</code>, a custom binary) is your lead.</span>
+              </div>
+            </div>
+          </div>
+          <div class="info-dense-card info-dense-card--cyan" style="margin:var(--space-3) 0 0;">
+            <div class="info-dense-card__title">Check cron for jobs running as root</div>
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Command</span>
+                <code>cat /etc/crontab</code>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">What you want</span>
+                <span>A scheduled job that runs as root and calls a script <em>you can write to</em>. Edit the script, wait for the clock, get root.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <details class="thought-accordion" style="margin-top:var(--space-3);">
+          <summary>Where does LinPEAS fit?</summary>
+          <div class="thought-accordion__content">
+            <p style="margin:0;"><code>linpeas.sh</code> is a script that runs all of these checks (and a hundred more) at once and highlights anything interesting in red. It's what you'll actually use day to day. But learn the manual commands first, because when a box blocks the script, or you're in an exam that frowns on it, you need to know what it was looking for. The script is a fast enumerator, not a replacement for understanding.</p>
+          </div>
+        </details>
+      </section>
+
+      <!-- Section 5: PATH hijack + Windows -->
+      <section>
+        <h2 id="going-pro">5. Going Pro: PATH Hijacking and Windows <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· escalate</span></h2>
+        <p class="lab-lead">
+          Two steps up in difficulty, and both are things working testers hit constantly. One Linux trick that catches lazy scripts, and the Windows side of the house, because half of real engagements are Windows.
+        </p>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-2);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · PATH hijacking (Linux)</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            A root-owned SUID program calls another command by its name, not its full path, like <code>service</code> instead of <code>/usr/sbin/service</code>. Linux finds that command by searching your <code>PATH</code>. So you put your own fake version earlier in the <code>PATH</code>, and the root program runs <em>yours</em>.
+          </p>
+          <div class="terminal-window" style="margin:0;">
+            <div class="terminal-window__body"><pre><code># make a fake 'service' that spawns a shell
+echo '/bin/sh' > /tmp/service
+chmod +x /tmp/service
+# put /tmp first in the search path
+export PATH=/tmp:$PATH
+# run the vulnerable SUID program; it calls 'service' and gets yours, as root
+/path/to/vuln-suid-program</code></pre></div>
+          </div>
+        </div>
+
+        <div class="comparison-card comparison-card--accent" style="margin-top:var(--space-4);">
+          <div class="comparison-card__header">
+            <h3 class="comparison-card__title">🔴 Going Pro · Windows privilege escalation</h3>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0;">
+            Windows has its own classic paths to <code>SYSTEM</code> (the root of Windows). The high-value ones to know by name:
+          </p>
+          <div class="info-dense-card info-dense-card--cyan" style="margin:0;">
+            <div class="info-dense-card__grid">
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">SeImpersonatePrivilege</span>
+                <span>A service account with this right can be escalated to SYSTEM with a "Potato" exploit. Extremely common on web/DB servers.</span>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">Unquoted service paths</span>
+                <span>A service path with spaces and no quotes lets you drop a binary Windows runs as SYSTEM.</span>
+              </div>
+              <div class="info-dense-card__cell">
+                <span class="info-dense-card__label">The enumerator</span>
+                <span><code>winPEAS</code>, the Windows twin of LinPEAS, flags all of these.</span>
+              </div>
+            </div>
+          </div>
+          <a class="target-launcher__url" style="margin-top:var(--space-2);" href="https://tryhackme.com/room/windows10privesc" target="_blank" rel="noopener noreferrer">🎯 Take-home room: TryHackMe Windows PrivEsc</a>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Windows privesc is its own deep topic and a huge part of the Active Directory weeks coming up. Get the Linux path solid first; take the Windows room home.</p>
+        </div>
+      </section>
+
+      <!-- Section 6: finding -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <p class="lab-lead">
+          Privilege escalation findings are about configuration, not a vendor's bug. The fix is usually "take away a permission someone didn't need to grant."
+        </p>
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Local privilege escalation via misconfiguration</span>
+            <span style="color:var(--color-danger);">severity: High</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Low-privilege user can escalate to root via a misconfigured sudo rule / SUID binary</td></tr>
+                <tr><td><strong>Severity</strong></td><td>High · <code>CVSS 7.8</code> (local, but full root once a foothold exists)</td></tr>
+                <tr><td><strong>Affected host</strong></td><td>The compromised host, with the exact rule (e.g. <code>www-data</code> has <code>NOPASSWD</code> sudo on <code>/usr/bin/find</code>)</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. From the low-priv shell, <code>sudo -l</code> shows the rule. 2. The GTFOBins technique for that binary spawns a root shell. 3. Evidence: <code>id</code> returns <code>uid=0(root)</code>.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Any attacker who gains a foothold (web shell, service exploit, stolen creds) gets full control of the host. Chained with Lab 06/08, a web bug becomes total server compromise.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Apply least privilege: remove unnecessary sudo rules, never grant <code>NOPASSWD</code> on shell-capable binaries, strip the SUID bit from anything that doesn't need it (<code>find / -perm -4000</code> to audit). Keep the kernel patched so Dirty-COW-style bugs don't backstop a misconfig.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">Chain it: Lab 06 got a web shell, Lab 08 got a service shell, Lab 09 makes either one root. That full chain, web bug to total compromise, is the story your capstone report tells.</p>
+        </div>
+      </section>
+
+      <!-- Section 7: quiz -->
+      <section>
+        <h2 id="self-assessment">Lab 09 Self-Assessment <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· 6 questions</span></h2>
+        <p class="lab-lead">🖐️ DO #3 · Check yourself. Say why the wrong ones are wrong.</p>
+
+        <div class="quiz-card" data-question-id="lab09-q1">
+          <div class="quiz-question">Q1: You just got a shell as <code>www-data</code>. What's the single best first command for an easy root?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. sudo -l shows what you can run as another user, often root, sometimes with no password. Easiest win on the board.">A) <code>sudo -l</code></button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="rm -rf would just destroy files and burn your access. Never your enumeration step.">B) <code>rm -rf /</code></button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Changing www-data's password doesn't make it root. You need a path to root's privileges, not a new password.">C) <code>passwd</code></button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab09-q2">
+          <div class="quiz-question">Q2: In <code>-rwsr-xr-x</code>, what does the <code>s</code> mean?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not about sharing. The s changes which user the program runs as.">A) The file is shared with all users.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. SUID: the program runs as its owner (often root), not as the user who launched it. Great for passwd, dangerous on a shell-capable binary.">B) SUID: the program runs as its owner (e.g. root), not as you.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="s isn't 'secure'. It's the setuid bit, which if anything makes a shell-capable binary dangerous.">C) The file is secure and can't be run.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab09-q3">
+          <div class="quiz-question">Q3: <code>sudo -l</code> shows <code>(ALL) NOPASSWD: /usr/bin/find</code>. What do you do?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="find alone just searches files. You need the GTFOBins trick that turns its -exec feature into a shell.">A) Use <code>find</code> to search for the root password file.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Look up find on GTFOBins: sudo find . -exec /bin/sh \\; -quit spawns a root shell because find runs the command as root.">B) Look it up on GTFOBins and use <code>sudo find . -exec /bin/sh \; -quit</code>.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="You don't need an exploit. The misconfig hands you root directly through find's own features.">C) Download a kernel exploit, it's the only way.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab09-q4">
+          <div class="quiz-question">Q4: Why learn the manual privesc commands when <code>linpeas.sh</code> automates them?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Manual isn't faster than a script that checks everything at once. Speed isn't the reason.">A) Manual commands are faster than the script.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. A blocked script, a locked-down box, or an exam that frowns on tools all need you to know what LinPEAS was checking and why.">B) The script can be blocked or banned, and you need to understand what it checks.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="LinPEAS doesn't require root, that's the point, it runs as the low-priv user to find a way up.">C) Because linpeas.sh needs root to run.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab09-q5">
+          <div class="quiz-question">Q5: What's the root-cause fix for a SUID/sudo privesc?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Antivirus doesn't fix a permission an admin granted. The misconfig is the problem, not malware.">A) Install antivirus on the server.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Least privilege: remove the unneeded sudo rule, strip SUID from binaries that don't need it, don't grant NOPASSWD on shell-capable tools.">B) Least privilege: remove the unnecessary rule or SUID bit.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="A longer root password is irrelevant: the attack never asks for root's password.">C) Give root a longer password.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab09-q6"
+          data-expected-regex="sudo\s+-l|find\s+/\s+-perm\s+-?4000|find\s+.*-perm.*4000"
+          data-solution-rationale="The two enumeration reflexes are sudo -l and find / -perm -4000 -type f 2>/dev/null. Either is accepted; the drill is reaching for the low-priv enumeration before any exploit.">
+          <div class="quiz-question">Q6 [Command]: You have a low-priv shell. Write one enumeration command that checks for an easy privesc (sudo rights or SUID binaries).</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="sudo -l   (or)   find / -perm ..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>

