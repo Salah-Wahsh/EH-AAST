@@ -26,7 +26,6 @@ Every lab section must satisfy at least ONE of:
 1. **Hands-on action** — student clicks, types, tampers, or checks a box
 2. **Prediction prompt** — student is asked to guess before an answer is revealed (`.prediction-prompt`)
 3. **Micro-quiz** — 1–2 question checkpoint at end of section (`.quiz-card`)
-4. **Buddy switch cue** — a `.callout--tip` prompting "Rotate keyboard driver now" every ~15 min
 
 If a section takes >5 min to read AND has no interaction, **split it or condense it**. Non-negotiable.
 

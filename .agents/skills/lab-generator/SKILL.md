@@ -96,7 +96,6 @@ Every section from Lab 03 onward uses **three explicit layers**:
 Between or within sections:
 - **`.prediction-prompt`** before any non-obvious reveal (minimum 2 per lab, per [attention-design](../attention-design/SKILL.md))
 - **`.info-dense-card`** wherever 4+ same-shape bullets would appear
-- **`.callout--tip`** with "Rotate keyboard driver" at ~15-min marks
 
 ### Step 5: Target-first pattern
 
