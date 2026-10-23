@@ -492,7 +492,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
 " autofocus onfocus=alert(document.domain) x="</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              Even when <code>&lt;</code> and <code>&gt;</code> are HTML-encoded, an unescaped <code>"</code> lets you step out of <code>value=""</code> and bolt <code>autofocus onfocus=…</code> onto the existing <code>&lt;input&gt;</code> tag!
+              Press <code>Ctrl+U</code> (View Page Source): when <code>&lt;</code> and <code>&gt;</code> are HTML-encoded to <code>&amp;lt;</code> in the heading, check if your search also lands inside <code>&lt;input value="YOUR_INPUT"&gt;</code>. An unescaped <code>"</code> closes <code>value=""</code> and bolts <code>autofocus onfocus=…</code> onto the existing tag!
             </p>
           </div>
         </div>
@@ -602,18 +602,18 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
               <span class="target-launcher__icon">🎓</span>
               <div>
                 <h3 class="target-launcher__title">PortSwigger Web Security Academy · Four Live Targets</h3>
-                <div class="target-launcher__platform">Progress from basic reflection to attribute breakout and Practitioner WAF bypass</div>
+                <div class="target-launcher__platform">Progress from basic reflection to attribute breakout and javascript: URI sinks</div>
               </div>
             </div>
             <span class="target-launcher__badge">🌐 Hands-On Practice</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">Run these four labs in order</span>
+              <span class="target-launcher__step-label">Run these four labs in order (no Burp Intruder needed)</span>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded" target="_blank" rel="noopener noreferrer">1. [Apprentice] Reflected XSS into HTML context (nothing encoded)</a>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/stored/lab-html-context-nothing-encoded" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">2. [Apprentice] Stored XSS into HTML context (hits every reader)</a>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-attribute-angle-brackets-html-encoded" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">3. [Apprentice] Reflected XSS with angle brackets HTML-encoded (attribute breakout)</a>
-              <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-html-context-with-most-tags-and-attributes-blocked" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">4. [Practitioner] Reflected XSS into HTML context with most tags and attributes blocked (WAF bypass)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/cross-site-scripting/contexts/lab-href-attribute-double-quotes-html-encoded" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">4. [Apprentice] Stored XSS into anchor href attribute with double quotes HTML-encoded (javascript: URI sink)</a>
             </div>
           </div>
           <div class="target-launcher__footer">
