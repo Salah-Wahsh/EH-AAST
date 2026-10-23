@@ -1059,17 +1059,17 @@ body.projector-mode .info-dense-card__cell code { font-size: 1rem !important; }
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   margin-bottom: var(--space-3);
   padding-bottom: var(--space-3);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
 .comparison-card__title {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
+  display: block;
   font-size: var(--font-size-lg);
   font-weight: 700;
+  line-height: 1.35;
   color: var(--color-text-primary);
   margin: 0;
 }
@@ -1086,21 +1086,28 @@ body.projector-mode .info-dense-card__cell code { font-size: 1rem !important; }
 }
 
 .comparison-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-  line-height: 1.4;
+  position: relative;
+  display: block;
+  padding-left: 1.75rem;
+  line-height: 1.55;
 }
 
 .comparison-icon {
   font-size: 1.1rem;
   line-height: 1;
-  flex-shrink: 0;
+}
+
+.comparison-list .comparison-icon {
+  position: absolute;
+  left: 0;
+  top: 0.12rem;
 }
 
 .comparison-badge {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
+  white-space: nowrap;
   gap: var(--space-1);
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);

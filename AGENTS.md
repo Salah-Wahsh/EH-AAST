@@ -99,6 +99,10 @@ To keep students engaged, energized, and actively learning without fatigue, ever
 4. **Actionable Primitives**: Every section must culminate in a concrete tool or command (`curl`, `nmap`, `wireshark`, `nc`, `burp`).
 5. **Active Recall Challenges**: Quizzes must include real terminal input challenges that test syntax and command fluency, not just passive multiple-choice.
 6. **Troubleshooting Accordions**: Use `<details class="thought-accordion">` for "Why this matters" or "If this command fails..." so additional detail is available on demand without cluttering the main visual path.
+7. **Low-Key Under-the-Hood Hacks & Modern 2020s Difficulty (Attention Hook Rule)**:
+   - Students often know surface-level clichés (`' OR 1=1--`, `<script>alert(1)</script>`) and tune out if labs stay at a 2005 introductory level.
+   - Every lab MUST include **low-key under-the-hood tricks and parser brainteasers** that expose deeper mechanics of the language/protocol (e.g., SQL pagination user traversal `' OR 1=1 LIMIT 1 OFFSET N--` to walk through the 2nd/3rd accounts without knowing emails; HTML5 `/` attribute separators + ES6 `` alert`1` `` template literals to fire JS without spaces or parentheses; `localStorage.token` dot-notation without quotes; defeating `HttpOnly` via same-origin `fetch()`).
+   - Pair foundational attacks with **modern 2020s problems** (e.g., SPA JWT storage in `localStorage` vs. cookies, `javascript:` URI sinks in React/Angular, password-manager autofill theft) and include a **live classroom brainteaser script** in `teaching-notes/labXX.md` for the instructor to tease the room.
 
 
 ---
