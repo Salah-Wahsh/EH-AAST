@@ -462,50 +462,63 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
           In real assessments, you won't always get an unfiltered search box. Developers encode angle brackets, WAFs block spaces and parentheses, and modern React/Angular apps don't use <code>innerHTML</code>. Here is how pentesters get past each one.
         </p>
 
-        <h3 id="attribute-breakout">Breaking out of an HTML attribute when <code>&lt;</code> and <code>&gt;</code> are encoded</h3>
+        <h3 id="attribute-breakout">Why <code>&lt;script&gt;</code> works in Lab #1 but fails in Lab #3 (Press <code>Ctrl+U</code>)</h3>
+        <p class="lab-lead">
+          When you search for a word on a site, the server often echoes your input in <strong>two places</strong> in the raw HTML (press <code>Ctrl+U</code> to View Page Source): inside the <code>&lt;h1&gt;</code> heading, and inside the search box's <code>&lt;input value="…"&gt;</code> attribute so the box remembers what you typed.
+        </p>
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Context 1: Between HTML Tags</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">open a new tag</span>
+              <h3 class="comparison-card__title">Scenario A: <code>&lt;</code> and <code>&gt;</code> NOT Encoded</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">PortSwigger Lab #1 &amp; #2</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>&lt;p&gt;Search results for: YOUR_INPUT&lt;/p&gt;
+              <div class="terminal-window__body"><pre><code>&lt;!-- 1. Server template (Ctrl+U): --&gt;
+&lt;h1&gt;0 search results for 'YOUR_INPUT'&lt;/h1&gt;
 
-// Inject a new tag:
-&lt;img src=x onerror=alert(1)&gt;</code></pre></div>
+&lt;!-- 2. You type: --&gt;
+&lt;script&gt;alert(1)&lt;/script&gt;
+
+&lt;!-- 3. Browser receives &amp; runs: --&gt;
+&lt;h1&gt;0 search results for '&lt;script&gt;alert(1)&lt;/script&gt;'&lt;/h1&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              Used in standard Reflected XSS (search echoes) and Stored XSS (blog comments, profiles, TweetDeck).
+              Because the server sends literal <code>&lt;</code> and <code>&gt;</code> characters, the browser opens a brand-new <code>&lt;script&gt;</code> tag and executes <code>alert(1)</code>.
             </p>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Context 2: Inside an Attribute</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">close quote + add handler</span>
+              <h3 class="comparison-card__title">Scenario B: <code>&lt;</code> and <code>&gt;</code> Encoded to <code>&amp;lt; &amp;gt;</code></h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">PortSwigger Lab #3</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>&lt;input type="text" value="YOUR_INPUT"&gt;
+              <div class="terminal-window__body"><pre><code>&lt;!-- 1. &lt;script&gt; becomes harmless &amp;lt;script&amp;gt; in &lt;h1&gt;,
+        so check the search &lt;input&gt; in Ctrl+U: --&gt;
+&lt;input name="search" value="YOUR_INPUT"&gt;
 
-// Inject " to close value, then add an event:
-" autofocus onfocus=alert(document.domain) x="</code></pre></div>
+&lt;!-- 2. You type (zero &lt; or &gt; needed!): --&gt;
+" autofocus onfocus=alert(1) x="
+
+&lt;!-- 3. Browser receives &amp; runs on load: --&gt;
+&lt;input name="search" value=""
+  autofocus onfocus=alert(1) x=""&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              Press <code>Ctrl+U</code> (View Page Source): when <code>&lt;</code> and <code>&gt;</code> are HTML-encoded to <code>&amp;lt;</code> in the heading, check if your search also lands inside <code>&lt;input value="YOUR_INPUT"&gt;</code>. An unescaped <code>"</code> closes <code>value=""</code> and bolts <code>autofocus onfocus=…</code> onto the existing tag!
+              The developer encoded <code>&lt;</code> and <code>&gt;</code> (so you can't open a new tag), <strong>but forgot to encode <code>"</code></strong>! Your first <code>"</code> closes <code>value="</code> early and turns <code>autofocus onfocus=alert(1)</code> into real attributes on the <code>&lt;input&gt;</code> tag.
             </p>
           </div>
         </div>
 
         <div class="prediction-prompt" style="margin-bottom:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 Look at Context 2 above. When the page renders with your payload inside <code>&lt;input type="text" value="YOUR_INPUT"&gt;</code>, what does the final HTML tag look like in the browser, and why does it fire without anyone clicking?</div>
+          <div class="prediction-prompt__question">🤔 Look at Scenario B above. Why did we put <code>x="</code> at the end of <code>" autofocus onfocus=alert(1) x="</code>, and why did we use <code>autofocus onfocus</code> instead of <code>onclick</code>?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">The tag becomes <code>&lt;input type="text" value="" autofocus onfocus=alert(document.domain) x=""&gt;</code>. The <code>autofocus</code> attribute tells the browser to focus that input box automatically as soon as the page loads, which immediately triggers <code>onfocus</code> and runs your JavaScript with zero user clicks.</p>
+            <p style="margin:0;">The page's template already has a closing quote waiting at the end of <code>value="YOUR_INPUT"</code>. Adding <code>x="</code> pairs up with that leftover quote (<code>x=""</code>) so the tag stays cleanly formatted, and <code>autofocus</code> forces the browser to focus the input box automatically on page load so <code>onfocus</code> fires immediately without waiting for anyone to click!</p>
           </div>
         </div>
 
