@@ -95,7 +95,7 @@
             </div>
           </div>
 
-          <div class="terminal-window" style="margin:var(--space-3) 0 0;">
+          <div class="terminal-window" data-no-copy style="margin:var(--space-3) 0 0;">
             <div class="terminal-window__header">
               <span class="terminal-window__title">2014 TweetDeck worm payload</span>
             </div>
@@ -142,7 +142,7 @@
           Web apps keep your session token in <strong>Cookies</strong>, <strong>localStorage</strong>, or both. Log into Juice Shop, open the DevTools Console (<kbd>F12</kbd>), and run both commands:
         </p>
 
-        <div class="terminal-window">
+        <div class="terminal-window" data-no-copy>
           <div class="terminal-window__header">
             <span class="terminal-window__title">DevTools Console · logged into Juice Shop as bender@juice-sh.op</span>
           </div>
@@ -343,7 +343,10 @@
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-1);">
             <li>Click the magnifying glass icon in the top bar of Juice Shop to open the search box.</li>
             <li>Paste this payload and press <kbd>Enter</kbd>:
-              <div class="terminal-window" style="margin:var(--space-1) 0;"><div class="terminal-window__body"><pre><code>&lt;img src=x onerror=alert(document.domain)&gt;</code></pre></div></div>
+              <div class="terminal-window" style="margin:var(--space-1) 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">Juice Shop search box</span></div>
+                <div class="terminal-window__body"><pre><code>&lt;img src=x onerror=alert(document.domain)&gt;</code></pre></div>
+              </div>
             </li>
             <li>An alert box pops showing <code>localhost</code>. Click <strong>OK</strong> and look at the grey search banner: right next to <code>Search Results -</code> sits the broken image icon that triggered your code.</li>
           </ol>
@@ -385,8 +388,11 @@
             <li>The alert pops with the victim's JWT string starting with <code>eyJ0eXAiOiJKV1Qi…</code>. Copy that entire JWT string.</li>
             <li>Open a brand-new <strong>Incognito / Private</strong> window and go to <code>http://localhost:3000</code>. Click <strong>Account</strong> in the top bar to confirm you are logged out.</li>
             <li>In that Incognito window, press <kbd>F12</kbd> → <strong>Console</strong>, paste your stolen JWT into both places Juice Shop checks, and press <kbd>Enter</kbd>:
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>localStorage.setItem('token', 'PASTE_STOLEN_JWT_HERE');
-document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">Incognito DevTools Console (F12)</span></div>
+                <div class="terminal-window__body"><pre><code>localStorage.setItem('token', 'PASTE_STOLEN_JWT_HERE');
+document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
+              </div>
             </li>
             <li>Refresh the Incognito page (<kbd>F5</kbd>) and click <strong>Account</strong>. You are now logged in as the victim (with their email displayed right at the top of the menu) with no password and no login prompt.</li>
           </ol>

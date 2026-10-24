@@ -420,6 +420,11 @@ body.projector-mode .info-dense-card__cell code { font-size: 1rem !important; }
   word-wrap: normal;
 }
 
+.comparison-card .terminal-window__body pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
 .terminal-prompt-sym {
   color: var(--terminal-prompt);
   user-select: none;

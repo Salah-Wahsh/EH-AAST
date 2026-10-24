@@ -124,7 +124,22 @@
 
   // --- Copy Command Buttons ---
   LabCommon.initCopyButtons = function () {
+    document.querySelectorAll('.terminal-window__header').forEach(function (header) {
+      var term = header.closest('.terminal-window');
+      if (!term || term.id === 'hero-bash-sim' || term.hasAttribute('data-no-copy')) return;
+      if (!header.querySelector('.terminal-copy-btn')) {
+        var titleText = (header.textContent || '').toLowerCase();
+        if (titleText.indexOf('what arrives') !== -1 || titleText.indexOf('output') !== -1) return;
+        var autoBtn = document.createElement('button');
+        autoBtn.type = 'button';
+        autoBtn.className = 'terminal-copy-btn';
+        autoBtn.textContent = 'Copy';
+        header.appendChild(autoBtn);
+      }
+    });
+
     document.querySelectorAll('.terminal-copy-btn').forEach(function (btn) {
+      if (btn.getAttribute('onclick')) return;
       btn.addEventListener('click', function () {
         var terminal = btn.closest('.terminal-window');
         if (!terminal) return;
