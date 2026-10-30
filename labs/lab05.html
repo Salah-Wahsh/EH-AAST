@@ -399,7 +399,7 @@ HTTP/1.1 200 OK
         </div>
 
         <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product, the Network tab shows <code>POST /api/BasketItems</code> sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code> (Jim's basket), the server blocks you with <code>401 Invalid BasketId</code>! Why did the server block you here when it allowed the read in Step 1?</div>
+          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product that isn't in your cart yet (with the Network filter box empty), DevTools shows a <code>POST</code> request named <code>BasketItems/</code> (<code>POST /api/BasketItems/</code>) sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code> (Jim's basket), the server blocks you with <code>401 Invalid BasketId</code>! Why did the server block you here when it allowed the read in Step 1?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
