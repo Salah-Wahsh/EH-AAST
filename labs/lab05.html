@@ -38,7 +38,7 @@
         </div>
         <h1 class="lab-header__title">Lab 05: Broken Access Control</h1>
         <p class="lab-header__lead">
-          In the last two labs you tricked a parser into running code it never meant to run. Today nothing breaks and no special characters are needed. You learn how pentesters map hidden API endpoints, spot which identifiers the server forgot to lock down, and escalate from a normal customer to a full administrator using requests that look completely legitimate.
+          In the last two labs you tricked a parser into running code it never meant to run. Today nothing breaks and no special characters are needed. You learn how attackers think about application boundaries, how they uncover hidden API endpoints, and how they escalate from a normal customer to a full administrator using requests that look completely legitimate.
         </p>
       </header>
 
@@ -131,24 +131,65 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">Those are the two directions of Broken Access Control: <strong>Horizontal escalation</strong> is reading or modifying another peer's data at your own rank (like Basket #1 or #2). <strong>Vertical escalation</strong> is reaching functions or tables reserved for a higher role (like dumping the admin user list or registering yourself as an admin). Next, let's look at how a pentester actually discovers those targets without guessing.</p>
+            <p style="margin:0;">Those are the two directions of Broken Access Control: <strong>Horizontal escalation</strong> is reading or modifying another peer's data at your own rank (like Basket #1 or #2). <strong>Vertical escalation</strong> is reaching functions or tables reserved for a higher role (like dumping the admin user list or registering yourself as an admin). But before we launch the target, let's understand why an attacker targets these specific areas and how they think about an application.</p>
           </div>
         </div>
       </section>
 
-      <!-- Section 2: The Hacker Mindset: How Do We Discover Hidden IDs, Endpoints & Fields? -->
+      <!-- Section 2: The Attacker's Mental Model: Why We Attack & Where We Look -->
       <section>
-        <h2 id="hacker-mindset">2. The Hacker Mindset: How Pentesters Discover Hidden IDs, Endpoints &amp; Fields</h2>
+        <h2 id="attacker-mental-model">2. The Attacker's Mental Model: Why We Attack &amp; Where We Look</h2>
         <p class="lab-lead">
-          Beginners think pentesters magically know secret URLs like <code>/api/Users</code> or secret JSON fields like <code>"role": "admin"</code>. In reality, we never guess in the dark. Every attack in this lab comes from a repeatable <strong>4-step discovery loop</strong>:
+          When a penetration tester lands on a web application, they are usually given a single low-privileged account (such as a standard customer). They don't attack random URLs or fire blind automated scanners. Instead, they look at the application through two fundamental boundaries:
         </p>
 
-        <div class="diagram-card" style="margin-bottom:var(--space-4);">
-          <div class="diagram-card__title">
-            <span>THE PENTESTER'S DISCOVERY LOOP · How Every Clue Feeds the Next Attack</span>
-            <span style="color:var(--color-cyan);">Zero blind guessing</span>
+        <div class="comparison-grid" style="margin-top:var(--space-3);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Boundary 1: Tenant Boundaries (Horizontal)</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Customer vs. Customer</span>
+            </div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
+              <strong>Why attack shopping carts, orders, or documents?</strong>
+            </p>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🕵️</span> <strong>Privacy &amp; Intelligence</strong>: In e-commerce and SaaS, reading someone else's cart or order history reveals corporate buying habits, pending deals, delivery addresses, and customer identities.</li>
+              <li><span class="comparison-icon">💥</span> <strong>Integrity &amp; Fraud</strong>: Writing into another customer's cart or altering their pending order can force unintended charges or disrupt their checkout.</li>
+              <li><span class="comparison-icon">🎯</span> <strong>The Attacker's Question</strong>: <em>"Where does the app ask my browser for an object number (like a cart ID, invoice ID, or document ID), and does the server verify I actually own it?"</em></li>
+            </ul>
           </div>
-          <svg class="diagram-svg" viewBox="0 0 880 315" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four-stage pentester discovery loop showing how normal traffic, JS bundle recon, and GET responses reveal every attack vector">
+
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Boundary 2: Privilege Boundaries (Vertical)</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Customer vs. Administrator</span>
+            </div>
+            <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
+              <strong>Why attack administrative functions?</strong>
+            </p>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">👑</span> <strong>Total System Control</strong>: Normal customers can only browse and buy. Administrators can delete users, inspect hashed passwords, change prices, and configure system rules.</li>
+              <li><span class="comparison-icon">🔓</span> <strong>The Attacker's Ultimate Goal</strong>: Escalating from an unprivileged customer to a full administrator is the highest-impact outcome of any web pentest.</li>
+              <li><span class="comparison-icon">🎯</span> <strong>The Attacker's Question</strong>: <em>"Did the developers enforce role checks on the backend server, or did they just assume nobody would find the admin endpoints if they hid the buttons in the frontend UI?"</em></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="callout callout--tip" style="margin-top:var(--space-4);">
+          <span class="callout__icon">💡</span>
+          <div class="callout__content">
+            <div class="callout__title">The Golden Principle: The UI is a suggestion; the API is the truth</div>
+            <p style="margin:0;">
+              Modern web applications have two distinct layers: the <strong>frontend user interface</strong> (HTML, CSS, JavaScript in your browser) and the <strong>backend API</strong> (Node.js, Express, databases on the server). Developers routinely make the critical mistake of adding security checks to the frontend (disabling a button, hiding a menu item, or adding a client-side route guard) while leaving the backend API completely unprotected. A penetration tester never relies on what the UI shows. They look at what the backend API will accept when called directly.
+            </p>
+          </div>
+        </div>
+
+        <div class="diagram-card" style="margin-top:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>HOW THE ATTACK TRAVELS · Three Architectural Shapes</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 880 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow comparison of Horizontal IDOR/BOLA, Vertical Function-Level Access Control, and Parameter/Property Tampering">
             <defs>
               <marker id="arr-cyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
                 <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
@@ -161,170 +202,77 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
               </marker>
             </defs>
 
-            <!-- Row 1: Clue 1 & 2 (Horizontal Read -> Write) -->
-            <rect x="10" y="14" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
-            <text x="92" y="38" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. WATCH NORMAL TRAFFIC</text>
-            <text x="92" y="56" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Click "Your Basket" &amp; "Add"</text>
-            <text x="92" y="73" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">DevTools → Network (XHR)</text>
+            <!-- Row 1: Horizontal IDOR / BOLA -->
+            <rect x="10" y="14" width="150" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+            <text x="85" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">1. HORIZONTAL</text>
+            <text x="85" y="62" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">IDOR / API1: BOLA</text>
 
-            <line x1="175" y1="52" x2="208" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+            <rect x="185" y="14" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="287" y="40" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Customer changes object ID</text>
+            <text x="287" y="60" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">e.g. cart, order, docId</text>
 
-            <rect x="213" y="14" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="318" y="38" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Reveals Basket Read &amp; Write</text>
-            <text x="318" y="57" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">GET /rest/basket/3 (bid=3)</text>
-            <text x="318" y="74" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">POST /api/BasketItems</text>
+            <line x1="390" y1="50" x2="425" y2="50" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
 
-            <line x1="423" y1="52" x2="456" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+            <rect x="430" y="14" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="532" y="40" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Server checks login token</text>
+            <text x="532" y="60" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">skips object ownership check</text>
 
-            <rect x="461" y="14" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="558" y="38" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Swap ID (3 → 1) &amp; Duplicate</text>
-            <text x="558" y="57" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Read: GET /rest/basket/1</text>
-            <text x="558" y="74" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Write: {"BasketId":3,"BasketId":2}</text>
+            <line x1="635" y1="50" x2="670" y2="50" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
 
-            <line x1="656" y1="52" x2="689" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+            <rect x="675" y="14" width="195" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+            <text x="772" y="42" fill="var(--color-cyan)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Reads/modifies peer data</text>
+            <text x="772" y="60" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">breaches customer privacy</text>
 
-            <rect x="694" y="14" width="176" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
-            <text x="782" y="42" fill="var(--color-cyan)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Steps 1 &amp; 2 Complete</text>
-            <text x="782" y="62" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Read &amp; Write any cart</text>
+            <!-- Row 2: Vertical Function-Level Exposure -->
+            <rect x="10" y="114" width="150" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="85" y="142" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">2. VERTICAL</text>
+            <text x="85" y="162" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">forced browse / API</text>
 
-            <!-- Row 2: Clue 3 (Mine main.js & Flip Verb) -->
-            <rect x="10" y="116" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
-            <text x="92" y="140" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. MINE SPA BUNDLE</text>
-            <text x="92" y="158" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Scan downloaded main.js</text>
-            <text x="92" y="175" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">+ flip POST → GET verb</text>
+            <rect x="185" y="114" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="287" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Frontend UI hides admin link</text>
+            <text x="287" y="160" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">attacker calls admin API path</text>
 
-            <line x1="175" y1="154" x2="208" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+            <line x1="390" y1="150" x2="425" y2="150" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
 
-            <rect x="213" y="116" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="318" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Exposes Hidden Admin API</text>
-            <text x="318" y="159" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">/#/administration (UI route)</text>
-            <text x="318" y="176" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">GET /api/Users (REST API)</text>
+            <rect x="430" y="114" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="532" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Server verifies valid login</text>
+            <text x="532" y="160" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">skips role === 'admin' check</text>
 
-            <line x1="423" y1="154" x2="456" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+            <line x1="635" y1="150" x2="670" y2="150" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
 
-            <rect x="461" y="116" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="558" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Call API Directly (Skip UI)</text>
-            <text x="558" y="159" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Dumps all 23+ accounts</text>
-            <text x="558" y="176" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Reveals "role": "admin" field!</text>
+            <rect x="675" y="114" width="195" height="72" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2" />
+            <text x="772" y="42" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Executes Admin action</text>
+            <text x="772" y="160" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">full platform takeover</text>
 
-            <line x1="656" y1="154" x2="689" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+            <!-- Row 3: Parameter & Property Tampering -->
+            <rect x="10" y="214" width="150" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
+            <text x="85" y="242" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">3. TAMPERING</text>
+            <text x="85" y="262" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">HPP &amp; Mass Assign</text>
 
-            <rect x="694" y="116" width="176" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
-            <text x="782" y="144" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Step 3 Complete</text>
-            <text x="782" y="164" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Full user table + schema</text>
+            <rect x="185" y="214" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="287" y="240" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Injects extra or duplicate keys</text>
+            <text x="287" y="260" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">e.g. duplicate IDs or role</text>
 
-            <!-- Row 3: Clue 4 (Mirror Read Schema into Write Body) -->
-            <rect x="10" y="218" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
-            <text x="92" y="242" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. MIRROR SCHEMA</text>
-            <text x="92" y="260" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Copy field from Step 3 GET</text>
-            <text x="92" y="277" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">into Step 4 POST body</text>
+            <line x1="390" y1="250" x2="425" y2="250" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
 
-            <line x1="175" y1="256" x2="208" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
+            <rect x="430" y="214" width="205" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="532" y="240" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Guard &amp; DB parse differently</text>
+            <text x="532" y="260" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">or ORM binds unprompted keys</text>
 
-            <rect x="213" y="218" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="318" y="242" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Inject Privileged Property</text>
-            <text x="318" y="261" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">POST /api/Users</text>
-            <text x="318" y="278" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">+ "role": "admin"</text>
+            <line x1="635" y1="250" x2="670" y2="250" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
 
-            <line x1="423" y1="256" x2="456" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
-
-            <rect x="461" y="218" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="558" y="242" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">ORM Binds All Columns</text>
-            <text x="558" y="261" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">User.create(req.body)</text>
-            <text x="558" y="278" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Mass Assignment (BOPLA)</text>
-
-            <line x1="656" y1="256" x2="689" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
-
-            <rect x="694" y="218" width="176" height="76" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2" />
-            <text x="782" y="246" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Step 4: Full Admin!</text>
-            <text x="782" y="266" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Opens /#/administration</text>
+            <rect x="675" y="214" width="195" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
+            <text x="772" y="242" fill="var(--color-warn)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Overwrites record / role</text>
+            <text x="772" y="260" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">bypasses validation logic</text>
           </svg>
-        </div>
-
-        <h3 id="where-ids-live">Clue #1: Compare what the server signed (<code>localStorage.token</code>) vs. what sits unsigned (<code>sessionStorage.bid</code>)</h3>
-        <p class="lab-lead">
-          Whenever you log into a modern web app, your first move is to open DevTools (<kbd>F12</kbd>) and inspect <strong>Application → Storage</strong> (or run two lines in the Console) to see where your identity and object IDs live:
-        </p>
-
-        <div class="terminal-window" data-no-copy>
-          <div class="terminal-window__header">
-            <span class="terminal-window__title">DevTools Console · logged into Juice Shop as bender@juice-sh.op</span>
-          </div>
-          <div class="terminal-window__body"><pre><code>&gt; sessionStorage.getItem('bid')
-'3'
-
-&gt; JSON.parse(atob(localStorage.token.split('.')[1])).data
-{ id: 3, email: 'bender@juice-sh.op', role: 'customer', deluxeToken: '', ... }</code></pre></div>
-        </div>
-
-        <div class="comparison-grid" style="margin-top:var(--space-3);">
-          <div class="comparison-card comparison-card--cyan">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Signed JWT Identity (<code>localStorage.token</code>)</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">RSA-signed by server</span>
-            </div>
-            <ul class="comparison-list">
-              <li><span class="comparison-icon">🔏</span> Your JWT is three Base64 strings separated by dots (<code>header.payload.signature</code>). Its middle payload says you are <code>id: 3</code> with <code>role: 'customer'</code>.</li>
-              <li><span class="comparison-icon">🛡️</span> Because the 3rd part is signed with the server's private RSA key, modifying <code>id: 3</code> inside the JWT invalidates the signature and the server rejects the token with <code>401</code>.</li>
-            </ul>
-          </div>
-          <div class="comparison-card comparison-card--accent">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Unsigned Object IDs (<code>sessionStorage.bid</code> &amp; URLs)</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">controlled by you</span>
-            </div>
-            <ul class="comparison-list">
-              <li><span class="comparison-icon">🛒</span> Notice that your active shopping cart number (<code>'3'</code>) is stored separately in <code>sessionStorage.bid</code>, outside the signed JWT!</li>
-              <li><span class="comparison-icon">💥</span> When you click <strong>Your Basket</strong>, Angular reads <code>sessionStorage.bid</code> and calls <code>GET /rest/basket/3</code>. Anything outside the JWT signature can be changed freely by you!</li>
-            </ul>
-          </div>
-        </div>
-
-        <h3 id="how-we-find-endpoints" style="margin-top:var(--space-4);">Clue #2: How do we know hidden endpoints like <code>/api/Users</code> or <code>/#/administration</code> exist?</h3>
-        <p class="lab-lead">
-          When you log in as a normal customer, there is no "Administration" button in the navbar. So how does a pentester discover <code>/api/Users</code> and <code>/#/administration</code> in 10 seconds? Two techniques give them away immediately:
-        </p>
-
-        <div class="comparison-grid">
-          <div class="comparison-card comparison-card--cyan">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Technique A: Mine the Downloaded <code>main.js</code> Bundle</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">SPA Recon</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-              Single-Page Apps (Angular, React, Vue) bundle the <strong>entire frontend route map and every API URL</strong> into <code>main.js</code> and ship it to every browser, even unauthenticated visitors!
-            </p>
-            <div class="terminal-window" data-no-copy style="margin:0;">
-              <div class="terminal-window__body"><pre><code>// Extracted from http://localhost:3000/main.js:
-path:`administration`, canActivate:[AdminGuard]
-'/api/BasketItems', '/api/Cards', '/api/Users',
-'/rest/admin', '/rest/basket'</code></pre></div>
-            </div>
-          </div>
-
-          <div class="comparison-card comparison-card--accent">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Technique B: REST Verb Flipping &amp; Schema Mirroring</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">Traffic Inference</span>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-              When you register a new account on <code>/#/register</code>, the Network tab shows <code>POST /api/Users</code>. In REST APIs, if <code>POST /api/Users</code> creates one user, what does <code>GET /api/Users</code> do?
-            </p>
-            <div class="terminal-window" data-no-copy style="margin:0;">
-              <div class="terminal-window__body"><pre><code>// 1. Signup fires:   POST /api/Users (creates your user)
-// 2. Flip verb:      GET  /api/Users (dumps all users!)
-// 3. Read response:  sees {"role": "admin"} on User #1
-// 4. Mirror to POST: send {"role": "admin"} on signup!</code></pre></div>
-            </div>
-          </div>
         </div>
       </section>
 
-      <!-- Section 3: Horizontal Access Control (Basket Read IDOR -> Basket Write HPP Bypass) -->
+      <!-- Section 3: Horizontal Escalation (Basket Read IDOR -> Basket Write HPP Bypass) -->
       <section>
-        <h2 id="idor-live">3. Horizontal Escalation: Read &amp; Write Other Users' Baskets</h2>
+        <h2 id="idor-live">3. Horizontal Escalation: Hijack Other Users' Baskets (Read &amp; Write)</h2>
         <p class="lab-lead">
-          Let's put the mindset into action on **Baskets** first. When an endpoint uses a client-supplied ID (like <code>/rest/basket/3</code>) to fetch a database row without verifying that the row belongs to the caller, the bug is called an <strong>Insecure Direct Object Reference (IDOR)</strong>, or <strong>Broken Object Level Authorization (BOLA)</strong>. We will first hijack **Read** access (Step 1), and then bypass a security guard to hijack **Write** access (Step 2).
+          Let's put the mental model into practice on our first target boundary: <strong>Customer Shopping Baskets</strong>. In an e-commerce platform, every customer's basket is private. When an endpoint uses a user-supplied identifier (like <code>/rest/basket/3</code>) to fetch a database row without checking who owns it, the flaw is called an <strong>Insecure Direct Object Reference (IDOR)</strong>, or <strong>Broken Object Level Authorization (BOLA)</strong> on REST APIs.
         </p>
 
         <div class="target-launcher" data-target-slug="juice-shop">
@@ -357,21 +305,58 @@ path:`administration`, canActivate:[AdminGuard]
           </div>
         </div>
 
+        <h3 id="where-ids-live" style="margin-top:var(--space-4);">Reconnaissance: Where does the app store your identity vs. your basket ID?</h3>
+        <p class="lab-lead">
+          Before sending payloads, an attacker observes how the application represents state. Log in as <code>bender@juice-sh.op</code>, open DevTools (<kbd>F12</kbd>) → <strong>Console</strong>, and compare these two storage locations:
+        </p>
+
+        <div class="terminal-window" data-no-copy>
+          <div class="terminal-window__header">
+            <span class="terminal-window__title">DevTools Console · logged into Juice Shop as bender@juice-sh.op</span>
+          </div>
+          <div class="terminal-window__body"><pre><code>&gt; sessionStorage.getItem('bid')
+'3'
+
+&gt; JSON.parse(atob(localStorage.token.split('.')[1])).data
+{ id: 3, email: 'bender@juice-sh.op', role: 'customer', deluxeToken: '', ... }</code></pre></div>
+        </div>
+
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Signed Identity (<code>localStorage.token</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">RSA-signed by server</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              Your JWT is three Base64 strings (<code>header.payload.signature</code>). The 3rd part is signed by the server's private key. If you tamper with <code>id: 3</code> inside the token, the signature breaks and the server rejects it with <code>401</code>.
+            </p>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Unsigned Resource ID (<code>sessionStorage.bid</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">controlled by your browser</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              Notice that your shopping cart number (<code>'3'</code>) sits outside the signed token in <code>sessionStorage.bid</code>! When Angular opens your cart, it reads this number and requests <code>GET /rest/basket/3</code>.
+            </p>
+          </div>
+        </div>
+
         <div class="bento-card" style="margin-top:var(--space-4);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Observe Normal Basket Traffic, Then Hijack Basket #1 (Read IDOR)</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Observe Normal Traffic, Then Hijack Basket #1 (Read IDOR)</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">Horizontal Read</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
-            <li><strong>Acquire the endpoint from normal traffic</strong>: Log in as a customer (such as <code>bender@juice-sh.op</code>, whose basket ID is <code>3</code>), open DevTools (<kbd>F12</kbd>) → <strong>Network</strong> → filter by <strong>Fetch/XHR</strong>, and click <strong>Your Basket</strong>. You will see the browser request <code>GET /rest/basket/3</code> using the number stored in <code>sessionStorage.bid</code>.</li>
-            <li><strong>Exploit it right inside the UI</strong>: Switch to the DevTools <strong>Console</strong>, point <code>sessionStorage.bid</code> at Basket <code>1</code> (the Admin's pre-seeded cart), and press <kbd>Enter</kbd>:
+            <li><strong>Watch normal traffic</strong>: Open DevTools (<kbd>F12</kbd>) → <strong>Network</strong> → filter by <strong>Fetch/XHR</strong>, and click <strong>Your Basket</strong> (<code>/#/basket</code>). Notice that the browser sends <code>GET /rest/basket/3</code> using the number stored in <code>sessionStorage.bid</code>.</li>
+            <li><strong>Test the hypothesis in the UI</strong>: Switch to the DevTools <strong>Console</strong>, point <code>sessionStorage.bid</code> at Basket <code>1</code> (the Admin's pre-seeded cart), and press <kbd>Enter</kbd>:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · point your UI at Basket 1</span></div>
                 <div class="terminal-window__body"><pre><code>sessionStorage.bid = 1</code></pre></div>
               </div>
             </li>
             <li>Reload the page (<kbd>F5</kbd>) or click <strong>Your Basket</strong> again. Look at the heading: it still says <code>Your Basket (bender@juice-sh.op)</code>, but the items inside belong to the <strong>Admin's Basket #1</strong>!</li>
-            <li><strong>Inspect the raw API response</strong> (in <strong>Burp Repeater</strong> by sending <code>GET /rest/basket/1</code>, or by running this one-liner in your Console):
+            <li><strong>Inspect the raw API response</strong> (in <strong>Burp Repeater</strong> by sending <code>GET /rest/basket/1</code>, or run this one-liner in your Console):
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · fetch Basket 1 directly from the API</span></div>
                 <div class="terminal-window__body"><pre><code>fetch('/rest/basket/1', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(console.log)</code></pre></div>
@@ -414,14 +399,14 @@ HTTP/1.1 200 OK
         </div>
 
         <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product, the Network tab shows <code>POST /api/BasketItems</code> sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code>, the server blocks you with <code>401 Invalid BasketId</code>! Instead of giving up, how can you craft the JSON body so the security guard sees <strong>your</strong> <code>BasketId: 3</code>, while the database writes into <strong>victim</strong> <code>BasketId: 2</code>?</div>
+          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product, the Network tab shows <code>POST /api/BasketItems</code> sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code> (Jim's basket), the server blocks you with <code>401 Invalid BasketId</code>! Why did the server block you here when it allowed the read in Step 1?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">Put <code>"BasketId"</code> in the JSON body <strong>twice</strong>: your own basket number first, and the victim's basket number second (<code>{"BasketId": 3, "ProductId": 6, "BasketId": 2, "quantity": 1}</code>). The validation guard checks the <strong>first</strong> key (<code>basketIds[0]</code>, which matches your token and passes), while the database insert uses the <strong>last</strong> key (<code>basketIds[basketIds.length - 1]</code>, which is <code>2</code>). That's <strong>HTTP Parameter Pollution (HPP)</strong> in JSON!</p>
+            <p style="margin:0;">Because the developer remembered to add an ownership check to the <strong>write path</strong> (adding items), even though they forgot it on the <strong>read path</strong>! But look at how the guard parses the JSON: if you supply <code>"BasketId"</code> <strong>twice</strong> (<code>{"BasketId": 3, "ProductId": 6, "BasketId": 2, "quantity": 1}</code>), the validation check inspects the first key (<code>basketIds[0] === 3</code>, matching your token), while the database layer writes the last key (<code>basketIds[basketIds.length - 1] === 2</code>). That's <strong>HTTP Parameter Pollution (HPP)</strong>!</p>
           </div>
         </div>
 
@@ -431,7 +416,7 @@ HTTP/1.1 200 OK
             <span class="comparison-badge" style="color:var(--color-warn);">Horizontal Write Bypass</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            <strong>How we found this</strong>: Clicking <strong>Add to Basket</strong> on the homepage while watching <strong>Network → Fetch/XHR</strong> reveals <code>POST /api/BasketItems</code>. Changing <code>"BasketId"</code> directly to <code>2</code> returns <code>401 Invalid BasketId</code> because the developer added a check in <code>routes/basketItems.js</code>. Look at why duplicating the key defeats that check:
+            Look at Juice Shop's actual write-protection code in <code>routes/basketItems.js</code>. It collects every <code>"BasketId"</code> key from the raw JSON body into an array, checks <code>basketIds[0]</code>, and saves <code>basketIds[basketIds.length - 1]</code>:
           </p>
           <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-2);">
             <div class="terminal-window__header"><span class="terminal-window__title">Juice Shop server code (routes/basketItems.js) · First-Key vs. Last-Key Split</span></div>
@@ -468,9 +453,9 @@ HTTP/1.1 200 OK
 
       <!-- Section 4: Vertical Escalation (JS Bundle Recon -> BOLA User Dump -> Mass Assignment to Admin) -->
       <section>
-        <h2 id="vertical-escalation">4. Vertical Escalation: Recon Hidden APIs, Dump All Users &amp; Become Admin</h2>
+        <h2 id="vertical-escalation">4. Vertical Escalation: Discover Hidden APIs &amp; Become Admin</h2>
         <p class="lab-lead">
-          Reading and modifying other customers' baskets is <strong>horizontal</strong>. Now we go <strong>vertical</strong>: we will extract Juice Shop's hidden endpoints straight out of its downloaded JavaScript bundle, call an administrative endpoint that the UI hid from us to dump all 23+ users, and then use a hidden field from that response to register a brand-new <code>admin</code> account.
+          Reading and modifying other customers' baskets is <strong>horizontal</strong>. Now we pivot to our ultimate goal: <strong>vertical privilege escalation</strong>. We want administrative power. But look at Juice Shop's navigation menu: there is no "Administration" link anywhere. If you type <code>http://localhost:3000/#/administration</code> into the address bar, Angular's client-side router redirects you to <code>/#/403 Access Denied</code>. How do pentesters find and reach administrative powers when the UI completely hides them?
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
@@ -510,24 +495,24 @@ app.get('/api/Users', security.isAuthorized());
 
         <div class="bento-card" style="margin-top:var(--space-3);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Mine main.js for Hidden Endpoints, Then Dump Every User &amp; Schema Field</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Mine the Client Bundle for Hidden Endpoints, Then Dump Every User</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">Recon → Vertical BOLA</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-2);">
-            <li><strong>Step 3a (Acquire the hidden endpoints)</strong>: How do we know what API endpoints exist without guessing? Run this one-liner in your DevTools Console (<kbd>F12</kbd>) to scan Angular's downloaded <code>/main.js</code> bundle for every <code>/api/...</code> and <code>/rest/...</code> path:
+            <li><strong>How do we find hidden endpoints without guessing?</strong> Modern Single-Page Applications (Angular, React, Vue) compile all route paths and API URLs into a JavaScript bundle (like <code>/main.js</code>) and send it to every browser. Run this one-liner in your DevTools Console (<kbd>F12</kbd>) to scan <code>/main.js</code> for every <code>/api/...</code> and <code>/rest/...</code> path:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · extract all 35 REST endpoints from main.js</span></div>
                 <div class="terminal-window__body"><pre><code>fetch('/main.js').then(r=&gt;r.text()).then(t=&gt;console.log([...new Set(t.match(/\/(api|rest)\/[A-Za-z0-9_-]+/g))].sort()))</code></pre></div>
               </div>
             </li>
-            <li>Look at the array printed in your Console: right alongside <code>/api/BasketItems</code> and <code>/api/Products</code> sits <strong><code>/api/Users</code></strong> (which you also see as <code>POST /api/Users</code> whenever someone registers on <code>/#/register</code>).</li>
-            <li><strong>Step 3b (Bypass the UI Guard &amp; Dump the Table)</strong>: Still logged in as a normal customer, call <code>GET /api/Users</code> directly so the request skips Angular's <code>AdminGuard</code> and goes straight to Express:
+            <li>Look at the array printed in your Console: right alongside <code>/api/BasketItems</code> sits <strong><code>/api/Users</code></strong>! (A pentester also spots this by <em>REST verb flipping</em>: registering an account sends <code>POST /api/Users</code>, so testing <code>GET /api/Users</code> is standard procedure).</li>
+            <li><strong>Call the API directly (skip the UI guard)</strong>: Still logged in as customer Bender, call <code>GET /api/Users</code> directly so the request bypasses Angular's <code>AdminGuard</code> and goes straight to Express:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · dump /api/Users as an interactive table</span></div>
                 <div class="terminal-window__body"><pre><code>fetch('/api/Users', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(d=&gt;console.table(d.data, ['id','email','role']))</code></pre></div>
               </div>
             </li>
-            <li><strong>Spot the clue for Step 4</strong>: Look at the columns returned by <code>GET /api/Users</code>. Every user record has an explicit <strong><code>role</code></strong> property, and User <code>id: 1</code> (<code>admin@juice-sh.op</code>) has <strong><code>"role": "admin"</code></strong>!</li>
+            <li><strong>Spot the clue for Step 4</strong>: Look at the table returned in your Console. Every user record has an explicit <strong><code>role</code></strong> column! User <code>id: 1</code> (<code>admin@juice-sh.op</code>) has <strong><code>"role": "admin"</code></strong>. We just uncovered the exact database field that grants administrative power.</li>
           </ol>
           <details class="thought-accordion" style="margin-top:var(--space-3);">
             <summary>Want to see the hidden frontend routes (like /#/administration) inside main.js too?</summary>
@@ -543,11 +528,11 @@ app.get('/api/Users', security.isAuthorized());
 
         <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-cyan);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Mirror "role": "admin" into POST /api/Users (Mass Assignment / BOPLA)</strong>
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Mirror "role": "admin" into Registration (Mass Assignment / BOPLA)</strong>
             <span class="comparison-badge" style="color:var(--color-cyan);">Admin Takeover</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            <strong>How Step 3 feeds Step 4</strong>: When a normal visitor registers on <code>/#/register</code>, the Angular form sends <code>POST /api/Users</code> with only <code>email</code> and <code>password</code>. It never sends <code>role</code>, so the database defaults new accounts to <code>"customer"</code>. But in Step 3, <code>GET /api/Users</code> just showed us that the database column is named <code>"role"</code> and accepts <code>"admin"</code>! Because the backend passes the entire JSON body straight into Sequelize's <code>User.create(req.body)</code> without stripping privileged fields (<strong>Mass Assignment</strong>), watch what happens when we mirror <code>"role": "admin"</code> into a signup request:
+            <strong>How Step 3 feeds Step 4</strong>: When a normal user signs up on <code>/#/register</code>, the Angular form only asks for <code>email</code> and <code>password</code>. The UI never lets you pick a role. But in Step 3, <code>GET /api/Users</code> just proved that the database column is named <code>"role"</code> and accepts <code>"admin"</code>! Because the backend passes the entire client JSON body straight into Sequelize's <code>User.create(req.body)</code> without filtering out privileged fields (<strong>Mass Assignment</strong>), watch what happens when we mirror <code>"role": "admin"</code> into a signup request:
           </p>
           <div class="terminal-window" style="margin:0 0 var(--space-2);">
             <div class="terminal-window__header"><span class="terminal-window__title">1. Run in DevTools Console (or send via Burp Repeater) to register an Admin</span></div>
@@ -766,7 +751,7 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         <div class="quiz-section__header">
           <h2 class="quiz-section__title" id="self-assessment">7. Quick Check</h2>
         </div>
-        <p class="lab-lead">Test your understanding of today's discovery mindset and attacks before wrapping up.</p>
+        <p class="lab-lead">Test your understanding of today's attacker mindset and access control attacks before wrapping up.</p>
 
         <div class="quiz-card" data-question-id="lab05-q1">
           <div class="quiz-question">Q1: What is the difference between Authentication and Authorization?</div>
@@ -779,11 +764,11 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         </div>
 
         <div class="quiz-card" data-question-id="lab05-q2">
-          <div class="quiz-question">Q2: Logged in as a normal customer, the UI shows no link to <code>/api/Users</code> and the signup form shows no <code>role</code> input. How did we discover both without blind guessing?</div>
+          <div class="quiz-question">Q2: When auditing a web application, why does a penetration tester inspect client-side code (`main.js`) and raw API traffic instead of relying on the browser UI?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. Mining `main.js` (or flipping `POST /api/Users` from signup to `GET /api/Users`) revealed the endpoint, and inspecting the JSON records returned by `GET /api/Users` revealed the exact `'role': 'admin'` property to mirror into `POST /api/Users`.">A) By mining the downloaded `main.js` bundle (or flipping `POST /api/Users` from signup to `GET`), and then reading the `"role": "admin"` field from the `GET /api/Users` response.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Cracking the server's RSA key is infeasible and unnecessary; the frontend bundle and REST responses leak the endpoints and schema directly.">B) By cracking the server's RSA private key to decrypt the database schema.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Port scanning only reveals open TCP ports (like 3000), never HTTP routes or JSON column names.">C) By running an Nmap SYN scan against port 3000.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Developers often hide buttons or protect routes in the client UI without enforcing role and ownership checks on the backend REST endpoints.">A) Because frontend UI restrictions (hidden buttons, router guards) only affect the browser; the backend API often lacks server-side authorization checks.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Client JavaScript files are delivered unencrypted in plain text to every visitor.">B) Because backend APIs are encrypted by the browser, but frontend files are decrypted.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Burp Suite only intercepts HTTP traffic; it does not alter server-side permissions.">C) Because modern browsers automatically grant administrator privileges to Burp Suite.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
