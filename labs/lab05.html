@@ -576,26 +576,46 @@ app.get('/api/Users', security.isAuthorized());
             <table class="data-table">
               <thead>
                 <tr>
-                  <th>What the Guard Blocks</th>
-                  <th>The Parser Trick</th>
-                  <th>Working Payload</th>
+                  <th style="width:24%;">What the Guard Blocks</th>
+                  <th style="width:38%;">The Parser Trick</th>
+                  <th style="width:38%;">Working Payload</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   <td><strong>Foreign <code>BasketId</code> in JSON</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Checks <code>basketIds[0] === user.bid</code></span></td>
                   <td>The JSON spec (RFC 8259) permits duplicate keys! A first-match validator reads the <strong>1st key</strong>, while standard <code>JSON.parse()</code> and Juice Shop's DB writer overwrite it with the <strong>last key</strong>.</td>
-                  <td><code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code></td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('{\"BasketId\":3,\"ProductId\":6,\"BasketId\":2,\"quantity\":1}')">Copy</button>
+                    </div>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>Front-End Proxy Blocks <code>/admin</code></strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Reverse proxy returns <code>403</code> on <code>/admin</code></span></td>
                   <td>Send <code>GET /</code> so the front-end proxy allows the request through, and add an <code>X-Original-URL</code> (or <code>X-Rewrite-URL</code>) header that the back-end framework uses to override the target path!</td>
-                  <td><code>GET /?username=carlos HTTP/1.1</code><br /><code>X-Original-URL: /admin/delete</code></td>
+                  <td>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-1);width:100%;">
+                      <div class="code-copy-inline">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">GET /?username=carlos HTTP/1.1</code>
+                      </div>
+                      <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">X-Original-URL: /admin/delete</code>
+                        <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('X-Original-URL: /admin/delete')">Copy</button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>UI Hides Privileged Fields</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Signup form only has email &amp; password</span></td>
                   <td>Mirror column names discovered in <code>GET</code> responses into <code>POST</code>/<code>PUT</code> bodies. ORMs like Sequelize, Prisma, and Mongoose bind every matching key in <code>req.body</code> unless filtered (<strong>Mass Assignment / BOPLA</strong>).</td>
-                  <td><code>{"email":"a@b.op","password":"p","role":"admin"}</code></td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">{"email":"a@b.op","password":"p","role":"admin"}</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('{\"email\":\"a@b.op\",\"password\":\"p\",\"role\":\"admin\"}')">Copy</button>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
