@@ -663,18 +663,6 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
           </div>
         </div>
 
-        <div class="prediction-prompt" style="margin-bottom:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 In PortSwigger Lab #4 below, the front-end reverse proxy blocks any request whose URL path starts with <code>/admin</code>. However, the back-end server honors the <code>X-Original-URL</code> header. To delete user <code>carlos</code> (normally <code>GET /admin/delete?username=carlos</code>), what do you put on the <code>GET</code> request line, and what do you put in <code>X-Original-URL</code>?</div>
-          <div class="prediction-prompt__input-group">
-            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
-            <button type="button" class="prediction-prompt__btn">Reveal</button>
-          </div>
-          <div class="prediction-prompt__reveal" hidden>
-            <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">Put the query parameter on a harmless root path (<code>GET /?username=carlos HTTP/1.1</code>) so the front-end proxy sees <code>/</code> and lets it through, and add the header <code>X-Original-URL: /admin/delete</code> so the back-end routes the request to <code>/admin/delete</code> with <code>username=carlos</code>!</p>
-          </div>
-        </div>
-
         <div class="target-launcher target-launcher--hosted" data-target-slug="portswigger">
           <div class="target-launcher__header">
             <div class="target-launcher__title-group">
