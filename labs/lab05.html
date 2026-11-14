@@ -462,7 +462,17 @@ HTTP/1.1 200 OK
                   <strong>The Tell (Status 401)</strong>: Sending <code>"BasketId": 2</code> returned <code>401 Invalid BasketId</code>. The server didn't fail on JSON syntax or say "Product not found". That confirmed an authorization guard specifically inspects the <code>BasketId</code> parameter.
                 </li>
                 <li>
-                  <strong>The Parameter Fuzzing Routine (OWASP WSTG-INPV-04)</strong>: Modern web architectures pass requests through multiple layers (WAF, reverse proxy, auth middleware, backend controllers, ORMs). Whenever a guard blocks a specific parameter, pentesters probe for parser disagreements using standard variations:
+                  <strong>The Parameter Fuzzing Routine (OWASP WSTG-INPV-04)</strong>: Modern web applications are not a single monolithic script. Requests travel through multiple independent parsing layers:
+                  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0;padding:var(--space-2) var(--space-3);background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:var(--font-size-xs);">
+                    <span style="color:var(--color-cyan);font-weight:600;">WAF / Reverse Proxy</span>
+                    <span style="color:var(--color-text-muted);">⟶</span>
+                    <span style="color:var(--color-warn);font-weight:600;">Auth Middleware</span>
+                    <span style="color:var(--color-text-muted);">⟶</span>
+                    <span style="color:var(--color-accent);font-weight:600;">Backend Controller</span>
+                    <span style="color:var(--color-text-muted);">⟶</span>
+                    <span style="color:var(--color-purple, #a371f7);font-weight:600;">ORM / Database</span>
+                  </div>
+                  Whenever a guard blocks a specific parameter, pentesters probe for parser disagreements across these layers using 5 standard variations:
                   <div class="table-container" style="margin:var(--space-2) 0;">
                     <table class="data-table" style="font-size:var(--font-size-xs);">
                       <thead>
