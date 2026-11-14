@@ -35,10 +35,6 @@
       </nav>
 
       <header class="lab-header">
-        <div class="lab-header__meta">
-          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
-          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
-        </div>
         <h1 class="lab-header__title">Lab 03: SQL Injection</h1>
         <p class="lab-header__lead">
           Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app spill a database error, then pull the whole user table out through the search bar.
@@ -355,7 +351,6 @@ FROM users</code></pre></div>
                 <div class="target-launcher__platform">Node · Angular SPA · same container as last week</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🎯 Launch Target</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -584,7 +579,7 @@ ORDER BY name</code></pre></div>
               <table class="data-table">
                 <thead><tr><th>You send</th><th>What happens in the query</th><th>Result</th></tr></thead>
                 <tbody>
-                  <tr><td><code>'</code></td><td>closes the string, but the app's own <code>))</code> still balances the brackets — odd but valid SQL, matches nothing</td><td><code>200</code> empty</td></tr>
+                  <tr><td><code>'</code></td><td>closes the string, but the app's own <code>))</code> still balances the brackets (odd but valid SQL, matches nothing)</td><td><code>200</code> empty</td></tr>
                   <tr><td><code>')</code></td><td>string + <strong>one</strong> bracket closed, but a second <code>)</code> is still open → brackets don't balance</td><td><code>500</code> <code>near ")"</code></td></tr>
                   <tr><td><code>'))</code></td><td>all brackets closed, but the leftover <code>%'…</code> tail is now dangling junk</td><td><code>500</code></td></tr>
                   <tr style="background:var(--color-accent-soft);"><td><code>'))</code> + <code>--</code></td><td>out of all three layers, tail commented away</td><td style="color:var(--color-accent);font-weight:700;">200, clean ✓</td></tr>
@@ -831,7 +826,6 @@ ORDER BY name</code></pre></div>
                 <div class="target-launcher__platform">Hosted · free account · the deepest free SQLi labs there are</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🌐 Go Deeper</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -974,7 +968,6 @@ db.run(q, [email, pass]);</code></pre>
       <section class="quiz-section">
         <div class="quiz-section__header">
           <h2 class="quiz-section__title" id="quiz">Lab 03 Self-Assessment · 7 questions</h2>
-          <span class="quiz-xp-badge">🖐️ DO #7</span>
         </div>
 
         <!-- Q1 MCQ: root cause -->

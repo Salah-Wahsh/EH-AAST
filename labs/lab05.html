@@ -32,13 +32,9 @@
       </nav>
 
       <header class="lab-header">
-        <div class="lab-header__meta">
-          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
-          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
-        </div>
         <h1 class="lab-header__title">Lab 05: Broken Access Control</h1>
         <p class="lab-header__lead">
-          In the last two labs you tricked a parser into running code it never meant to run. Today nothing breaks and no special characters are needed. You learn how attackers think about application boundaries, how they uncover hidden API endpoints, and how they escalate from a normal customer to a full administrator using requests that look completely legitimate.
+          In the last two labs you tricked a parser into running code. Today nothing breaks and no special characters are needed. You'll inspect hidden API endpoints and escalate from a normal customer to a full administrator using ordinary, valid requests.
         </p>
       </header>
 
@@ -131,16 +127,16 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">Those are the two directions of Broken Access Control: <strong>Horizontal escalation</strong> is reading or modifying another peer's data at your own rank (like Basket #1 or #2). <strong>Vertical escalation</strong> is reaching functions or tables reserved for a higher role (like dumping the admin user list or registering yourself as an admin). But before we launch the target, let's understand why an attacker targets these specific areas and how they think about an application.</p>
+            <p style="margin:0;">Those are the two directions of Broken Access Control: <strong>Horizontal escalation</strong> is reading or modifying another user's data at your rank (like another customer's basket). <strong>Vertical escalation</strong> is accessing functions or tables reserved for a higher role (like dumping the user table or registering an admin account).</p>
           </div>
         </div>
       </section>
 
-      <!-- Section 2: The Attacker's Mental Model: Why We Attack & Where We Look -->
+      <!-- Section 2: Tenant vs. Privilege Boundaries -->
       <section>
-        <h2 id="attacker-mental-model">2. The Attacker's Mental Model: Why We Attack &amp; Where We Look</h2>
+        <h2 id="attacker-mental-model">2. Tenant Boundaries vs. Privilege Boundaries</h2>
         <p class="lab-lead">
-          When a penetration tester lands on a web application, they are usually given a single low-privileged account (such as a standard customer). They don't attack random URLs or fire blind automated scanners. Instead, they look at the application through two fundamental boundaries:
+          On web assessments, you usually start with a single low-privileged account. Access control testing evaluates two distinct application boundaries:
         </p>
 
         <div class="comparison-grid" style="margin-top:var(--space-3);">
@@ -150,12 +146,12 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
               <span class="comparison-badge" style="color:var(--color-cyan);">Customer vs. Customer</span>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
-              <strong>Why attack shopping carts, orders, or documents?</strong>
+              <strong>What attackers test in carts, orders, and documents:</strong>
             </p>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🕵️</span> <strong>Privacy &amp; Intelligence</strong>: In e-commerce and SaaS, reading someone else's cart or order history reveals corporate buying habits, pending deals, delivery addresses, and customer identities.</li>
-              <li><span class="comparison-icon">💥</span> <strong>Integrity &amp; Fraud</strong>: Writing into another customer's cart or altering their pending order can force unintended charges or disrupt their checkout.</li>
-              <li><span class="comparison-icon">🎯</span> <strong>The Attacker's Question</strong>: <em>"Where does the app ask my browser for an object number (like a cart ID, invoice ID, or document ID), and does the server verify I actually own it?"</em></li>
+              <li><strong>Data Exposure</strong>: Reading another customer's cart or order history reveals purchase orders, delivery addresses, and customer profiles.</li>
+              <li><strong>State Tampering</strong>: Writing to another customer's cart or modifying pending orders disrupts checkout or alters order totals.</li>
+              <li><strong>The Core Check</strong>: Does the endpoint take an object ID from the request (cart ID, invoice ID, document ID) without verifying the current user owns it?</li>
             </ul>
           </div>
 
@@ -165,12 +161,12 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
               <span class="comparison-badge" style="color:var(--color-accent);">Customer vs. Administrator</span>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
-              <strong>Why attack administrative functions?</strong>
+              <strong>What attackers test in administrative functions:</strong>
             </p>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">👑</span> <strong>Total System Control</strong>: Normal customers can only browse and buy. Administrators can delete users, inspect hashed passwords, change prices, and configure system rules.</li>
-              <li><span class="comparison-icon">🔓</span> <strong>The Attacker's Ultimate Goal</strong>: Escalating from an unprivileged customer to a full administrator is the highest-impact outcome of any web pentest.</li>
-              <li><span class="comparison-icon">🎯</span> <strong>The Attacker's Question</strong>: <em>"Did the developers enforce role checks on the backend server, or did they just assume nobody would find the admin endpoints if they hid the buttons in the frontend UI?"</em></li>
+              <li><strong>Privileged Actions</strong>: Normal customers browse and purchase; administrators delete accounts, view password hashes, change roles, and configure system policies.</li>
+              <li><strong>Vertical Escalation</strong>: Promoting a regular account to an administrator bypasses business logic across the entire platform.</li>
+              <li><strong>The Core Check</strong>: Did the developer enforce role checks on the backend API, or only hide navigation links and buttons in the browser UI?</li>
             </ul>
           </div>
         </div>
@@ -178,16 +174,16 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
         <div class="callout callout--tip" style="margin-top:var(--space-4);">
           <span class="callout__icon">💡</span>
           <div class="callout__content">
-            <div class="callout__title">The Golden Principle: The UI is a suggestion; the API is the truth</div>
+            <div class="callout__title">Client UI controls do not secure the backend API</div>
             <p style="margin:0;">
-              Modern web applications have two distinct layers: the <strong>frontend user interface</strong> (HTML, CSS, JavaScript in your browser) and the <strong>backend API</strong> (Node.js, Express, databases on the server). Developers routinely make the critical mistake of adding security checks to the frontend (disabling a button, hiding a menu item, or adding a client-side route guard) while leaving the backend API completely unprotected. A penetration tester never relies on what the UI shows. They look at what the backend API will accept when called directly.
+              Modern web applications separate the <strong>frontend interface</strong> (HTML, CSS, JavaScript in the browser) from the <strong>backend API</strong> (Node.js, Express, databases on the server). Disabling a button, hiding a menu item, or adding a client-side route guard only changes what the browser renders. A penetration tester calls backend endpoints directly with tools like Burp Suite, DevTools Console, or <code>curl</code> to test what the server actually authorizes.
             </p>
           </div>
         </div>
 
         <div class="diagram-card" style="margin-top:var(--space-4);">
           <div class="diagram-card__title">
-            <span>HOW THE ATTACK TRAVELS · Three Architectural Shapes</span>
+            <span>Three Access Control Attack Paths</span>
           </div>
           <svg class="diagram-svg" viewBox="0 0 880 310" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Flow comparison of Horizontal IDOR/BOLA, Vertical Function-Level Access Control, and Parameter/Property Tampering">
             <defs>
@@ -241,8 +237,8 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
             <line x1="635" y1="150" x2="670" y2="150" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arr-accent)" />
 
             <rect x="675" y="114" width="195" height="72" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2" />
-            <text x="772" y="42" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Executes Admin action</text>
-            <text x="772" y="160" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">full platform takeover</text>
+            <text x="772" y="142" fill="var(--color-accent)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Executes Admin action</text>
+            <text x="772" y="160" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">admin privileges</text>
 
             <!-- Row 3: Parameter & Property Tampering -->
             <rect x="10" y="214" width="150" height="72" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
@@ -270,9 +266,9 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
 
       <!-- Section 3: Horizontal Escalation (Basket Read IDOR -> Basket Write HPP Bypass) -->
       <section>
-        <h2 id="idor-live">3. Horizontal Escalation: Hijack Other Users' Baskets (Read &amp; Write)</h2>
+        <h2 id="idor-live">3. Horizontal Escalation: Access Other Users' Baskets (Read &amp; Write)</h2>
         <p class="lab-lead">
-          Let's put the mental model into practice on our first target boundary: <strong>Customer Shopping Baskets</strong>. In an e-commerce platform, every customer's basket is private. When an endpoint uses a user-supplied identifier (like <code>/rest/basket/3</code>) to fetch a database row without checking who owns it, the flaw is called an <strong>Insecure Direct Object Reference (IDOR)</strong>, or <strong>Broken Object Level Authorization (BOLA)</strong> on REST APIs.
+          In an e-commerce platform, each customer's shopping basket is private. When an endpoint uses an ID from the request (such as <code>/rest/basket/3</code>) to fetch database records without checking who owns them, the flaw is an <strong>Insecure Direct Object Reference (IDOR)</strong>, or <strong>Broken Object Level Authorization (BOLA)</strong>.
         </p>
 
         <div class="target-launcher" data-target-slug="juice-shop">
@@ -284,7 +280,6 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
                 <div class="target-launcher__platform">Same container as Labs 02–04. If it's still running, skip straight to the browser.</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🎯 Launch Target</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -399,14 +394,14 @@ HTTP/1.1 200 OK
         </div>
 
         <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 You just proved you can <strong>READ</strong> anyone's basket. A real pentester never stops at Read: they immediately test <strong>WRITE</strong>! When you click "Add to Basket" on a product that isn't in your cart yet (with the Network filter box empty), DevTools shows a <code>POST</code> request named <code>BasketItems/</code> (<code>POST /api/BasketItems/</code>) sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code> (Jim's basket), the server blocks you with <code>401 Invalid BasketId</code>! Why did the server block you here when it allowed the read in Step 1?</div>
+          <div class="prediction-prompt__question">🤔 You confirmed that you can <strong>read</strong> any customer's basket. Next test the <strong>write</strong> path: click "Add to Basket" on a product not yet in your cart. DevTools shows a <code>POST /api/BasketItems/</code> request sending <code>{"ProductId":6,"BasketId":"3","quantity":1}</code>. If you change <code>"BasketId"</code> to <code>2</code> (Jim's basket), the server blocks you with <code>401 Invalid BasketId</code>. Why did the server block this write when it allowed the read in Step 1?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">Because the developer remembered to add an ownership check to the <strong>write path</strong> (adding items), even though they forgot it on the <strong>read path</strong>! But look at how the guard parses the JSON: if you supply <code>"BasketId"</code> <strong>twice</strong> (<code>{"BasketId": 3, "ProductId": 6, "BasketId": 2, "quantity": 1}</code>), the validation check inspects the first key (<code>basketIds[0] === 3</code>, matching your token), while the database layer writes the last key (<code>basketIds[basketIds.length - 1] === 2</code>). That's <strong>HTTP Parameter Pollution (HPP)</strong>!</p>
+            <p style="margin:0;">The developer added an ownership check to the write path (adding items), but omitted it from the read path. However, examine how the write guard parses JSON: if you supply <code>"BasketId"</code> twice (<code>{"BasketId": 3, "ProductId": 6, "BasketId": 2, "quantity": 1}</code>), the authorization check inspects the first key (<code>basketIds[0] === 3</code>, matching your token), while the database layer persists the last key (<code>basketIds[basketIds.length - 1] === 2</code>). That is <strong>HTTP Parameter Pollution (HPP)</strong>.</p>
           </div>
         </div>
 
@@ -448,14 +443,72 @@ HTTP/1.1 200 OK
           <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
             Verify your item landed inside Jim's cart by running <code>fetch('/rest/basket/2', {headers:{Authorization:'Bearer '+localStorage.token}}).then(r=&gt;r.json()).then(console.log)</code>. When a guard and a database parser read different copies of the same key, you own the gap between them.
           </p>
+
+          <details class="thought-accordion" style="margin-top:var(--space-3);">
+            <summary>Black-box methodology: How do you find this without source code?</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0 0 var(--space-2);">
+                On a real assessment, you don't have access to <code>routes/basketItems.js</code>. You discover this through a 3-step behavioral feedback loop:
+              </p>
+              <ol style="margin:0 0 var(--space-2);padding-left:var(--space-4);font-size:var(--font-size-sm);display:flex;flex-direction:column;gap:var(--space-2);">
+                <li>
+                  <strong>The Tell (Status 401)</strong>: Sending <code>"BasketId": 2</code> returned <code>401 Invalid BasketId</code>. The server didn't fail on JSON syntax or say "Product not found". That confirmed an authorization guard specifically inspects the <code>BasketId</code> parameter.
+                </li>
+                <li>
+                  <strong>The Parameter Fuzzing Routine (OWASP WSTG-INPV-04)</strong>: Modern web architectures pass requests through multiple layers (WAF, reverse proxy, auth middleware, backend controllers, ORMs). Whenever a guard blocks a specific parameter, pentesters probe for parser disagreements using standard variations:
+                  <div class="table-container" style="margin:var(--space-2) 0;">
+                    <table class="data-table" style="font-size:var(--font-size-xs);">
+                      <thead>
+                        <tr>
+                          <th style="width:25%;">Fuzzing Variant</th>
+                          <th style="width:38%;">Payload Shape</th>
+                          <th style="width:37%;">What It Tests</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td><strong>1. Duplicate Keys (HPP)</strong></td>
+                          <td><code>{"BasketId":3, "BasketId":2}</code></td>
+                          <td>Guard inspects 1st key; execution layer keeps last key.</td>
+                        </tr>
+                        <tr>
+                          <td><strong>2. Array Wrapping</strong></td>
+                          <td><code>{"BasketId": [3, 2]}</code></td>
+                          <td>Guard validates array; database unpacks single integer.</td>
+                        </tr>
+                        <tr>
+                          <td><strong>3. Type Juggling</strong></td>
+                          <td><code>{"BasketId": "3.0"}</code> or <code>{"BasketId": 3}</code></td>
+                          <td>Loose equality (<code>==</code>) vs strict type checking.</td>
+                        </tr>
+                        <tr>
+                          <td><strong>4. Case Mutation</strong></td>
+                          <td><code>{"BasketId": 2, "basketId": 3}</code></td>
+                          <td>Case-sensitive filter vs case-insensitive ORM.</td>
+                        </tr>
+                        <tr>
+                          <td><strong>5. JSON Object Nesting</strong></td>
+                          <td><code>{"BasketId": {"id": 2}}</code></td>
+                          <td>Parser crashes or unwraps nested property.</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </li>
+                <li>
+                  <strong>The Behavioral Oracle (Response Diffing)</strong>: Sending Variant #1 immediately flips the status code from <code>401 Unauthorized</code> to <code>200 OK</code>. Checking <code>GET /rest/basket/2</code> confirms the product landed in the victim's cart. You verified the exploit in 3 requests using only server response differences.
+                </li>
+              </ol>
+            </div>
+          </details>
         </div>
       </section>
 
       <!-- Section 4: Vertical Escalation (JS Bundle Recon -> BOLA User Dump -> Mass Assignment to Admin) -->
       <section>
-        <h2 id="vertical-escalation">4. Vertical Escalation: Discover Hidden APIs &amp; Become Admin</h2>
+        <h2 id="vertical-escalation">4. Vertical Escalation: Discover Hidden APIs &amp; Elevate Privileges</h2>
         <p class="lab-lead">
-          Reading and modifying other customers' baskets is <strong>horizontal</strong>. Now we pivot to our ultimate goal: <strong>vertical privilege escalation</strong>. We want administrative power. But look at Juice Shop's navigation menu: there is no "Administration" link anywhere. If you type <code>http://localhost:3000/#/administration</code> into the address bar, Angular's client-side router redirects you to <code>/#/403 Access Denied</code>. How do pentesters find and reach administrative powers when the UI completely hides them?
+          Reading and modifying another customer's basket is horizontal escalation. Vertical escalation means obtaining administrative privileges. Juice Shop's navigation menu contains no admin link, and navigating directly to <code>http://localhost:3000/#/administration</code> redirects to <code>/#/403 Access Denied</code>. To bypass this, we look for the backend endpoints that handle administrative actions.
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
@@ -495,7 +548,7 @@ app.get('/api/Users', security.isAuthorized());
 
         <div class="bento-card" style="margin-top:var(--space-3);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Mine the Client Bundle for Hidden Endpoints, Then Dump Every User</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Extract Hidden Endpoints from the Client Bundle, Then Dump the User Table</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">Recon → Vertical BOLA</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-2);">
@@ -529,7 +582,7 @@ app.get('/api/Users', security.isAuthorized());
         <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-cyan);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
             <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Mirror "role": "admin" into Registration (Mass Assignment / BOPLA)</strong>
-            <span class="comparison-badge" style="color:var(--color-cyan);">Admin Takeover</span>
+            <span class="comparison-badge" style="color:var(--color-cyan);">Vertical Escalation</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
             <strong>How Step 3 feeds Step 4</strong>: When a normal user signs up on <code>/#/register</code>, the Angular form only asks for <code>email</code> and <code>password</code>. The UI never lets you pick a role. But in Step 3, <code>GET /api/Users</code> just proved that the database column is named <code>"role"</code> and accepts <code>"admin"</code>! Because the backend passes the entire client JSON body straight into Sequelize's <code>User.create(req.body)</code> without filtering out privileged fields (<strong>Mass Assignment</strong>), watch what happens when we mirror <code>"role": "admin"</code> into a signup request:
@@ -555,22 +608,22 @@ app.get('/api/Users', security.isAuthorized());
         </div>
       </section>
 
-      <!-- Section 5: Under-the-Hood Parser Hacks, Modern 2020s Traps & PortSwigger Ladder -->
+      <!-- Section 5: Parser Disagreements, Modern API Traps & PortSwigger Ladder -->
       <section>
-        <h2 id="portswigger-ladder">5. Parser Disagreements, Modern 2020s API Traps &amp; PortSwigger Labs</h2>
+        <h2 id="portswigger-ladder">5. Parser Disagreements, API Traps &amp; PortSwigger Labs</h2>
         <p class="lab-lead">
-          In real assessments, developers put reverse proxies, route guards, or UUIDs in front of sensitive endpoints. Here is how pentesters bypass them when two layers of the stack disagree.
+          In production environments, applications frequently run behind reverse proxies, API gateways, or route guards. Access control bypasses often occur when two layers in the stack parse the same request differently.
         </p>
 
-        <h3 id="parser-hacks">Think you know JSON &amp; HTTP? Three parser tricks that bypass access-control guards</h3>
+        <h3 id="parser-hacks">Three Parser Disagreements That Bypass Access Controls</h3>
         <p class="lab-lead">
-          Access-control bypasses frequently exploit a disagreement between the layer that <strong>checks</strong> the request and the layer that <strong>executes</strong> it:
+          These bypasses take advantage of discrepancies between the component that validates the request and the component that processes it:
         </p>
 
         <div class="diagram-card">
           <div class="diagram-card__title">
-            <span>⚡ UNDER-THE-HOOD PARSER HACKS · when validation and execution disagree</span>
-            <span style="color:var(--color-accent);">JSON + HTTP quirks</span>
+            <span>Validation vs. Execution Discrepancies</span>
+            <span style="color:var(--color-accent);">JSON &amp; HTTP Parsing Quirks</span>
           </div>
           <div class="table-container">
             <table class="data-table">
@@ -622,16 +675,16 @@ app.get('/api/Users', security.isAuthorized());
           </div>
         </div>
 
-        <h3 id="modern-traps" style="margin-top:var(--space-4);">Why "Client-Side Router Guards" and "Switching to UUIDs" Still Fail (Modern 2020s Traps)</h3>
+        <h3 id="modern-traps" style="margin-top:var(--space-4);">Why Client-Side Route Guards and UUIDs Still Fail</h3>
         <p class="lab-lead">
-          Two mistakes show up constantly in modern React/Angular SPAs and REST/GraphQL APIs:
+          Two common implementation flaws appear repeatedly in modern Single-Page Applications (SPAs) and REST APIs:
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
               <h3 class="comparison-card__title">Trap 1: Client-Side JWT Role Check</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">no signature check in JS</span>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Unverified in Client JS</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
               <div class="terminal-window__header"><span class="terminal-window__title">Run in Console as a customer, then open /#/administration</span></div>
@@ -641,24 +694,24 @@ app.get('/api/Users', security.isAuthorized());
 )</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">🎭</span> Angular's <code>AdminGuard</code> decodes <code>localStorage.token</code> with <code>jwt-decode</code> in the browser (which <strong>never verifies the RSA signature</strong>!).</li>
-              <li><span class="comparison-icon">🚪</span> Rewriting <code>"customer"</code> to <code>"admin"</code> in the Base64 payload tricks the Angular router into opening <code>/#/administration</code> immediately!</li>
+              <li>Angular's <code>AdminGuard</code> decodes <code>localStorage.token</code> in the browser using <code>jwt-decode</code>, which does not verify the cryptographic signature.</li>
+              <li>Replacing <code>"customer"</code> with <code>"admin"</code> in the payload string tricks the client-side router into rendering <code>/#/administration</code> immediately.</li>
             </ul>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Trap 2: "UUIDs Fix IDOR" Myth</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">obscurity ≠ authz</span>
+              <h3 class="comparison-card__title">Trap 2: "UUIDs Fix IDOR" Assumption</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Obscurity ≠ Authorization</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>// Replacing 1, 2, 3 with UUIDs:
+              <div class="terminal-window__body"><pre><code>// Replacing sequential IDs with UUIDs:
 GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
-// Still vulnerable if the query has no UserId check!</code></pre></div>
+// Still vulnerable if the SQL query lacks an ownership check!</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">🔍</span> Developers often swap sequential numbers for random UUIDs instead of adding an ownership check in the database query.</li>
-              <li><span class="comparison-icon">📡</span> Public endpoints (product reviews, leaderboards, <code>/api/Users</code>, error logs) routinely leak user UUIDs. Once you copy a victim's UUID, the missing ownership check still hands over their data!</li>
+              <li>Replacing numbers with UUIDs makes IDs unguessable, but does not enforce ownership.</li>
+              <li>Public endpoints (reviews, profiles, user lists, error logs) regularly leak UUIDs. Once an attacker obtains a victim's UUID, the endpoint serves the data without checking permissions.</li>
             </ul>
           </div>
         </div>
@@ -672,7 +725,6 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
                 <div class="target-launcher__platform">Practice forced browsing, horizontal IDOR, cookie role tampering, and X-Original-URL bypass</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🌐 Hands-On Practice</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -699,7 +751,7 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
 
         <div class="diagram-card">
           <div class="diagram-card__title">
-            <span>📓 FINDING · Broken Object &amp; Function Level Authorization Across REST API</span>
+            <span>FINDING: Broken Object &amp; Function Level Authorization Across REST API</span>
             <span style="color:var(--color-danger);">Severity: High (CVSS 8.1)</span>
           </div>
           <div class="table-container">
@@ -720,7 +772,7 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">💥 Vulnerable Code (<code>routes/basket.js</code>)</h3>
+              <h3 class="comparison-card__title">Vulnerable Code (<code>routes/basket.js</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trusts URL parameter</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:0;">
@@ -759,13 +811,13 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         <div class="quiz-section__header">
           <h2 class="quiz-section__title" id="self-assessment">7. Quick Check</h2>
         </div>
-        <p class="lab-lead">Test your understanding of today's attacker mindset and access control attacks before wrapping up.</p>
+        <p class="lab-lead">Test your understanding of access control vulnerabilities and bypass techniques.</p>
 
         <div class="quiz-card" data-question-id="lab05-q1">
           <div class="quiz-question">Q1: What is the difference between Authentication and Authorization?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. Authentication proves who you are; Authorization checks what you're allowed to access.">A) Authentication checks which objects you can access; Authorization proves who you are.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Authentication verifies your identity (login/JWT signature), while Authorization verifies whether that identity is allowed to access a specific resource or action.">B) Authentication proves who you are; Authorization checks whether you are allowed to access a specific resource or action.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Authentication verifies your identity (login/JWT signature), while Authorization verifies whether that identity is allowed to access a specific resource or action.">B) Authentication proves who you are; Authorization checks whether you are allowed to access a specific resource or action.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="They are two distinct checks. Juice Shop verified your JWT signature (Authentication) while completely skipping the ownership check (Authorization).">C) They are two words for the exact same check.</button>
           </div>
           <div class="quiz-feedback"></div>
@@ -774,7 +826,7 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         <div class="quiz-card" data-question-id="lab05-q2">
           <div class="quiz-question">Q2: When auditing a web application, why does a penetration tester inspect client-side code (`main.js`) and raw API traffic instead of relying on the browser UI?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Developers often hide buttons or protect routes in the client UI without enforcing role and ownership checks on the backend REST endpoints.">A) Because frontend UI restrictions (hidden buttons, router guards) only affect the browser; the backend API often lacks server-side authorization checks.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Developers often hide buttons or protect routes in the client UI without enforcing role and ownership checks on the backend REST endpoints.">A) Because frontend UI restrictions (hidden buttons, router guards) only affect the browser; the backend API often lacks server-side authorization checks.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Client JavaScript files are delivered unencrypted in plain text to every visitor.">B) Because backend APIs are encrypted by the browser, but frontend files are decrypted.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Burp Suite only intercepts HTTP traffic; it does not alter server-side permissions.">C) Because modern browsers automatically grant administrator privileges to Burp Suite.</button>
           </div>
@@ -805,7 +857,7 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
           <div class="quiz-question">Q5: What is the root-cause server-side fix for the basket IDOR vulnerability?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Replacing sequential numbers with UUIDs makes IDs harder to guess, but if a UUID leaks in another API response or log, the missing ownership check still hands over the record.">A) Replace sequential basket numbers (`1, 2, 3`) with random UUIDs.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Always scope database queries to the authenticated user ID from the verified session token (`WHERE id = :id AND UserId = req.user.data.id`), or load the basket directly by `req.user.data.id`.">B) Scope the database query to the authenticated user's ID from the verified session token (`WHERE UserId = req.user.data.id`).</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Always scope database queries to the authenticated user ID from the verified session token (`WHERE id = :id AND UserId = req.user.data.id`), or load the basket directly by `req.user.data.id`.">B) Scope the database query to the authenticated user's ID from the verified session token (`WHERE UserId = req.user.data.id`).</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding `sessionStorage.bid` in the frontend doesn't stop an attacker from sending `GET /rest/basket/1` directly in Burp Repeater or `fetch()`.">C) Encrypt `sessionStorage.bid` in the Angular frontend.</button>
           </div>
           <div class="quiz-feedback"></div>
@@ -815,7 +867,7 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
           data-expected-regex="/(rest/basket|api/Users)/|basket/[0-9]|Users/[0-9]|/api/Users\b"
           data-solution-rationale="Any authenticated GET request to another user's basket (e.g. GET /rest/basket/1) or the unprotected user list (GET /api/Users) demonstrates broken access control with zero special characters."
           data-hint="Write the HTTP method and path you sent in Step 1 or Step 3, e.g. GET /rest/basket/1 or GET /api/Users.">
-          <div class="quiz-question">Q6 [Request]: Write one HTTP request line (method + path) that a logged-in customer can send to read another user's basket or dump the user table.</div>
+          <div class="quiz-question">Q6: Write one HTTP request line (method + path) that a logged-in customer can send to read another user's basket or dump the user table.</div>
           <div class="quiz-input-group">
             <input type="text" class="quiz-input" placeholder="GET /rest/basket/..." spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>
@@ -825,9 +877,9 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
 
         <div class="quiz-card" data-question-id="lab05-q7"
           data-expected-regex='(\{[^}]*"BasketId"\s*:\s*3[^}]*"BasketId"\s*:\s*[12][^}]*\}|\{[^}]*"role"\s*:\s*"admin"[^}]*\})'
-          data-solution-rationale='Clean bypass! Either duplicating "BasketId" ({"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}) so validation checks the first key and the DB writes the second, or injecting "role":"admin" into POST /api/Users via Mass Assignment, escalates your access.'
+          data-solution-rationale='Correct. Either duplicating "BasketId" ({"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}) so validation checks the first key and the DB writes the second, or injecting "role":"admin" into POST /api/Users via Mass Assignment, escalates your access.'
           data-hint='Write a JSON object that either sends "BasketId" twice ({"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}) or injects the admin role property ({"email":"a@b.op","password":"p","role":"admin"}).'>
-          <div class="quiz-question">Q7 [Bypass Challenge]: Write a JSON body that either bypasses the <code>POST /api/BasketItems</code> write guard (assuming your own basket is <code>3</code> and the victim's is <code>1</code> or <code>2</code>) <strong>OR</strong> escalates a <code>POST /api/Users</code> registration to <code>admin</code>.</div>
+          <div class="quiz-question">Q7: Write a JSON body that either bypasses the <code>POST /api/BasketItems</code> write guard (assuming your own basket is <code>3</code> and the victim's is <code>1</code> or <code>2</code>) <strong>OR</strong> escalates a <code>POST /api/Users</code> registration to <code>admin</code>.</div>
           <div class="quiz-input-group">
             <input type="text" class="quiz-input" placeholder='{"BasketId":3, ...}' spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>

@@ -54,6 +54,11 @@ The user has explicitly commanded the following constraints across all sessions.
 10. **❌ NO Lab Readiness Checklist**:
    - The `.checklist-card` "Lab Readiness Checklist" was removed from every lab on 2026-09-29 (students didn't use it). Do not re-add it to any lab or the template. Prerequisites that genuinely matter go inline in the relevant step or the `.target-launcher`, not a standalone checklist.
 
+11. **❌ NO AI Metadata Badges or Corny Course Slop**:
+   - Never include duration badges (`⏱️ 60 Mins`, `⏱️ 45 Mins`), difficulty tags (`Intermediate`, `Foundational`), or decorative launcher tags (`🎯 Launch Target`, `🌐 Hands-On Practice`, `🌐 Go Deeper`). They scream generic AI-generated course slop.
+   - Never write corny motivational tropes, fake clickbait headings ("Think you know JSON & HTTP?"), seminar padding ("Let's dive in", "A real pentester never stops at...", "Now we pivot to our ultimate goal"), or slogan titles ("The Golden Principle").
+   - Keep headings, bullets, and feedback technical, grounded, and concise. No emoji bullet lists (`👑`, `🕵️`, `💥`, `🎯`, `🎭`, `🚪`).
+
 ---
 
 

@@ -40,7 +40,9 @@ Run the lint at the bottom before committing. These are non-negotiable.
 | **Throat-clearing**: "Let's", "In this section we will", "It's worth noting", "Simply", "Just" (as filler) | Padding | Start with the verb or the fact. |
 | **Fake-deep closers**: "That's it.", "That's the whole game.", "Muscle memory beats muscle recall." | Slogan-y, reads generated | End on the useful fact, or on a joke that's actually funny. |
 | **Summary echo** at the end of a paragraph repeating the first line | Filler | Delete it. |
-| **Emoji on every line** | Visual noise | One per heading or card, max. Emoji in SVGs/labels are fine. |
+| **Emoji on every line / emoji bullets** (`👑`, `🕵️`, `💥`, `🎯`, `🎭`, `🚪`) | Visual noise & AI course template | Standard bullets or plain text. |
+| **Metadata duration/difficulty badges** (`⏱️ 60 Mins`, `Intermediate`, `Foundational`) | Cheap course platform AI slop | Delete them completely. The syllabus and lab number provide enough context. |
+| **Clickbait headers & corny tropes**: "Think you know X?", "The Golden Principle", "A real pentester never stops at...", "Now we pivot to our ultimate goal" | LinkedIn/webinar style | Technical, direct description of what the section covers. |
 
 **Allowed exceptions**: em dashes inside `<title>` tags site-wide (`Lab 02: … — CCY4202`, matches every page), inside code/terminal output, and inside SVG labels where space is tight. Use the en dash `–` only for numeric ranges (`20–40 rows`, `Weeks 6–7`).
 

@@ -35,10 +35,6 @@
       </nav>
 
       <header class="lab-header">
-        <div class="lab-header__meta">
-          <span class="lab-badge lab-badge--time">⏱️ 60 Mins</span>
-          <span class="lab-badge lab-badge--difficulty">Intermediate</span>
-        </div>
         <h1 class="lab-header__title">Lab 04: Cross-Site Scripting (XSS)</h1>
         <p class="lab-header__lead">
           Last week you tricked the database into running your SQL. This week you trick the victim's browser into running your JavaScript. Once your script runs inside a page they trust, their logged-in session is yours.
@@ -314,7 +310,6 @@
                 <div class="target-launcher__platform">Same container as Lab 02 and 03. If it's still running, skip straight to the browser.</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🎯 Launch Target</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -461,7 +456,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
         </div>
       </section>
 
-      <!-- Section 5: Attribute Breakout, Under-the-Hood Filter Hacks & Modern 2020s Traps -->
+      <!-- Section 5: Attribute Breakout, Filter Bypasses & Client-Side Sinks -->
       <section>
         <h2 id="portswigger-ladder">5. Attribute Breakout, WAF Bypasses &amp; Modern 2020s Traps</h2>
         <p class="lab-lead">
@@ -521,14 +516,14 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
           </div>
         </div>
 
-        <h3 id="parser-hacks">Think you know HTML &amp; JS? Three parser tricks that bypass WAFs</h3>
+        <h3 id="parser-hacks">Parser Tricks That Bypass Filters</h3>
         <p class="lab-lead">
-          Web Application Firewalls (Cloudflare, AWS WAF) and naive sanitizers often block spaces (<code> </code>), parentheses (<code>( )</code>), or quotes (<code>' "</code>). Because HTML5 and ES6 JavaScript have quirky parser rules, you can write a working XSS payload without any of them. <strong>Try all three in Juice Shop's search box right now:</strong>
+          Web Application Firewalls and input filters often block spaces (<code> </code>), parentheses (<code>( )</code>), or quotes (<code>' "</code>). HTML5 and ES6 parser behaviors allow constructing payloads without these characters. <strong>Try all three in Juice Shop's search box:</strong>
         </p>
 
         <div class="diagram-card">
           <div class="diagram-card__title">
-            <span>⚡ UNDER-THE-HOOD PARSER HACKS · test all 3 live in Juice Shop</span>
+            <span>Filter Bypasses · Test Live in Juice Shop</span>
             <span style="color:var(--color-accent);">HTML5 + ES6 quirks</span>
           </div>
           <div class="table-container">
@@ -624,7 +619,6 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
                 <div class="target-launcher__platform">Progress from basic reflection to attribute breakout and javascript: URI sinks</div>
               </div>
             </div>
-            <span class="target-launcher__badge">🌐 Hands-On Practice</span>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
@@ -713,7 +707,7 @@ this.searchValue = query;
           <div class="quiz-question">Q1: What is the root cause of Cross-Site Scripting (XSS)?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Weak passwords are an authentication issue. XSS runs your code even if the victim has a 30-character password.">A) The user picked a weak password.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. The application inserted untrusted input into the page without escaping it, so the browser parsed and executed it as code.">B) The app renders untrusted input as executable code in the page instead of escaping it as text.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. The application inserted untrusted input into the page without escaping it, so the browser parsed and executed it as code.">B) The app renders untrusted input as executable code in the page instead of escaping it as text.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts traffic on the wire, but TweetDeck was on HTTPS too. The browser happily runs an XSS payload delivered over HTTPS.">C) The website isn't using HTTPS.</button>
           </div>
           <div class="quiz-feedback"></div>

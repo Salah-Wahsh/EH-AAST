@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
 # ============================================================================
 # CCY4202 New Lab Bootstrap
-# Usage: scripts/new-lab.sh <lab-number> "<lab-title>" [time-estimate] [difficulty]
+# Usage: scripts/new-lab.sh <lab-number> "<lab-title>"
 # Example:
-#   scripts/new-lab.sh 02 "Web App Basics & Burp Suite" "60 Mins" "Intermediate"
+#   scripts/new-lab.sh 06 "File Upload Vulnerabilities"
 # ============================================================================
 set -euo pipefail
 
 if [ $# -lt 2 ]; then
-  echo "Usage: $0 <lab-number> \"<lab-title>\" [time-estimate] [difficulty]"
-  echo "Example: $0 02 \"Web App Basics & Burp Suite\" \"60 Mins\" \"Intermediate\""
+  echo "Usage: $0 <lab-number> \"<lab-title>\""
+  echo "Example: $0 06 \"File Upload Vulnerabilities\""
   exit 1
 fi
 
 LAB_NUMBER="$1"
 LAB_TITLE="$2"
-TIME_ESTIMATE="${3:-45 Mins}"
-DIFFICULTY="${4:-Intermediate}"
 
 # Repo root = parent of this script's directory
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -46,8 +44,6 @@ sed \
   -e "s/q-xx-1/q-${LAB_NUMBER}-1/g" \
   -e "s/q-xx-2/q-${LAB_NUMBER}-2/g" \
   -e "s|\[Lab Title\]|${LAB_TITLE}|g" \
-  -e "s|⏱️ 45 Mins|⏱️ ${TIME_ESTIMATE}|" \
-  -e "s|>Intermediate<|>${DIFFICULTY}<|" \
   "$TEMPLATE" > "$TARGET"
 
 echo "✓ Created $TARGET"

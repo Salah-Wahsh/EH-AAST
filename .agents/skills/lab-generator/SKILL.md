@@ -45,8 +45,8 @@ If any of these are missing, ask the TA once (concise question) before generatin
 
 Run:
 ```bash
-scripts/new-lab.sh <NUMBER> "<TITLE>" "<TIME>" "<DIFFICULTY>"
-# e.g. scripts/new-lab.sh 03 "SQL Injection Fundamentals" "60 Mins" "Intermediate"
+scripts/new-lab.sh <NUMBER> "<TITLE>"
+# e.g. scripts/new-lab.sh 06 "File Upload Vulnerabilities"
 ```
 
 The script copies the template, substitutes `Lab XX`/`labXX` tokens, and prints the tri-point registration snippets.
