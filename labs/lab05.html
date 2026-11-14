@@ -452,70 +452,150 @@ HTTP/1.1 200 OK
           </p>
 
           <details class="thought-accordion" style="margin-top:var(--space-3);" open>
-            <summary>Black-box methodology: How do you find this without source code?</summary>
-            <div class="thought-accordion__content">
-              <p style="margin:0 0 var(--space-2);">
-                On a real assessment, you don't have access to <code>routes/basketItems.js</code>. You discover this through a 3-step behavioral feedback loop:
-              </p>
-              <ol style="margin:0 0 var(--space-2);padding-left:var(--space-4);font-size:var(--font-size-sm);display:flex;flex-direction:column;gap:var(--space-2);">
-                <li>
-                  <strong>The Tell (Status 401)</strong>: Sending <code>"BasketId": 2</code> returned <code>401 Invalid BasketId</code>. The server didn't fail on JSON syntax or say "Product not found". That confirmed an authorization guard specifically inspects the <code>BasketId</code> parameter.
-                </li>
-                <li>
-                  <strong>The Parameter Fuzzing Routine (OWASP WSTG-INPV-04)</strong>: Modern web applications are not a single monolithic script. Requests travel through multiple independent parsing layers:
-                  <div style="display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:var(--space-2);margin:var(--space-2) 0;padding:var(--space-2) var(--space-3);background:var(--color-bg-alt);border:1px solid var(--color-border);border-radius:var(--radius-sm);font-family:var(--font-mono);font-size:var(--font-size-xs);">
-                    <span style="color:var(--color-cyan);font-weight:600;">WAF / Reverse Proxy</span>
-                    <span style="color:var(--color-text-muted);">⟶</span>
-                    <span style="color:var(--color-warn);font-weight:600;">Auth Middleware</span>
-                    <span style="color:var(--color-text-muted);">⟶</span>
-                    <span style="color:var(--color-accent);font-weight:600;">Backend Controller</span>
-                    <span style="color:var(--color-text-muted);">⟶</span>
-                    <span style="color:var(--color-purple, #a371f7);font-weight:600;">ORM / Database</span>
+            <summary style="font-weight:600;">Black-box methodology: 3-step behavioral feedback loop</summary>
+            <div class="thought-accordion__content" style="padding-top:var(--space-3);">
+
+              <!-- Step 1: The Tell -->
+              <div style="margin-bottom:var(--space-4);">
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-cyan);padding:2px 8px;border-radius:12px;">STEP 1</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">The Tell: Differential Error Diagnosis</strong>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--space-2);">
+                  <div style="padding:var(--space-2) var(--space-3);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);opacity:0.65;">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:2px;">❌ 400 Bad Request</div>
+                    <div style="font-size:11px;color:var(--color-text-secondary);">Malformed JSON syntax. <em>(Not what happened)</em></div>
                   </div>
-                  Whenever a guard blocks a specific parameter, pentesters probe for parser disagreements across these layers using 5 standard variations:
-                  <div class="table-container" style="margin:var(--space-2) 0;">
-                    <table class="data-table" style="font-size:var(--font-size-xs);">
-                      <thead>
-                        <tr>
-                          <th style="width:25%;">Fuzzing Variant</th>
-                          <th style="width:38%;">Payload Shape</th>
-                          <th style="width:37%;">What It Tests</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td><strong>1. Duplicate Keys (HPP)</strong></td>
-                          <td><code>{"BasketId":3, "BasketId":2}</code></td>
-                          <td>Guard inspects 1st key; execution layer keeps last key.</td>
-                        </tr>
-                        <tr>
-                          <td><strong>2. Array Wrapping</strong></td>
-                          <td><code>{"BasketId": [3, 2]}</code></td>
-                          <td>Guard validates array; database unpacks single integer.</td>
-                        </tr>
-                        <tr>
-                          <td><strong>3. Type Juggling</strong></td>
-                          <td><code>{"BasketId": "3.0"}</code> or <code>{"BasketId": 3}</code></td>
-                          <td>Loose equality (<code>==</code>) vs strict type checking.</td>
-                        </tr>
-                        <tr>
-                          <td><strong>4. Case Mutation</strong></td>
-                          <td><code>{"BasketId": 2, "basketId": 3}</code></td>
-                          <td>Case-sensitive filter vs case-insensitive ORM.</td>
-                        </tr>
-                        <tr>
-                          <td><strong>5. JSON Object Nesting</strong></td>
-                          <td><code>{"BasketId": {"id": 2}}</code></td>
-                          <td>Parser crashes or unwraps nested property.</td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div style="padding:var(--space-2) var(--space-3);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);opacity:0.65;">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:2px;">❌ 404 Not Found</div>
+                    <div style="font-size:11px;color:var(--color-text-secondary);">Missing product or endpoint. <em>(Not what happened)</em></div>
                   </div>
-                </li>
-                <li>
-                  <strong>The Behavioral Oracle (Response Diffing)</strong>: Sending Variant #1 immediately flips the status code from <code>401 Unauthorized</code> to <code>200 OK</code>. Checking <code>GET /rest/basket/2</code> confirms the product landed in the victim's cart. You verified the exploit in 3 requests using only server response differences.
-                </li>
-              </ol>
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.4);border-radius:var(--radius-sm);">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);font-weight:700;color:var(--color-danger);margin-bottom:2px;">🎯 401 Invalid BasketId</div>
+                    <div style="font-size:11px;color:var(--color-text);"><strong>Active guard detected!</strong> Specifically validates <code>BasketId</code>.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: The Multi-Layer Pipeline & Fuzzing Matrix -->
+              <div style="margin-bottom:var(--space-4);">
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-warn);padding:2px 8px;border-radius:12px;">STEP 2</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">Parser Pipeline & Parameter Fuzzing Matrix (OWASP WSTG-INPV-04)</strong>
+                </div>
+
+                <!-- Pipeline Diagram -->
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);margin-bottom:var(--space-2);">
+                  <div style="text-align:center;flex:1 1 110px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-cyan);">WAF / Proxy</div>
+                    <div style="font-size:10px;color:var(--color-text-muted);">Inspection pass</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 110px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-warn);">Auth Guard</div>
+                    <div style="font-size:10px;color:var(--color-warn);font-weight:600;">Reads Key #1 (Pass ✅)</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 110px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-accent);">Controller</div>
+                    <div style="font-size:10px;color:var(--color-text-muted);">Overwrites map</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 110px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-purple, #a371f7);">ORM / Database</div>
+                    <div style="font-size:10px;color:var(--color-purple, #a371f7);font-weight:600;">Writes Key #2 (Victim 💥)</div>
+                  </div>
+                </div>
+
+                <!-- Fuzzing Matrix Table -->
+                <div class="table-container" style="margin:0;">
+                  <table class="data-table" style="font-size:var(--font-size-xs);">
+                    <thead>
+                      <tr>
+                        <th style="width:26%;">Fuzzing Variant</th>
+                        <th style="width:42%;">Payload Shape</th>
+                        <th style="width:32%;">What It Tests</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr style="background:rgba(34, 197, 94, 0.08);">
+                        <td><strong style="color:var(--color-accent);">1. Duplicate Keys (HPP)</strong></td>
+                        <td><code>{"BasketId":3, "BasketId":2}</code></td>
+                        <td>Guard inspects 1st key; DB writes last key.</td>
+                      </tr>
+                      <tr>
+                        <td><strong>2. Array Wrapping</strong></td>
+                        <td><code>{"BasketId": [3, 2]}</code></td>
+                        <td>Guard checks index 0; DB unpacks array.</td>
+                      </tr>
+                      <tr>
+                        <td><strong>3. Type Juggling</strong></td>
+                        <td><code>{"BasketId": "3.0"}</code> or <code>{"BasketId": 3}</code></td>
+                        <td>Loose equality (<code>==</code>) vs strict typing.</td>
+                      </tr>
+                      <tr>
+                        <td><strong>4. Case Mutation</strong></td>
+                        <td><code>{"BasketId": 2, "basketId": 3}</code></td>
+                        <td>Case-sensitive filter vs case-insensitive ORM.</td>
+                      </tr>
+                      <tr>
+                        <td><strong>5. JSON Object Nesting</strong></td>
+                        <td><code>{"BasketId": {"id": 2}}</code></td>
+                        <td>Parser crash or nested object unwrapping.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Step 3: The Behavioral Oracle -->
+              <div>
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-accent);padding:2px 8px;border-radius:12px;">STEP 3</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">The Behavioral Oracle: 3-Request Verification</strong>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-danger);">1. Baseline Probe</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(239,68,68,0.2);color:var(--color-danger);font-weight:700;">401</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>{"BasketId": 2}</code><br>
+                      <span style="color:var(--color-danger);font-weight:600;">➔ Blocked by Guard</span>
+                    </div>
+                  </div>
+
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-accent);">2. HPP Exploit</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(34,197,94,0.2);color:var(--color-accent);font-weight:700;">200 OK</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>{"BasketId":3, "BasketId":2}</code><br>
+                      <span style="color:var(--color-accent);font-weight:600;">➔ Guard Bypassed!</span>
+                    </div>
+                  </div>
+
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-cyan);">3. Confirm Basket</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(56,189,248,0.2);color:var(--color-cyan);font-weight:700;">GET</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>GET /rest/basket/2</code><br>
+                      <span style="color:var(--color-cyan);font-weight:600;">➔ Injected item verified</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-1) var(--space-2);background:var(--color-bg);border:1px dashed var(--color-border);border-radius:var(--radius-sm);font-size:11px;color:var(--color-text-muted);">
+                  <span>💡 <strong>Black-Box Reality:</strong> You never saw a single line of backend code.</span>
+                  <span style="font-family:var(--font-mono);color:var(--color-accent);font-weight:600;">Verified via response diffing alone</span>
+                </div>
+              </div>
+
             </div>
           </details>
         </div>
