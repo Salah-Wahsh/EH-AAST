@@ -45,12 +45,19 @@
         <div class="callout callout--tip">
           <span class="callout__icon">🏦</span>
           <div class="callout__content">
-            <div class="callout__title">May 2019: 885 million mortgage documents exposed by changing one number in a URL</div>
+            <div class="callout__title">Case Study: 885 Million Records Leaked by Changing One Number in a URL</div>
             <p style="margin:0 0 var(--space-2);">
-              First American Financial, one of the largest title-insurance companies in the US, emailed customers links to their mortgage closing records ending with a document number: <code>.../Document?docId=<strong>75849621</strong></code>. Subtract <code>1</code> from that number in the address bar, and the server returned a stranger's file: bank account numbers, tax records, Social Security numbers, and driver's license scans going back to 2003.
+              In May 2019, First American Financial emailed customers links to their mortgage closing records ending with a document ID:
             </p>
-            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-              Roughly <strong>885 million documents</strong> sat open to anyone who could count backwards. Nobody injected SQL or JavaScript. The server simply never asked: <em>"Does document 75849620 belong to the person asking for it?"</em>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body" style="font-size:var(--font-size-xs);"><pre><code>GET .../Document?docId=75849621  →  Your closing statement
+GET .../Document?docId=75849620  →  A stranger's bank records, tax returns &amp; SSN</code></pre></div>
+            </div>
+            <p style="margin:0 0 var(--space-2);">
+              Subtract <code>1</code> in the address bar, and the server returned a stranger's file dating back to 2003. Roughly <strong>885 million documents</strong> sat exposed because anyone could count backwards. Nobody injected SQL or JavaScript; the server simply never verified whether document <code>75849620</code> belonged to the person asking for it.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-xs);color:var(--color-text-muted);">
+              Source: <a href="https://krebsonsecurity.com/2019/05/first-american-financial-corp-leaked-hundreds-of-millions-of-title-insurance-records/" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">KrebsOnSecurity: First American Financial Corp. Leaked Hundreds of Millions of Title-Insurance Records (May 2019) ↗</a>
             </p>
           </div>
         </div>
