@@ -327,7 +327,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
               <h3 class="comparison-card__title">Signed Identity (<code>localStorage.token</code>)</h3>
-              <span class="comparison-badge" style="color:var(--color-cyan);">RSA-signed by server</span>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Server-Signed</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
               Your JWT is three Base64 strings (<code>header.payload.signature</code>). The 3rd part is signed by the server's private key. If you tamper with <code>id: 3</code> inside the token, the signature breaks and the server rejects it with <code>401</code>.
@@ -336,7 +336,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
               <h3 class="comparison-card__title">Unsigned Resource ID (<code>sessionStorage.bid</code>)</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">controlled by your browser</span>
+              <span class="comparison-badge" style="color:var(--color-accent);">Client-Controlled</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
               Notice that your shopping cart number (<code>'3'</code>) sits outside the signed token in <code>sessionStorage.bid</code>! When Angular opens your cart, it reads this number and requests <code>GET /rest/basket/3</code>.
