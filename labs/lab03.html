@@ -37,131 +37,27 @@
       <header class="lab-header">
         <h1 class="lab-header__title">Lab 03: SQL Injection</h1>
         <p class="lab-header__lead">
-          Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app spill a database error, then pull the whole user table out through the search bar.
+          Last week you learned to put anything you want on the wire. Today you send the one thing the developer really didn't want: database logic. You'll walk into an admin account with no password, make the app spill a database error, then pull the whole user table out through the search API.
         </p>
       </header>
 
-      <!-- Career band (v2): where this sits in the real world -->
-      <div class="info-dense-card info-dense-card--accent" style="margin-bottom:var(--space-4);">
-        <div class="info-dense-card__title">📌 Where this lands in the real world</div>
-        <div class="info-dense-card__grid">
-          <div class="info-dense-card__cell">
-            <span class="info-dense-card__label">OWASP Top 10</span>
-            <code>A03: Injection</code>
-          </div>
-          <div class="info-dense-card__cell">
-            <span class="info-dense-card__label">MITRE ATT&amp;CK</span>
-            <code>T1190</code>
-          </div>
-          <div class="info-dense-card__cell">
-            <span class="info-dense-card__label">CEH domain</span>
-            <code>Web App Hacking</code>
-          </div>
-          <div class="info-dense-card__cell">
-            <span class="info-dense-card__label">Builds toward</span>
-            <code>eJPT · BSCP</code>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 0.5: Skip & Navigate + Methodology Spine -->
+      <!-- Section 1: SQL refresher -->
       <section>
-        <h2 id="skip-and-navigate">0. Where We Are, and the Process We Follow</h2>
+        <h2 id="sql-in-5-minutes">1. SQL in Five Minutes</h2>
 
-        <div class="callout callout--theory">
-          <span class="callout__icon">🧭</span>
+        <div class="callout callout--tip" style="margin-bottom:var(--space-4);">
+          <span class="callout__icon">💥</span>
           <div class="callout__content">
-            <div class="callout__title">Still in Phase 3 (Exploitation), now going deeper</div>
-            <p style="margin:0;">
-              Last week you learned the tools. This week you use them on your first real vulnerability class. From here on, every web lab follows the same five-step process so it turns into a habit, not a one-off trick.
+            <div class="callout__title">October 2015: TalkTalk loses 156,959 customer records to one SQL query</div>
+            <p style="margin:0 0 var(--space-2);">
+              In October 2015, a 17-year-old attacker spotted an unparameterized SQL query on UK telecom TalkTalk's website and pointed <code>sqlmap</code> at it. Within hours, attackers pulled <strong>156,959 customers' personal records</strong> and <strong>15,656 bank account numbers and sort codes</strong> straight out of the database.
+            </p>
+            <p style="margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);">
+              The breach cost TalkTalk roughly £77 million and a record regulatory fine, all because user input got glued straight into a SQL string instead of being passed as data.
             </p>
           </div>
         </div>
 
-        <div class="diagram-card" style="margin-top:var(--space-3);">
-          <div class="diagram-card__title">
-            <span>THE WEB PENTEST SPINE · same five steps every lab</span>
-            <span style="color:var(--color-accent);">Today lives in Identify → Exploit → Document</span>
-          </div>
-          <svg class="diagram-svg" viewBox="0 0 940 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Five-step web pentest methodology: Recon, Map, Identify, Exploit, Document">
-            <defs>
-              <marker id="arrow-spine" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
-              </marker>
-            </defs>
-            <g opacity="0.4">
-              <rect x="5" y="35" width="160" height="52" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <text x="85" y="58" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">1 · RECON</text>
-              <text x="85" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">who is the target</text>
-            </g>
-            <path d="M 165 61 L 190 61" stroke="var(--color-accent)" stroke-width="2" opacity="0.4" marker-end="url(#arrow-spine)" />
-            <g opacity="0.4">
-              <rect x="195" y="35" width="160" height="52" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <text x="275" y="58" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">2 · MAP</text>
-              <text x="275" y="76" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">every feature (Lab 02)</text>
-            </g>
-            <path d="M 355 61 L 380 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
-            <g>
-              <rect x="385" y="28" width="170" height="66" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
-              <text x="470" y="52" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">3 · IDENTIFY</text>
-              <text x="470" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">find the injection</text>
-              <text x="470" y="86" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
-            </g>
-            <path d="M 555 61 L 580 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
-            <g>
-              <rect x="585" y="28" width="170" height="66" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
-              <text x="670" y="52" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">4 · EXPLOIT</text>
-              <text x="670" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">bypass · dump</text>
-              <text x="670" y="86" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
-            </g>
-            <path d="M 755 61 L 780 61" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-spine)" />
-            <g>
-              <rect x="785" y="28" width="150" height="66" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="2.5" />
-              <text x="860" y="52" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="800" text-anchor="middle">5 · DOCUMENT</text>
-              <text x="860" y="70" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">write the finding</text>
-              <text x="860" y="86" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">TODAY</text>
-            </g>
-          </svg>
-        </div>
-
-
-        <!-- Tool-agnostic spine: same attack, two tools, two reasons -->
-        <div class="diagram-card" style="margin-top:var(--space-3);">
-          <div class="diagram-card__title">
-            <span>🧰 ONE ATTACK, TWO TOOLS · the point is the attack, not the tool</span>
-            <span style="color:var(--color-accent);">DevTools → Burp</span>
-          </div>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) var(--space-3) var(--space-3);">
-            SQL injection isn't a Burp feature. It's text on the wire. We'll start in the browser's own DevTools (no install) to prove that, then move to Burp only when the job actually calls for it. Pick the tool the job needs, not the one you're used to.
-          </p>
-          <div class="comparison-grid" style="margin:0;">
-            <div class="comparison-card comparison-card--cyan">
-              <div class="comparison-card__header">
-                <h3 class="comparison-card__title">1 · DevTools</h3>
-                <span class="comparison-badge" style="color:var(--color-cyan);">already in your browser</span>
-              </div>
-              <ul class="comparison-list">
-                <li><span class="comparison-icon">🎯</span> Jobs: the login bypass, then break the search and read the leaked error.</li>
-                <li><span class="comparison-icon">💡</span> Every browser ships a free proxy. Zero install, and you watch the real request leave.</li>
-              </ul>
-            </div>
-            <div class="comparison-card comparison-card--accent">
-              <div class="comparison-card__header">
-                <h3 class="comparison-card__title">2 · Burp</h3>
-                <span class="comparison-badge" style="color:var(--color-accent);">built to iterate</span>
-              </div>
-              <ul class="comparison-list">
-                <li><span class="comparison-icon">🎯</span> Job: count columns, then dump the table.</li>
-                <li><span class="comparison-icon">💡</span> When you send one request 10 times with one number changed, this is why Burp exists.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- Section 1: SQL refresher -->
-      <section>
-        <h2 id="sql-in-5-minutes">1. SQL in Five Minutes <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· foundation</span></h2>
         <p class="lab-lead">
           A database is a stack of tables. A table is rows and columns, like a spreadsheet. You talk to it with SQL, and 90% of what an attacker needs is one sentence: <code>SELECT columns FROM table WHERE condition</code>.
         </p>
@@ -253,7 +149,7 @@
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Query A · what the app already runs</h3>
+              <h3 class="comparison-card__title" id="union-query-a">Query A · what the app already runs</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">3 columns</span>
             </div>
             <div class="terminal-window" style="margin:0 0 var(--space-3);">
@@ -272,7 +168,7 @@ FROM students</code></pre></div>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Query B · what you bolt on</h3>
+              <h3 class="comparison-card__title" id="union-query-b">Query B · what you bolt on</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">3 columns</span>
             </div>
             <div class="terminal-window" style="margin:0 0 var(--space-3);">
@@ -317,7 +213,7 @@ FROM users</code></pre></div>
         <div class="comparison-grid">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ Rule 1 · column counts must match</h3>
+              <h3 class="comparison-card__title" id="union-rule-1">Rule 1 · column counts must match</h3>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0;">
               Both <code>SELECT</code>s have to return the <strong>same number of columns</strong>, or the database refuses the whole query and you get nothing. That's the entire reason you count columns before you extract.
@@ -325,13 +221,13 @@ FROM users</code></pre></div>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ Rule 2 · types have to be compatible</h3>
+              <h3 class="comparison-card__title" id="union-rule-2">Rule 2 · types have to be compatible</h3>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-              Column 2 meets column 2, column 3 meets column 3, and each pair has to be type-compatible. Strict databases (Postgres, SQL Server) reject a string stacked on a number. <strong>SQLite, which Juice Shop uses, is loose</strong> about it, which is exactly why a string email can ride back in the integer <code>id</code> column.
+              Column 2 meets column 2, column 3 meets column 3, and each pair has to be type-compatible. Strict databases (Postgres, SQL Server) reject a string stacked on a number. <strong>SQLite, which Juice Shop uses, is loose</strong> about it, which is why a string email can ride back in the integer <code>id</code> column.
             </p>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
-              Don't know the types? Use <code>NULL</code> as the placeholder, it's compatible with every type, so <code>UNION SELECT NULL,NULL,NULL--</code> finds the column count without a type error. Then swap a string into each slot to see which ones print.
+              Don't know the types? Use <code>NULL</code> as a placeholder when probing column count (it fits any SQL type), then swap strings into display slots to see which ones print. Note: on Juice Shop, columns 2 and 3 (<code>name</code> and <code>description</code>) crash inside the app's translation helper if left as <code>NULL</code>, so in §5 you'll use dummy strings like <code>'3'</code> instead.
             </p>
           </div>
         </div>
@@ -340,21 +236,21 @@ FROM users</code></pre></div>
 
       <!-- Section 2: Exploit first, the auth bypass -->
       <section>
-        <h2 id="auth-bypass">2. Walk In Without a Password <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit · tool 1: browser + DevTools</span></h2>
+        <h2 id="auth-bypass">2. Walk In Without a Password</h2>
 
         <div class="target-launcher" data-target-slug="juice-shop">
           <div class="target-launcher__header">
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🧃</span>
               <div>
-                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
                 <div class="target-launcher__platform">Node · Angular SPA · same container as last week</div>
               </div>
             </div>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">🖐️ DO #1 · Start it (skip if it's still running)</span>
+              <span class="target-launcher__step-label">Start the container (skip if already running)</span>
               <div class="terminal-window" style="margin:0;">
                 <div class="terminal-window__header">
                   <div class="terminal-window__controls">
@@ -371,7 +267,7 @@ FROM users</code></pre></div>
               </div>
             </div>
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">Open it in the browser (that's our workbench today)</span>
+              <span class="target-launcher__step-label">Open it in the browser</span>
               <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
             </div>
           </div>
@@ -383,8 +279,8 @@ FROM users</code></pre></div>
 
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #2 · The login bypass, right in the form</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Bypass the login form in the browser</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Authentication Bypass</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-1);">
             <li>Juice Shop → top-right <strong>Account → Login</strong>.</li>
@@ -419,32 +315,32 @@ FROM users</code></pre></div>
 
       <!-- Section 3: Now explain WHY it worked -->
       <section>
-        <h2 id="how-the-query-is-built">3. Why That Worked <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify</span></h2>
+        <h2 id="how-the-query-is-built">3. Why That Worked</h2>
         <p class="lab-lead">
-          Here's what actually happened under the hood. The app took your email and password and pasted them straight into a SQL sentence, then ran it. Because it glues strings together without cleaning your input, you got to finish the sentence for it.
+          Here's what actually happened under the hood. The app took your email and password and pasted them straight into a SQL sentence, then ran it. Because it glues strings together without separating data from SQL syntax, you got to finish the sentence for it.
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ What the developer meant</h3>
+              <h3 class="comparison-card__title" id="login-normal-query">What the developer meant</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">normal login</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">📝</span> You type: <code>jim@juice-sh.op</code> / <code>hunter2</code></li>
-              <li><span class="comparison-icon">⚙️</span> Query becomes:<br /><code>SELECT * FROM users WHERE email='jim@juice-sh.op' AND password='hunter2'</code></li>
-              <li><span class="comparison-icon">🔒</span> No match unless both are right. Login denied.</li>
+              <li>You type: <code>jim@juice-sh.op</code> / <code>hunter2</code></li>
+              <li>Query becomes:<br /><code>SELECT * FROM users WHERE email='jim@juice-sh.op' AND password='hunter2'</code></li>
+              <li>No match unless both are right. Login denied.</li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">💥 What you sent instead</h3>
+              <h3 class="comparison-card__title" id="login-injected-query">What you sent instead</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">injected</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">📝</span> Email field: <code>' OR 1=1--</code></li>
-              <li><span class="comparison-icon">⚙️</span> Query becomes:<br /><code>SELECT * FROM users WHERE email='' OR 1=1--' AND password='…'</code></li>
-              <li><span class="comparison-icon">🔓</span> <code>1=1</code> is always true, <code>--</code> comments out the password check. Returns every row, and the app logs you in as row one.</li>
+              <li>Email field: <code>' OR 1=1--</code></li>
+              <li>Query becomes:<br /><code>SELECT * FROM users WHERE email='' OR 1=1--' AND password='…'</code></li>
+              <li><code>1=1</code> is always true, <code>--</code> comments out the password check. Returns every row, and the app logs you in as row one.</li>
             </ul>
           </div>
         </div>
@@ -490,12 +386,12 @@ FROM users</code></pre></div>
 
       <!-- Section 4: Stretch, error-based -->
       <section>
-        <h2 id="read-the-error">4. Make the App Confess <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· identify · still in DevTools</span></h2>
+        <h2 id="read-the-error">4. Make the App Confess</h2>
 
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #3 · Break the search, watch it in DevTools</strong>
-            <span class="comparison-badge" style="color:var(--color-warn);">4 min</span>
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 2 · Break the search API and read the error in DevTools</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">Error-Based SQLi</span>
           </div>
           <div class="callout callout--warning" style="margin-bottom:var(--space-3);">
             <span class="callout__icon">⚠️</span>
@@ -594,21 +490,17 @@ ORDER BY name</code></pre></div>
 
       <!-- Section 5: Stretch, UNION -->
       <section>
-        <h2 id="union-extraction">5. Pull the User Table Out <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit · tool 2: Burp Repeater</span></h2>
-
-        <div class="bento-card" style="margin-bottom:var(--space-3);border-left:3px solid var(--color-warn);">
-          <span class="comparison-badge" style="color:var(--color-warn);">🟡 STRETCH</span>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
-            Now the job changes shape. You're about to send the <em>same</em> request over and over with one number nudged each time (<code>ORDER BY 1</code>, <code>2</code>, <code>3</code>…), then hand-craft a long payload. That's clumsy to redo in DevTools, and it's exactly the repetition Burp's <strong>Repeater</strong> was built for. This is the tool earning its keep, not a habit.
-          </p>
-        </div>
+        <h2 id="union-extraction">5. Pull the User Table Out</h2>
+        <p class="lab-lead">
+          Counting columns means sending the same request 10 times with one number nudged (<code>ORDER BY 1</code>, <code>2</code>, <code>3</code>…), then iterating on a long <code>UNION SELECT</code> payload. That's clumsy to redo in the address bar, which is why we switch from DevTools to Burp <strong>Repeater</strong> here.
+        </p>
 
         <div class="callout callout--tip" style="margin-bottom:var(--space-3);">
           <span class="callout__icon">🧭</span>
           <div class="callout__content">
             <div class="callout__title">Get the request into Repeater</div>
             <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);">
-              With Juice Shop proxied through Burp (same setup as Lab 02), do one search so a <code>GET /rest/products/search?q=apple</code> lands in <strong>Proxy → HTTP history</strong>. Right-click it → <strong>Send to Repeater</strong>. From here you type payloads raw in the request pane, no URL-encoding needed, and hit <strong>Send</strong> as many times as you like.
+              With Juice Shop proxied through Burp (same setup as Lab 02), visit <code>http://localhost:3000/rest/products/search?q=apple</code> so a <code>GET /rest/products/search?q=apple</code> lands in <strong>Proxy → HTTP history</strong>. Right-click it → <strong>Send to Repeater</strong>. From here you can edit the <code>q=</code> value (select your payload and press <kbd>Ctrl+U</kbd> in Burp to URL-encode spaces before sending) and hit <strong>Send</strong> as many times as you like.
             </p>
             <p style="margin:0;font-size:var(--font-size-sm);">
               Request pane too small to read? Paste it into the <a href="../request-highlighter.html" target="_blank" rel="noopener"><strong>Request Highlighter</strong></a> (opens in a new tab) to blow it up, colorize it, and read it comfortably.
@@ -621,13 +513,18 @@ ORDER BY name</code></pre></div>
             <span>UNION in two moves: count columns, then swap in your own</span>
           </div>
           <svg class="diagram-svg" viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two-step UNION: count columns with ORDER BY, then UNION SELECT the users table">
+            <defs>
+              <marker id="arrow-union" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
+              </marker>
+            </defs>
             <rect x="20" y="20" width="340" height="120" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
             <text x="190" y="44" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">STEP 1 · count columns</text>
             <text x="40" y="72" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 1--  → ok</text>
             <text x="40" y="92" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 9--  → ok</text>
             <text x="40" y="112" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="10">q=apple')) ORDER BY 10-- → error</text>
             <text x="40" y="130" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="10">so the table has 9 columns.</text>
-            <line x1="360" y1="80" x2="400" y2="80" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-spine)" />
+            <line x1="360" y1="80" x2="400" y2="80" stroke="var(--color-accent)" stroke-width="2.5" marker-end="url(#arrow-union)" />
             <rect x="405" y="20" width="335" height="120" rx="8" fill="var(--color-accent-soft)" stroke="var(--color-accent)" stroke-width="1.5" />
             <text x="572" y="44" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">STEP 2 · UNION your query</text>
             <text x="420" y="72" fill="var(--color-text-secondary)" font-family="var(--font-mono)" font-size="9.5">q=x')) UNION SELECT email,password,</text>
@@ -639,8 +536,8 @@ ORDER BY name</code></pre></div>
 
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #4 · Count, then extract</strong>
-            <span class="comparison-badge" style="color:var(--color-warn);">8 min</span>
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Count columns and dump the Users table in Repeater</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">UNION Extraction</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
             All of this happens in one Repeater tab on the <code>search?q=</code> request. Change the value, Send, read the response, repeat.
@@ -672,7 +569,7 @@ ORDER BY name</code></pre></div>
         <figure style="margin:var(--space-4) 0;">
           <img src="../assets/img/lab03/union-dump.png" alt="Juice Shop search response with the whole Users table injected as fake products: emails in the id field, MD5 password hashes in the name field" loading="lazy" style="width:100%;border:1px solid var(--color-border);border-radius:var(--radius-md);display:block;background:#fff;padding:var(--space-2);" />
           <figcaption style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin-top:var(--space-2);font-family:var(--font-mono);">
-            The real response from Juice Shop. Every user's email sits in the <code>id</code> field and their MD5 hash in <code>name</code>. You just dumped the whole user table through a search box.
+            The real response from Juice Shop. Every user's email sits in the <code>id</code> field and their MD5 hash in <code>name</code>. You just dumped the whole user table through the search endpoint.
           </figcaption>
         </figure>
 
@@ -685,43 +582,39 @@ ORDER BY name</code></pre></div>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            It's an <strong>MD5 hash</strong>, not the password. Not a dead end at all: MD5 is fast and unsalted here, so those hashes crack in seconds against a wordlist (that's a Week 12 topic). Pulling the hash out through a search box is already a full user-database breach. You'd write that up today and worry about cracking later.
+            It's an <strong>MD5 hash</strong>, not the password. Not a dead end at all: MD5 is fast and unsalted here, so those hashes crack in seconds against a wordlist later in the course. Pulling the hash out through a search endpoint is already a full user-database breach, and you write that finding up immediately.
           </div>
         </div>
       </section>
 
       <!-- Section 6: Going Pro -->
       <section>
-        <h2 id="going-pro">6. Going Pro: Blind SQLi and Automation <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· exploit</span></h2>
-
-        <div class="bento-card" style="margin-bottom:var(--space-3);border-left:3px solid var(--color-danger);">
-          <span class="comparison-badge" style="color:var(--color-danger);">🔴 GOING PRO · career depth</span>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-2) 0 0;">
-            Everything so far showed you the data. In the real world the app usually shows you nothing, and you still have to win. That's blind SQLi. Then you learn to automate the grind.
-          </p>
-        </div>
+        <h2 id="going-pro">6. Going Pro: Blind SQLi and Automation</h2>
+        <p class="lab-lead">
+          Everything so far showed you the data directly in the response. On hardened targets the app prints no database errors and returns no extracted rows, so you infer data one yes/no question at a time (blind SQLi) before automating the grind with <code>sqlmap</code>.
+        </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">👁️ Direct</h3>
+              <h3 class="comparison-card__title" id="sqli-direct">Direct</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">you SEE the data</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> Error-based: the app prints the query or the data.</li>
-              <li><span class="comparison-icon">🔹</span> UNION-based: results come back in the response.</li>
-              <li><span class="comparison-icon">🔹</span> Fast and obvious. Also the first thing developers fix.</li>
+              <li>Error-based: the app prints the SQL error or query details.</li>
+              <li>UNION-based: injected rows come straight back in the response body.</li>
+              <li>Fast and obvious. Also the first thing developers disable or fix.</li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">🕶️ Blind</h3>
+              <h3 class="comparison-card__title" id="sqli-blind">Blind</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">you INFER the data</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> Boolean: the page changes for true vs false, so you ask yes/no questions one bit at a time.</li>
-              <li><span class="comparison-icon">🔹</span> Time-based: <code>' OR SLEEP(5)--</code>. If the reply is slow, the answer is yes.</li>
-              <li><span class="comparison-icon">🔹</span> Slow by hand. This is exactly what tools were built for.</li>
+              <li>Boolean: the page changes for true vs. false, so you ask yes/no questions one character at a time.</li>
+              <li>Time-based: <code>' OR SLEEP(5)--</code>. If the reply pauses for 5 seconds, the condition was true.</li>
+              <li>Slow by hand. This is the exact loop automation tools run for you.</li>
             </ul>
           </div>
         </div>
@@ -822,14 +715,14 @@ ORDER BY name</code></pre></div>
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🎓</span>
               <div>
-                <h3 class="target-launcher__title">PortSwigger: the SQLi ladder</h3>
+                <h3 class="target-launcher__title" id="target-portswigger-card">PortSwigger: the SQLi ladder</h3>
                 <div class="target-launcher__platform">Hosted · free account · the deepest free SQLi labs there are</div>
               </div>
             </div>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">🖐️ DO #5 · Try the PortSwigger SQLi labs</span>
+              <span class="target-launcher__step-label">Step 4 · Try the PortSwigger SQLi labs</span>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/union-attacks/lab-retrieve-data-from-other-tables" target="_blank" rel="noopener noreferrer">UNION: retrieve data from other tables</a>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/blind/lab-conditional-responses" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">Blind: conditional (boolean) responses</a>
               <a class="target-launcher__url" href="https://portswigger.net/web-security/sql-injection/blind/lab-time-delays-info-retrieval" target="_blank" rel="noopener noreferrer" style="margin-top:6px;">Blind: time delays + data retrieval</a>
@@ -858,8 +751,8 @@ ORDER BY name</code></pre></div>
 
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-danger);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Point sqlmap at the search endpoint</strong>
-            <span class="comparison-badge" style="color:var(--color-danger);">optional</span>
+            <strong style="color:var(--color-danger);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 5 · Point sqlmap at the search endpoint</strong>
+            <span class="comparison-badge" style="color:var(--color-danger);">Automated Exploitation</span>
           </div>
           <div class="terminal-window" style="margin:0;">
             <div class="terminal-window__header">
@@ -900,9 +793,9 @@ sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch -T Users 
 
       <!-- Section 7: Document -->
       <section>
-        <h2 id="write-the-finding">7. Write the Finding <span style="font-size:var(--font-size-xs);color:var(--color-text-muted);font-family:var(--font-mono);">· document</span></h2>
+        <h2 id="write-the-finding">7. Write the Finding</h2>
         <p class="lab-lead">
-          A shell nobody wrote down never happened. The report is what the client pays for, so every lab from now on ends by turning one thing you found into a proper finding. Fill this out for the SQLi you just landed.
+          A shell nobody wrote down never happened. The report is what the client pays for, so every lab ends by turning what you found into a reproducible finding with the server-side fix.
         </p>
 
         <div class="diagram-card">
@@ -922,14 +815,14 @@ sqlmap -u "http://localhost:3000/rest/products/search?q=apple" --batch -T Users 
               </tbody>
             </table>
           </div>
-          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">CVSS looks scary but it's just a scoring form. You'll fill one properly in Week 9. For now, "no login needed + reads the whole database" is why this is a 9.8.</p>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">CVSS looks scary, yet it's just a scoring form we'll cover in full later in the reporting week. For now, "no login needed + reads the whole database" is why this is a 9.8.</p>
         </div>
 
         <h3 id="the-fix" style="margin-top:var(--space-4);">The one-line fix, side by side</h3>
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">💥 Vulnerable</h3>
+              <h3 class="comparison-card__title" id="sqli-vulnerable-code">💥 Vulnerable</h3>
               <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">string concat</span>
             </div>
             <div class="terminal-window" style="margin:0;">
@@ -945,7 +838,7 @@ db.run(q);</code></pre>
           </div>
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ Fixed</h3>
+              <h3 class="comparison-card__title" id="sqli-fixed-code">✅ Fixed</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">parameterized</span>
             </div>
             <div class="terminal-window" style="margin:0;">
@@ -1044,7 +937,7 @@ db.run(q, [email, pass]);</code></pre>
         <!-- Q6 Terminal challenge: sqlmap dump -->
         <div class="quiz-card" data-question-id="lab03-q6"
              data-expected-regex="sqlmap\s+-u\s+.*products/search.*(-T\s+Users.*--dump|--dump.*-T\s+Users)"
-             data-solution-rationale="sqlmap detects the injection on the q parameter, then -T Users --dump pulls that table. You did the same thing by hand in DO #4."
+             data-solution-rationale="sqlmap detects the injection on the q parameter, then -T Users --dump pulls that table. You did the same thing by hand in Step 3."
              data-hint="Call sqlmap with -u pointing at the search URL (quote it), then target the Users table with -T Users and --dump.">
           <div class="quiz-question">
             Q6 [Terminal]: Write a <code>sqlmap</code> command that targets the Juice Shop search URL and dumps the <code>Users</code> table.
@@ -1063,7 +956,7 @@ db.run(q, [email, pass]);</code></pre>
           </div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="A static image path usually isn't touching the database. Low priority.">A) <code>GET /assets/logo.png</code></button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. A search box feeds your text straight into a WHERE ... LIKE query. It's the textbook injection point, and it's exactly where you broke Juice Shop today.">B) <code>GET /rest/products/search?q=apple</code></button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. A search API parameter feeds your text straight into a WHERE ... LIKE query. It's the textbook injection point, and it's exactly where you broke Juice Shop today.">B) <code>GET /rest/products/search?q=apple</code></button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="A health check normally returns a fixed string with no DB query behind it.">C) <code>GET /health</code></button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="It can be worth checking, but a static footer link isn't the first thing you'd probe.">D) <code>GET /about</code></button>
           </div>

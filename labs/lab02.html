@@ -43,109 +43,46 @@
         </p>
       </header>
 
-      <!-- Section 0.5: Skip & Navigate -->
-      <section>
-        <h2 id="skip-and-navigate">0. Skip &amp; Navigate: Where Are We in the Kill Chain?</h2>
-
-        <div class="callout callout--theory">
-          <span class="callout__icon">🧭</span>
-          <div class="callout__content">
-            <div class="callout__title">We're jumping straight to Phase 3 (Exploitation)</div>
-            <p style="margin:0 0 var(--space-2);">
-              Recon and scanning (Phases 1–2) come in Weeks 6–7. We're skipping ahead so you're poking a live web app within 10 minutes instead of reading about one. Recon will make a lot more sense once you've seen what a target actually looks like up close.
-            </p>
-          </div>
+      <div class="callout callout--theory" style="margin-bottom:var(--space-6);">
+        <span class="callout__icon">🧭</span>
+        <div class="callout__content">
+          <div class="callout__title">Skip &amp; Navigate: Jumping straight to Phase 3 (Web Exploitation)</div>
+          <p style="margin:0;">
+            We're skipping ahead past Network Recon and Scanning (Phases 1–2, which we'll cover in Week 7) so you're poking a live web app in minutes instead of reading theory. Recon makes much more sense once you've seen how a real target behaves up close.
+          </p>
         </div>
-
-        <div class="diagram-card" style="margin-top:var(--space-3);">
-          <div class="diagram-card__title">
-            <span>PIPELINE: You Are Here (Phase 3 of 5)</span>
-            <span style="color:var(--color-warn);">Web Exploitation Track</span>
-          </div>
-          <svg class="diagram-svg" viewBox="0 0 920 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="5-phase pipeline with phases 1 and 2 dimmed">
-            <defs>
-              <marker id="arrow-nav" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-accent)" />
-              </marker>
-            </defs>
-            <!-- P1 dimmed -->
-            <g opacity="0.35">
-              <rect x="5" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <rect x="5" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
-              <text x="80" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 01</text>
-              <text x="80" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🔍 Recon</text>
-              <text x="80" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 6)</text>
-            </g>
-            <path d="M 155 50 L 185 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
-            <!-- P2 dimmed -->
-            <g opacity="0.35">
-              <rect x="195" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <rect x="195" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
-              <text x="270" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 02</text>
-              <text x="270" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📡 Scanning</text>
-              <text x="270" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 7)</text>
-            </g>
-            <path d="M 345 50 L 375 50" stroke="var(--color-accent)" stroke-width="2" marker-end="url(#arrow-nav)" />
-            <!-- P3 active -->
-            <g>
-              <rect x="385" y="10" width="150" height="80" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2.5" />
-              <rect x="385" y="10" width="150" height="4" rx="2" fill="var(--color-warn)" />
-              <text x="460" y="37" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 03 · TODAY</text>
-              <text x="460" y="58" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="14" font-weight="800" text-anchor="middle">💥 Exploitation</text>
-              <text x="460" y="76" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" font-weight="700" text-anchor="middle">Burp + Juice Shop</text>
-            </g>
-            <path d="M 535 50 L 565 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
-            <!-- P4 dimmed -->
-            <g opacity="0.35">
-              <rect x="575" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <rect x="575" y="15" width="150" height="4" rx="2" fill="var(--color-danger)" />
-              <text x="650" y="42" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 04</text>
-              <text x="650" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🎯 Post-Exploit</text>
-              <text x="650" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 12)</text>
-            </g>
-            <path d="M 725 50 L 755 50" stroke="var(--color-accent)" stroke-width="2" opacity="0.35" marker-end="url(#arrow-nav)" />
-            <!-- P5 dimmed -->
-            <g opacity="0.35">
-              <rect x="765" y="15" width="150" height="70" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-              <rect x="765" y="15" width="150" height="4" rx="2" fill="var(--color-accent)" />
-              <text x="840" y="42" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 05</text>
-              <text x="840" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📝 Reporting</text>
-              <text x="840" y="78" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="9" text-anchor="middle">(Week 14)</text>
-            </g>
-          </svg>
-        </div>
-      </section>
+      </div>
 
       <!-- Section 1: HTTP anatomy refresher -->
       <section>
         <h2 id="http-anatomy">1. HTTP Anatomy in 30 Seconds</h2>
         <p class="lab-lead">
-          Most web attacks come down to one thing: sending a request the developer didn't expect. You send <strong>method</strong> + <strong>URL/headers</strong> + <strong>body</strong>. The server answers with <strong>status</strong> + <strong>headers</strong> + <strong>body</strong>. Everything today is about messing with those pieces.
+          Most web attacks come down to one thing: sending a request the developer didn't expect. Because HTTP is <strong>stateless</strong>, the server forgets everything between requests, so your browser re-sends <strong>method</strong> + <strong>URL/headers</strong> + <strong>body</strong> every time, and the server answers with <strong>status</strong> + <strong>headers</strong> + <strong>body</strong>.
         </p>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">📤 REQUEST (Kali → Target)</h3>
+              <h3 class="comparison-card__title" id="http-request-card">📤 REQUEST (Kali → Target)</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">CLIENT-SENT</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> <strong>Method:</strong> <code>GET</code> / <code>POST</code> / <code>PUT</code> / <code>DELETE</code></li>
-              <li><span class="comparison-icon">🔹</span> <strong>Path + query:</strong> <code>/rest/products/search?q=apple</code></li>
-              <li><span class="comparison-icon">🔹</span> <strong>Headers:</strong> <code>Host</code>, <code>Cookie</code>, <code>Authorization</code>, <code>User-Agent</code></li>
-              <li><span class="comparison-icon">🔹</span> <strong>Body (POST/PUT):</strong> form or JSON payload</li>
-              <li><span class="comparison-icon">🔹</span> <strong>You control every byte of this.</strong> The server can't tell if your browser wrote it or you did.</li>
+              <li><strong>Method:</strong> <code>GET</code> / <code>POST</code> / <code>PUT</code> / <code>DELETE</code></li>
+              <li><strong>Path + query:</strong> <code>/rest/products/search?q=apple</code></li>
+              <li><strong>Headers:</strong> <code>Host</code>, <code>Cookie</code>, <code>Authorization</code>, <code>User-Agent</code></li>
+              <li><strong>Body (POST/PUT):</strong> form or JSON payload</li>
+              <li><strong>You control every byte of this.</strong> The server can't tell if your browser wrote it or you did.</li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">📥 RESPONSE (Target → Kali)</h3>
+              <h3 class="comparison-card__title" id="http-response-card">📥 RESPONSE (Target → Kali)</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">SERVER-SENT</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> <strong>Status:</strong> <code>200</code> OK, <code>302</code> redirect, <code>401/403</code>, <code>500</code></li>
-              <li><span class="comparison-icon">🔹</span> <strong>Headers:</strong> <code>Set-Cookie</code>, <code>Server</code>, <code>X-Powered-By</code></li>
-              <li><span class="comparison-icon">🔹</span> <strong>Body:</strong> HTML, JSON, JS, images…</li>
+              <li><strong>Status:</strong> <code>200</code> OK, <code>302</code> redirect, <code>401/403</code>, <code>500</code></li>
+              <li><strong>Headers:</strong> <code>Set-Cookie</code>, <code>Server</code>, <code>X-Powered-By</code></li>
+              <li><strong>Body:</strong> HTML, JSON, JS, images…</li>
             </ul>
           </div>
         </div>
@@ -153,20 +90,23 @@
         <div class="status-badge-grid">
           <div class="status-chip status-chip--2xx"><span class="status-chip__code">200 OK</span><span class="status-chip__desc">Success</span></div>
           <div class="status-chip status-chip--3xx"><span class="status-chip__code">302 Redirect</span><span class="status-chip__desc">Login flow</span></div>
-          <div class="status-chip status-chip--4xx"><span class="status-chip__code">401 Auth</span><span class="status-chip__desc">Needs login</span></div>
-          <div class="status-chip status-chip--4xx"><span class="status-chip__code">403 Denied</span><span class="status-chip__desc">Forbidden / WAF</span></div>
+          <div class="status-chip status-chip--4xx"><span class="status-chip__code">401 Unauthorized</span><span class="status-chip__desc">Bad / missing login</span></div>
+          <div class="status-chip status-chip--4xx"><span class="status-chip__code">403 Forbidden</span><span class="status-chip__desc">Logged in, not allowed</span></div>
           <div class="status-chip status-chip--4xx"><span class="status-chip__code">404 Missing</span><span class="status-chip__desc">Not found</span></div>
           <div class="status-chip status-chip--5xx"><span class="status-chip__code">500 Error</span><span class="status-chip__desc">Backend crash</span></div>
         </div>
+        <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 var(--space-4);">
+          <strong>401 vs. 403:</strong> <code>401</code> is an <em>authentication</em> failure ("I don't know who you are"). <code>403</code> is an <em>authorization</em> failure ("I know who you are, and you still can't touch this"). And when weird input triggers a <code>500</code>, the backend parser crashed on your bytes.
+        </p>
 
         <!-- HANDS-ON #1: curl -v matching -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #1 · Match the parts on the wire</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">2 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Match the parts on the wire</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">HTTP Inspection</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            Run <code>curl -v https://httpbin.org/get</code>. Lines starting with <code>&gt;</code> are what you sent. Lines starting with <code>&lt;</code> are what came back. Find the method, the <code>Host</code> header, the status line, and the <code>Server</code> header, and point at each one on your partner's screen.
+            Run <code>curl -v https://httpbin.org/get</code>. Lines starting with <code>&gt;</code> are what you sent. Lines starting with <code>&lt;</code> are what came back. Find the method, the <code>Host</code> header, the status line, and the <code>Server</code> header in the output.
           </p>
           <div class="terminal-window">
             <div class="terminal-window__header">
@@ -379,14 +319,14 @@
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🧃</span>
               <div>
-                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
                 <div class="target-launcher__platform">Node · Angular SPA · runs offline after first pull</div>
               </div>
             </div>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">🖐️ DO #2 · Pull &amp; run</span>
+              <span class="target-launcher__step-label">Step 2 · Pull &amp; run</span>
               <div class="terminal-window" style="margin:0;">
                 <div class="terminal-window__header">
                   <div class="terminal-window__controls">
@@ -415,7 +355,7 @@
             </div>
           </div>
           <div class="target-launcher__footer">
-            <span>Image: <code>bkimminich/juice-shop</code> (~450MB. Pull it at home. Uni wifi will not forgive you.)</span>
+            <span>Image: <code>bkimminich/juice-shop</code> (~450MB. Pull it at home. Uni wifi won't forgive you.)</span>
             <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
           </div>
         </div>
@@ -423,7 +363,7 @@
         <!-- Interactive Docker Reality Check -->
         <div class="docker-reality-check">
           <div class="docker-reality-check__header">
-            <h3 class="docker-reality-check__title">
+            <h3 class="docker-reality-check__title" id="live-target-verification">
               <span>🔬</span> Live Target Verification
             </h3>
             <button type="button" class="docker-reality-check__run-all">▶ Run All Probes</button>
@@ -566,8 +506,8 @@
         <!-- HANDS-ON #3: browse through Burp -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #3 · First proxied browse</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">3 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · First proxied browse</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Proxy Verification</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-1);">
             <li>Open Burp's browser: <strong>Proxy → Intercept → Open Browser</strong>. (Or use your wired-up Firefox if you did the slow path.)</li>
@@ -632,8 +572,8 @@
         <!-- HANDS-ON #4: add scope + filter -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #4 · Add Juice Shop to scope</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">4 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Add Juice Shop to scope</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Scope Configuration</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
             <li><strong>Target → Site map</strong>. Right-click <code>http://localhost:3000</code> → <em>Add to scope</em>.</li>
@@ -660,8 +600,8 @@
         <!-- HANDS-ON #5: the manual tour -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #5 · The 3-minute tour</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">3 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 5 · Walk every corner of the app</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Application Mapping</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
             Don't hack anything yet. Just poke every corner of the app. The more features you touch, the more of the attack surface lands in Burp for the next step.
@@ -678,24 +618,24 @@
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">🚶 Walk the app</h3>
+              <h3 class="comparison-card__title" id="walk-the-app">🚶 Walk the app</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">USE EVERY FEATURE</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> Every feature you click shows up in <strong>Site map</strong> and <strong>HTTP History</strong>.</li>
-              <li><span class="comparison-icon">🔹</span> You learn what the app <em>does</em>: its forms, its logins, its API calls.</li>
-              <li><span class="comparison-icon">🔹</span> Zero skill required. This is just using the website.</li>
+              <li>Every feature you click shows up in <strong>Site map</strong> and <strong>HTTP History</strong>.</li>
+              <li>You learn what the app <em>does</em>: its forms, its logins, its API calls.</li>
+              <li>Zero payloads needed yet. You're mapping the application before testing it.</li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">📖 Read what it ships</h3>
+              <h3 class="comparison-card__title" id="read-what-it-ships">📖 Read what it ships</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">DIG IN THE TRAFFIC</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🔹</span> The JS bundle (<code>main.js</code>) and API responses reveal routes you never clicked.</li>
-              <li><span class="comparison-icon">🔹</span> Endpoints often leak version numbers, config, and internal fields.</li>
-              <li><span class="comparison-icon">🔹</span> This is where you find the stuff the UI tries to hide.</li>
+              <li>The JS bundle (<code>main.js</code>) and API responses reveal routes you never clicked.</li>
+              <li>Endpoints often leak version numbers, config, and internal fields.</li>
+              <li>This is where you find the pages and APIs the navigation menu hides.</li>
             </ul>
           </div>
         </div>
@@ -703,8 +643,8 @@
         <!-- HANDS-ON #6: read the trail + spot a leak -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #6 · Read your own trail in Burp</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 6 · Read your own trail in Burp</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Traffic Analysis</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
             <li><strong>Target → Site map</strong>. Expand <code>localhost:3000</code>. This is the tree of everything you touched on the tour.</li>
@@ -731,7 +671,7 @@
                 <tr><th>What you found</th><th>Where it showed up</th><th>Why it matters</th></tr>
               </thead>
               <tbody>
-                <tr><td><code>/rest/products/search?q=</code></td><td>the search bar</td><td>your text reaches a backend query (we weaponize this next week)</td></tr>
+                <tr><td><code>/rest/products/search?q=</code></td><td>API endpoint</td><td>the <code>q</code> parameter reaches a backend SQLite query (we exploit this in Lab 03)</td></tr>
                 <tr><td><code>/rest/admin/application-version</code></td><td>HTTP History</td><td>exact version leaks → search public CVEs for it</td></tr>
                 <tr><td><code>/rest/admin/application-config</code></td><td>HTTP History</td><td>backend config metadata → force a 200 in Repeater to read it</td></tr>
                 <tr><td><code>/rest/user/login</code></td><td>the login page</td><td>auth endpoint, JSON POST (we tamper it in §10)</td></tr>
@@ -829,14 +769,17 @@
         <!-- HANDS-ON #5: toggle intercept, inspect -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #7 · Catch your first request</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">4 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 7 · Catch your first search API request</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">GET Interception</span>
           </div>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0 0 var(--space-2);">
+            <strong>Heads up:</strong> Juice Shop's top search bar filters products in browser JavaScript and sends an empty <code>?q=</code> query to the server. To intercept a request that carries your actual search term, visit the search API URL directly:
+          </p>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
             <li>Burp → <strong>Proxy → Intercept</strong> → click "Intercept is off" to toggle ON.</li>
-            <li>In the browser, use the Juice Shop search bar: type <code>apple</code> and hit Enter.</li>
-            <li>Burp holds the request. Read the raw HTTP: the method line, <code>Host</code>, the other headers, and an empty body (it's a GET).</li>
-            <li>Click <strong>Forward</strong>. The response comes back and the page finishes loading.</li>
+            <li>In the proxied browser's address bar, visit <code>http://localhost:3000/rest/products/search?q=apple</code> and press <kbd>Enter</kbd>.</li>
+            <li>Burp holds the request. Read the raw HTTP: the method line (<code>GET /rest/products/search?q=apple</code>), <code>Host</code>, the other headers, and an empty body (it's a GET).</li>
+            <li>Click <strong>Forward</strong>. The JSON product response comes back and renders in the browser.</li>
           </ol>
           <details class="thought-accordion">
             <summary>Nothing captured? 3 quick fixes.</summary>
@@ -855,38 +798,38 @@
       <section>
         <h2 id="tamper-get">8. Tamper the GET, Then Forward</h2>
         <p class="lab-lead">
-          You caught the search request. Now change it before the server sees it: swap <code>q=apple</code> for a payload and see what Juice Shop's backend gives away.
+          You caught the search API request. Now change it before the server sees it: swap <code>q=apple</code> for a breaking payload and see what Juice Shop's backend leaks back.
         </p>
 
         <!-- Prediction Prompt #3 -->
         <div class="prediction-prompt">
-          <div class="prediction-prompt__question">🤔 Predict: what happens when we send <code>q=';--</code> to Juice Shop's product search?</div>
+          <div class="prediction-prompt__question">🤔 Predict: what happens when we tamper <code>q=apple</code> to <code>q=')</code> (URL-encoded as <code>%27%29</code>) on <code>GET /rest/products/search</code>?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            The server throws a <code>500</code> and the page title reads <code>Error: SQLITE_ERROR: near &quot;;&quot;: syntax error</code>. It doesn't hand you the full query (the stack trace is empty), but that one line is already a <strong>finding</strong>: it confirms your input reached a SQLite database and broke the query. Log it. We don't exploit it today, that's all of next week. Right now you're just proving the input reaches the database.
+            The server throws a <code>500</code> and the page title reads <code>Error: SQLITE_ERROR: near &quot;)&quot;: syntax error</code>. A lone quote (<code>q='</code>) actually returns an empty <code>200 OK</code> here because Juice Shop wraps your search term inside nested parentheses in SQL, whereas <code>')</code> breaks the syntax. It doesn't hand you the full query yet, but that one error line is already a <strong>finding</strong>: it proves your input reached a SQLite database unfiltered. Log it. We weaponize it in Lab 03.
           </div>
         </div>
 
         <!-- HANDS-ON #6: tamper GET live -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #8 · Live tamper</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">5 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 8 · Tamper the search request live</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Live Parameter Tampering</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
-            <li>Intercept ON. Trigger a new search from Juice Shop (any word).</li>
-            <li>In the intercepted request, find <code>?q=&lt;yourword&gt;</code>. Change the value to <code>%27%3B--</code> (that's <code>';--</code> URL-encoded).</li>
-            <li>Click <strong>Forward</strong>. Watch the browser render the response.</li>
-            <li>Open <strong>Proxy → HTTP History</strong> → click the last request → Response tab. Look for the database error.</li>
+            <li>Intercept ON. Reload <code>http://localhost:3000/rest/products/search?q=apple</code> in the proxied browser.</li>
+            <li>In the intercepted request, find <code>?q=apple</code>. Change the value to <code>%27%29</code> (that's <code>')</code> URL-encoded).</li>
+            <li>Click <strong>Forward</strong>. Watch the browser render the <code>500</code> error response.</li>
+            <li>Open <strong>Proxy → HTTP History</strong> → click that request → <strong>Response</strong> tab. Read the leaked SQLite error message and Express banner.</li>
           </ol>
           <details class="thought-accordion">
             <summary>Why URL-encode the payload?</summary>
             <div class="thought-accordion__content">
-              <p>Characters like <code>;</code>, <code>'</code>, and space break URL parsing. <code>%27</code> is <code>'</code> and <code>%3B</code> is <code>;</code>. Burp can do this for you (right-click → <em>Convert selection → URL → URL-encode key characters</em>), but you'll see <code>%27</code> so often in the next few labs that it's worth knowing by sight.</p>
+              <p>Characters like <code>'</code>, <code>)</code>, <code>;</code>, and space can break URL or HTTP request-line parsing. <code>%27</code> is <code>'</code> and <code>%29</code> is <code>)</code>. Burp can do this for you (right-click → <em>Convert selection → URL → URL-encode key characters</em>), and you'll see <code>%27</code> so often in the next few labs that it's worth knowing by sight.</p>
             </div>
           </details>
         </div>
@@ -938,10 +881,10 @@
                 <span class="burp-mock__status--401">401</span><span>26</span><span>HTML</span>
               </div>
               <div class="burp-mock__history-row"
-                   data-request="GET /rest/products/search?q=%27%3B-- HTTP/1.1&#10;Host: localhost:3000&#10;User-Agent: Mozilla/5.0"
-                   data-response="HTTP/1.1 500 Internal Server Error&#10;Content-Type: text/html&#10;&#10;&lt;h2&gt;&lt;em&gt;500&lt;/em&gt; Error: SQLITE_ERROR: near &quot;;&quot;: syntax error&lt;/h2&gt;&#10;&lt;ul id=&quot;stacktrace&quot;&gt;&lt;/ul&gt;">
+                   data-request="GET /rest/products/search?q=%27%29 HTTP/1.1&#10;Host: localhost:3000&#10;User-Agent: Mozilla/5.0"
+                   data-response="HTTP/1.1 500 Internal Server Error&#10;Content-Type: text/html&#10;&#10;&lt;h2&gt;&lt;em&gt;500&lt;/em&gt; Error: SQLITE_ERROR: near &quot;)&quot;: syntax error&lt;/h2&gt;&#10;&lt;ul id=&quot;stacktrace&quot;&gt;&lt;/ul&gt;">
                 <span>19</span><span class="burp-mock__method burp-mock__method--get">GET</span>
-                <span>/rest/products/search?q=%27%3B--</span>
+                <span>/rest/products/search?q=%27%29</span>
                 <span class="burp-mock__status--500">500</span><span>2.1k</span><span>HTML</span>
               </div>
             </div>
@@ -1003,8 +946,8 @@
         <!-- HANDS-ON #7: Repeater: search probes + the info leak -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #9 · Iterate in Repeater</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 9 · Iterate in Repeater</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Repeater Workflow</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
             <strong>Part A: the search.</strong> HTTP History → right-click the <code>?q=apple</code> row → Send to Repeater. Send each payload, note the status and length.
@@ -1018,12 +961,12 @@
               </div>
               <div class="info-dense-card__cell">
                 <span class="info-dense-card__label">SQL sink probe</span>
-                <code>q=%27%3B--</code>
+                <code>q=%27%29</code>
               </div>
             </div>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-3) 0 var(--space-2);">
-            <strong>Part B: cash in the recon finding.</strong> Remember the <code>application-config</code> row that came back <code>304</code> with no body? Send that row to Repeater, then in the request panel <strong>delete the <code>If-None-Match</code> line</strong> and click Send. With no cached ETag to match, the server can't answer 304, so you get a fresh <code>200 OK</code> with the full config body. Read it.
+            <strong>Part B: defeat 304 caching to read config.</strong> Remember the <code>application-config</code> row that came back <code>304 Not Modified</code> with an empty body? Send that row to Repeater, delete the <code>If-None-Match</code> header from the request, and click <strong>Send</strong>. Without your browser's cached ETag to match, the server has to send a fresh <code>200 OK</code> with the full config JSON.
           </p>
           <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;font-family:var(--font-mono);">
             This is the everyday Repeater loop: keep one request, change one thing, send, compare.
@@ -1041,24 +984,24 @@
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Form-encoded POST</h3>
+              <h3 class="comparison-card__title" id="form-encoded-post">Form-encoded POST</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Classic HTML form</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">📮</span> <code>Content-Type: application/x-www-form-urlencoded</code></li>
-              <li><span class="comparison-icon">📝</span> Body: <code>email=a%40b.com&amp;password=xyz</code></li>
-              <li><span class="comparison-icon">🔍</span> Curl: <code>--data-raw 'email=a&amp;password=b'</code></li>
+              <li><code>Content-Type: application/x-www-form-urlencoded</code></li>
+              <li>Body: <code>email=a%40b.com&amp;password=xyz</code></li>
+              <li>Curl: <code>--data-raw 'email=a&amp;password=b'</code></li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">JSON POST</h3>
+              <h3 class="comparison-card__title" id="json-post">JSON POST</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">SPA / API</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">📮</span> <code>Content-Type: application/json</code></li>
-              <li><span class="comparison-icon">📝</span> Body: <code>{"email":"a@b.com","password":"xyz"}</code></li>
-              <li><span class="comparison-icon">🔍</span> Curl: <code>-H "Content-Type: application/json" --data '{…}'</code></li>
+              <li><code>Content-Type: application/json</code></li>
+              <li>Body: <code>{"email":"a@b.com","password":"xyz"}</code></li>
+              <li>Curl: <code>-H "Content-Type: application/json" --data '{…}'</code></li>
             </ul>
           </div>
         </div>
@@ -1066,8 +1009,8 @@
         <!-- HANDS-ON #8: tamper login POST -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">🖐️ DO #10 · Intercept &amp; edit the login POST</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">6 min</span>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 10 · Intercept &amp; edit the login POST</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">JSON POST Tampering</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-1);">
             <li>Juice Shop → top-right <strong>Account → Login</strong>.</li>
@@ -1082,7 +1025,7 @@
           <div class="callout__content">
             <div class="callout__title">Wait, how did that work?</div>
             <p style="margin:0;font-size:var(--font-size-xs);">
-              Your fake "email" wasn't an email, it was a snippet of database logic that tricked the login check into matching every user and skipping the password. That's SQL injection, and it's the whole of next week. Today the point is smaller and just as important: Burp let you put that snippet on the wire, and the server ran it because it trusted whatever arrived. Don't worry about the syntax yet. We build it from zero in Lab 03.
+              Your fake "email" wasn't an email, it was a snippet of database logic that tricked the login check into matching every user and skipping the password. That's SQL injection, and it's the whole of Lab 03. Today the takeaway is simpler: Burp let you put raw bytes on the wire, and the server ran them because it glued user input straight into a query instead of validating or parameterizing it.
             </p>
           </div>
         </div>
@@ -1119,14 +1062,14 @@
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🎓</span>
               <div>
-                <h3 class="target-launcher__title">PortSwigger Web Security Academy</h3>
+                <h3 class="target-launcher__title" id="target-portswigger-card">PortSwigger Web Security Academy</h3>
                 <div class="target-launcher__platform">Hosted · free account required · works everywhere</div>
               </div>
             </div>
           </div>
           <div class="target-launcher__body">
             <div class="target-launcher__step">
-              <span class="target-launcher__step-label">🖐️ DO #11 · At-home lab (15 min)</span>
+              <span class="target-launcher__step-label">Step 11 · Solve these hosted labs at home</span>
               <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
                 Pick one and solve it in Burp before next Saturday.
               </p>

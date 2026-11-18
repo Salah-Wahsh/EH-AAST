@@ -63,7 +63,7 @@ GET .../Document?docId=75849620  →  A stranger's bank records, tax returns &am
         </div>
 
         <p class="lab-lead" style="margin-top:var(--space-4);">
-          When you send a request to a server, two completely separate checks are supposed to happen. Developers and students mix their names up constantly: <strong>Authentication</strong> proves <em>who you are</em> (you logged in), while <strong>Authorization</strong> checks whether you are allowed to touch <em>that specific resource or action</em>. Broken access control is what happens when the server checks the first and skips the second.
+          When you send a request to a server, two completely separate checks are supposed to happen. Developers and students mix their names up constantly: <strong>Authentication</strong> proves <em>who you are</em> (you logged in), while <strong>Authorization</strong> checks whether you're allowed to touch <em>that specific resource or action</em>. Broken access control is what happens when the server checks the first and skips the second.
         </p>
 
         <div class="diagram-card" style="margin-top:var(--space-3);">
@@ -74,7 +74,7 @@ GET .../Document?docId=75849620  →  A stranger's bank records, tax returns &am
           <div class="comparison-grid" style="margin:0;">
             <div class="comparison-card comparison-card--cyan">
               <div class="comparison-card__header">
-                <h3 class="comparison-card__title">1. Authentication: "Who are you?"</h3>
+                <h3 class="comparison-card__title" id="auth-who-are-you">1. Authentication: "Who are you?"</h3>
                 <span class="comparison-badge" style="color:var(--color-cyan);">usually checked ✓</span>
               </div>
               <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
@@ -88,7 +88,7 @@ GET .../Document?docId=75849620  →  A stranger's bank records, tax returns &am
             </div>
             <div class="comparison-card comparison-card--accent">
               <div class="comparison-card__header">
-                <h3 class="comparison-card__title">2. Authorization: "Is this yours?"</h3>
+                <h3 class="comparison-card__title" id="authz-is-this-yours">2. Authorization: "Is this yours?"</h3>
                 <span class="comparison-badge" style="color:var(--color-accent);">often forgotten ✗</span>
               </div>
               <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
@@ -127,7 +127,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
         </figure>
 
         <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 You are logged into Juice Shop as a normal customer (<code>User #3</code>, <code>Basket #3</code>). Name two things on the site you shouldn't be allowed to touch: one that belongs to another customer at your same rank, and one that belongs to an administrator above you.</div>
+          <div class="prediction-prompt__question">🤔 You're logged into Juice Shop as a normal customer (<code>User #3</code>, <code>Basket #3</code>). Name two things on the site you shouldn't be allowed to touch: one that belongs to another customer at your same rank, and one that belongs to an administrator above you.</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
@@ -149,7 +149,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
         <div class="comparison-grid" style="margin-top:var(--space-3);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Boundary 1: Tenant Boundaries (Horizontal)</h3>
+              <h3 class="comparison-card__title" id="tenant-boundaries">Boundary 1: Tenant Boundaries (Horizontal)</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Customer vs. Customer</span>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
@@ -164,7 +164,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Boundary 2: Privilege Boundaries (Vertical)</h3>
+              <h3 class="comparison-card__title" id="privilege-boundaries">Boundary 2: Privilege Boundaries (Vertical)</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">Customer vs. Administrator</span>
             </div>
             <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:var(--space-1) 0 var(--space-2);">
@@ -181,7 +181,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
         <div class="callout callout--tip" style="margin-top:var(--space-4);">
           <span class="callout__icon">💡</span>
           <div class="callout__content">
-            <div class="callout__title">Client UI controls do not secure the backend API</div>
+            <div class="callout__title">Client UI controls don't secure the backend API</div>
             <p style="margin:0;">
               Modern web applications separate the <strong>frontend interface</strong> (HTML, CSS, JavaScript in the browser) from the <strong>backend API</strong> (Node.js, Express, databases on the server). Disabling a button, hiding a menu item, or adding a client-side route guard only changes what the browser renders. A penetration tester calls backend endpoints directly with tools like Burp Suite, DevTools Console, or <code>curl</code> to test what the server actually authorizes.
             </p>
@@ -283,7 +283,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🧃</span>
               <div>
-                <h3 class="target-launcher__title">OWASP Juice Shop</h3>
+                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
                 <div class="target-launcher__platform">Same container as Labs 02–04. If it's still running, skip straight to the browser.</div>
               </div>
             </div>
@@ -326,7 +326,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Signed Identity (<code>localStorage.token</code>)</h3>
+              <h3 class="comparison-card__title" id="signed-identity-jwt">Signed Identity (<code>localStorage.token</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Server-Signed</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
@@ -335,7 +335,7 @@ const isAuthorized = () =&gt; expressJwt({ secret: publicKey });
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Unsigned Resource ID (<code>sessionStorage.bid</code>)</h3>
+              <h3 class="comparison-card__title" id="unsigned-resource-bid">Unsigned Resource ID (<code>sessionStorage.bid</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">Client-Controlled</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
@@ -611,7 +611,7 @@ HTTP/1.1 200 OK
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Frontend UI Guard (<code>AdminGuard</code>)</h3>
+              <h3 class="comparison-card__title" id="frontend-ui-guard">Frontend UI Guard (<code>AdminGuard</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">blocks /#/administration</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
@@ -628,7 +628,7 @@ canActivate() {
           </div>
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Backend API Route (<code>server.js</code>)</h3>
+              <h3 class="comparison-card__title" id="backend-api-route">Backend API Route (<code>server.js</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">no role check!</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
@@ -780,7 +780,7 @@ app.get('/api/Users', security.isAuthorized());
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Trap 1: Client-Side JWT Role Check</h3>
+              <h3 class="comparison-card__title" id="trap-client-jwt-role">Trap 1: Client-Side JWT Role Check</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">Unverified in Client JS</span>
             </div>
             <div class="terminal-window" style="margin:var(--space-2) 0;">
@@ -791,14 +791,14 @@ app.get('/api/Users', security.isAuthorized());
 )</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li>Angular's <code>AdminGuard</code> decodes <code>localStorage.token</code> in the browser using <code>jwt-decode</code>, which does not verify the cryptographic signature.</li>
+              <li>Angular's <code>AdminGuard</code> decodes <code>localStorage.token</code> in the browser using <code>jwt-decode</code>, which doesn't verify the cryptographic signature.</li>
               <li>Replacing <code>"customer"</code> with <code>"admin"</code> in the payload string tricks the client-side router into rendering <code>/#/administration</code> immediately.</li>
             </ul>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Trap 2: "UUIDs Fix IDOR" Assumption</h3>
+              <h3 class="comparison-card__title" id="trap-uuids-idor">Trap 2: "UUIDs Fix IDOR" Assumption</h3>
               <span class="comparison-badge" style="color:var(--color-accent);">Obscurity ≠ Authorization</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
@@ -807,7 +807,7 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
 // Still vulnerable if the SQL query lacks an ownership check!</code></pre></div>
             </div>
             <ul class="comparison-list" style="margin-top:var(--space-2);">
-              <li>Replacing numbers with UUIDs makes IDs unguessable, but does not enforce ownership.</li>
+              <li>Replacing numbers with UUIDs makes IDs unguessable, yet doesn't enforce ownership.</li>
               <li>Public endpoints (reviews, profiles, user lists, error logs) regularly leak UUIDs. Once an attacker obtains a victim's UUID, the endpoint serves the data without checking permissions.</li>
             </ul>
           </div>
@@ -818,7 +818,7 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
             <div class="target-launcher__title-group">
               <span class="target-launcher__icon">🎓</span>
               <div>
-                <h3 class="target-launcher__title">PortSwigger Web Security Academy · Four Live Targets</h3>
+                <h3 class="target-launcher__title" id="target-portswigger-card">PortSwigger Web Security Academy · Four Live Targets</h3>
                 <div class="target-launcher__platform">Practice forced browsing, horizontal IDOR, cookie role tampering, and X-Original-URL bypass</div>
               </div>
             </div>
@@ -869,7 +869,7 @@ GET /rest/basket/a8f9c2d1-4b3e-411a-9c0e-7f2b1d8a3c4e
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">Vulnerable Code (<code>routes/basket.js</code>)</h3>
+              <h3 class="comparison-card__title" id="bac-vulnerable-code">Vulnerable Code (<code>routes/basket.js</code>)</h3>
               <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">trusts URL parameter</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:0;">
@@ -884,7 +884,7 @@ res.json(utils.queryResultToJson(basket));</code></pre></div>
           </div>
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">✅ Secure Code</h3>
+              <h3 class="comparison-card__title" id="bac-secure-code">✅ Secure Code</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">scoped to JWT session</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:0;">
@@ -914,18 +914,18 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
           <div class="quiz-question">Q1: What is the difference between Authentication and Authorization?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Backwards. Authentication proves who you are; Authorization checks what you're allowed to access.">A) Authentication checks which objects you can access; Authorization proves who you are.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Authentication verifies your identity (login/JWT signature), while Authorization verifies whether that identity is allowed to access a specific resource or action.">B) Authentication proves who you are; Authorization checks whether you are allowed to access a specific resource or action.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="They are two distinct checks. Juice Shop verified your JWT signature (Authentication) while completely skipping the ownership check (Authorization).">C) They are two words for the exact same check.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Authentication verifies your identity (login/JWT signature), while Authorization checks whether that identity is allowed to access a specific resource or action.">B) Authentication proves who you are; Authorization checks whether you're allowed to access a specific resource or action.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="They're two distinct checks. Juice Shop verified your JWT signature (Authentication) while completely skipping the ownership check (Authorization).">C) They're two words for the exact same check.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
 
         <div class="quiz-card" data-question-id="lab05-q2">
-          <div class="quiz-question">Q2: When auditing a web application, why does a penetration tester inspect client-side code (`main.js`) and raw API traffic instead of relying on the browser UI?</div>
+          <div class="quiz-question">Q2: When auditing a web application, why does a penetration tester inspect client-side code (<code>main.js</code>) and raw API traffic instead of relying on the browser UI?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Developers often hide buttons or protect routes in the client UI without enforcing role and ownership checks on the backend REST endpoints.">A) Because frontend UI restrictions (hidden buttons, router guards) only affect the browser; the backend API often lacks server-side authorization checks.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Client JavaScript files are delivered unencrypted in plain text to every visitor.">B) Because backend APIs are encrypted by the browser, but frontend files are decrypted.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Burp Suite only intercepts HTTP traffic; it does not alter server-side permissions.">C) Because modern browsers automatically grant administrator privileges to Burp Suite.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Burp Suite only intercepts HTTP traffic; it doesn't alter server-side permissions.">C) Because modern browsers automatically grant administrator privileges to Burp Suite.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
@@ -933,9 +933,9 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         <div class="quiz-card" data-question-id="lab05-q3">
           <div class="quiz-question">Q3: Navigating to <code>/#/administration</code> in your browser as a customer showed a <code>403 Access Denied</code> screen, yet calling <code>GET /api/Users</code> returned every user account. Why?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Your token was still a normal customer token (`role: customer`). The backend endpoint simply never checked the role field.">A) Burp Suite automatically upgrades customer tokens to admin tokens.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Angular's AdminGuard blocked the UI route in the browser, but the backend `/api/Users` route only checked that you were logged in (`isAuthorized`), never that `role === 'admin'`.">B) The role check was only enforced in the client-side Angular router, not on the backend `/api/Users` endpoint.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts traffic on the wire; it has nothing to do with whether an endpoint checks your role.">C) Because `localhost:3000` uses HTTP instead of HTTPS.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Your token was still a normal customer token (<code>role: customer</code>). The backend endpoint simply never checked the role field.">A) Burp Suite automatically upgrades customer tokens to admin tokens.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Angular's AdminGuard blocked the UI route in the browser, but the backend <code>/api/Users</code> route only checked that you were logged in (<code>isAuthorized</code>), never that <code>role === 'admin'</code>.">B) The role check was only enforced in the client-side Angular router, not on the backend <code>/api/Users</code> endpoint.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="HTTPS encrypts traffic on the wire; it has nothing to do with whether an endpoint checks your role.">C) Because <code>localhost:3000</code> uses HTTP instead of HTTPS.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
@@ -944,8 +944,8 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
           <div class="quiz-question">Q4: Why did sending <code>{"BasketId":3,"ProductId":6,"BasketId":2,"quantity":1}</code> bypass the <code>401 Invalid BasketId</code> check on <code>POST /api/BasketItems</code>?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Only one request was sent, so there was no race condition or timing window.">A) It triggered a race condition by overloading the database.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. HTTP Parameter Pollution (JSON key collision): the security check inspected `basketIds[0]` (your own basket `3`), while the database insert used `basketIds[basketIds.length - 1]` (victim basket `2`).">B) HTTP Parameter Pollution: the ownership check read the first `BasketId` (`3`), while the database layer wrote the last `BasketId` (`2`).</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Adding a second `BasketId` didn't modify your JWT signature; it exploited a disagreement between validation and persistence.">C) Duplicate keys disable JWT signature verification in Express.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. HTTP Parameter Pollution (JSON key collision): the security check inspected <code>basketIds[0]</code> (your own basket <code>3</code>), while the database insert used <code>basketIds[basketIds.length - 1]</code> (victim basket <code>2</code>).">B) HTTP Parameter Pollution: the ownership check read the first <code>BasketId</code> (<code>3</code>), while the database layer wrote the last <code>BasketId</code> (<code>2</code>).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Adding a second <code>BasketId</code> didn't modify your JWT signature; it exploited a disagreement between validation and persistence.">C) Duplicate keys disable JWT signature verification in Express.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
@@ -953,9 +953,9 @@ if (!basket) return res.status(403).json({ error: 'Forbidden' });</code></pre></
         <div class="quiz-card" data-question-id="lab05-q5">
           <div class="quiz-question">Q5: What is the root-cause server-side fix for the basket IDOR vulnerability?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Replacing sequential numbers with UUIDs makes IDs harder to guess, but if a UUID leaks in another API response or log, the missing ownership check still hands over the record.">A) Replace sequential basket numbers (`1, 2, 3`) with random UUIDs.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Always scope database queries to the authenticated user ID from the verified session token (`WHERE id = :id AND UserId = req.user.data.id`), or load the basket directly by `req.user.data.id`.">B) Scope the database query to the authenticated user's ID from the verified session token (`WHERE UserId = req.user.data.id`).</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding `sessionStorage.bid` in the frontend doesn't stop an attacker from sending `GET /rest/basket/1` directly in Burp Repeater or `fetch()`.">C) Encrypt `sessionStorage.bid` in the Angular frontend.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Replacing sequential numbers with UUIDs makes IDs harder to guess, but if a UUID leaks in another API response or log, the missing ownership check still hands over the record.">A) Replace sequential basket numbers (<code>1, 2, 3</code>) with random UUIDs.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Always scope database queries to the authenticated user ID from the verified session token (<code>WHERE id = :id AND UserId = req.user.data.id</code>), or load the basket directly by <code>req.user.data.id</code>.">B) Scope the database query to the authenticated user's ID from the verified session token (<code>WHERE UserId = req.user.data.id</code>).</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Hiding <code>sessionStorage.bid</code> in the frontend doesn't stop an attacker from sending <code>GET /rest/basket/1</code> directly in Burp Repeater or <code>fetch()</code>.">C) Encrypt <code>sessionStorage.bid</code> in the Angular frontend.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>

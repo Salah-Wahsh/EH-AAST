@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="../assets/css/layout.css" />
   <link rel="stylesheet" href="../assets/css/components.css" />
 </head>
-<body data-nav-active="labs" data-active-lab="lab01">
+<body data-nav-active="labs" data-active-lab="lab01" data-projector-qr>
   <div data-site-nav></div>
 
   <div class="page-wrapper">
@@ -39,55 +39,55 @@
       <header class="lab-header">
         <h1 class="lab-header__title">Lab 01: Security Concepts &amp; Web Prerequisites</h1>
         <p class="lab-header__lead">
-          Foundational security concepts, threat actor models, and assessment methodologies. Covers testing phases, transport primitives (TCP/UDP), HTTP request and response structures, and browser DevTools interception.
+          Before we start breaking web apps, you need the core vocabulary and the plumbing underneath it. Today covers assessment models, the five testing phases, TCP/UDP and ports, how an HTTP request travels from your click to the database, and how to inspect everything in Browser DevTools.
         </p>
       </header>
 
       <!-- Section 1 -->
       <section>
-        <h2>1. Fundamental Security Concepts</h2>
+        <h2 id="security-concepts">1. Fundamental Security Concepts</h2>
         <p class="lab-lead">
-          <strong>Ethical Hacking</strong> is the authorized simulation of cyberattacks to discover and remediate security vulnerabilities before malicious threat actors can exploit them.
+          <strong>Ethical hacking</strong> is authorized attack simulation: you test systems with explicit written permission to find and fix flaws before someone malicious does. The scope, depth, and rules depend on which type of assessment the client asks for.
         </p>
 
         <!-- Visual Comparison: VA vs Pentest -->
         <div class="comparison-grid">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">
-                <span class="comparison-icon">📋</span> Vulnerability Assessment
+              <h3 class="comparison-card__title" id="va-card">
+                Vulnerability Assessment
               </h3>
               <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">BREADTH-FIRST</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> Comprehensive catalog of all potential flaws.</li>
-              <li><span class="comparison-icon">⚙️</span> <strong>Method:</strong> Automated, non-intrusive scanning (Nessus, OpenVAS).</li>
-              <li><span class="comparison-icon">🛡️</span> <strong>Exploitation:</strong> <em>None</em>. You flag the weaknesses, you don't fire them.</li>
-              <li><span class="comparison-icon">📊</span> <strong>Output:</strong> Prioritized risk matrix and CVE score list.</li>
-              <li><span class="comparison-icon">⚡</span> <strong>System Risk:</strong> Zero downtime, safe for live production.</li>
+              <li><strong>Objective:</strong> Find and catalog as many known weaknesses as possible across the whole scope.</li>
+              <li><strong>Method:</strong> Automated, non-intrusive scanning (Nessus, OpenVAS) plus version checks.</li>
+              <li><strong>Exploitation:</strong> <em>None</em>. You flag the weaknesses, you don't fire them.</li>
+              <li><strong>Output:</strong> Prioritized risk list with CVE scores and patch advice.</li>
+              <li><strong>System Risk:</strong> Safe for live production with minimal risk of downtime.</li>
             </ul>
           </div>
 
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title">
-                <span class="comparison-icon">🎯</span> Penetration Test
+              <h3 class="comparison-card__title" id="pentest-card">
+                Penetration Test
               </h3>
               <span class="comparison-badge" style="color:var(--color-accent);border-color:rgba(0,255,102,0.4);">DEPTH-FIRST</span>
             </div>
             <ul class="comparison-list">
-              <li><span class="comparison-icon">🎯</span> <strong>Objective:</strong> Prove real-world business impact and compromise depth.</li>
-              <li><span class="comparison-icon">⚙️</span> <strong>Method:</strong> Active simulation of adversarial tactics &amp; custom payloads.</li>
-              <li><span class="comparison-icon">💥</span> <strong>Exploitation:</strong> <em>Active</em>. You actually use the flaws to get a foothold.</li>
-              <li><span class="comparison-icon">📊</span> <strong>Output:</strong> Proof-of-concept shells, compromised data &amp; remediation roadmap.</li>
-              <li><span class="comparison-icon">⚡</span> <strong>System Risk:</strong> Controlled risk; requires formal Rules of Engagement.</li>
+              <li><strong>Objective:</strong> Prove real-world business impact by seeing how deep an attacker can get.</li>
+              <li><strong>Method:</strong> Manual testing, chained vulnerabilities, and custom payloads.</li>
+              <li><strong>Exploitation:</strong> <em>Active</em>. You actually exploit flaws to reach sensitive data or gain a shell.</li>
+              <li><strong>Output:</strong> Proof-of-concept evidence, compromised impact, and code-level remediation.</li>
+              <li><strong>System Risk:</strong> Controlled risk under explicit written authorization.</li>
             </ul>
           </div>
         </div>
 
         <!-- Threat Actor Matrix -->
-        <h3>Threat Actor Taxonomy</h3>
-        <p>Hacking intent and legal authorization separate threat actors across a spectrum of risk:</p>
+        <h3 id="threat-actors">Threat Actor Taxonomy</h3>
+        <p>Intent and authorization separate hackers across the risk spectrum. The techniques often look identical; what changes is permission and goal:</p>
         
         <div class="threat-grid">
           <!-- White Hat -->
@@ -192,8 +192,8 @@
         </div>
 
         <!-- Testing Methodology Models -->
-        <h3>Target Visibility: The 3 Box Models</h3>
-        <p>Assessments differ fundamentally by how much internal architecture is disclosed upfront:</p>
+        <h3 id="box-models">Target Visibility: The 3 Box Models</h3>
+        <p>Assessments also differ by how much internal information the client gives you upfront. More context buys deeper coverage in less time:</p>
 
         <div class="methodology-grid">
           <div class="methodology-card">
@@ -211,7 +211,7 @@
             <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
               <li><strong>Perspective:</strong> External internet attacker</li>
               <li><strong>Tester Given:</strong> Target domain or IP range only</li>
-              <li><strong>Simulation:</strong> Maximum real-world adversary accuracy</li>
+              <li><strong>Trade-off:</strong> Realistic simulation, but heavy time spent on discovery instead of deep bugs</li>
             </ul>
           </div>
 
@@ -228,9 +228,9 @@
               <div class="transparency-bar"><div class="transparency-fill" style="width:50%;"></div></div>
             </div>
             <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
-              <li><strong>Perspective:</strong> Malicious insider or compromised account</li>
-              <li><strong>Tester Given:</strong> Low-privilege user credentials &amp; network diagram</li>
-              <li><strong>Simulation:</strong> Best balance of depth, time &amp; budget efficiency</li>
+              <li><strong>Perspective:</strong> Normal logged-in user or compromised employee account</li>
+              <li><strong>Tester Given:</strong> Standard user credentials, API docs, or network diagram</li>
+              <li><strong>Trade-off:</strong> Best balance of depth and time so you test privilege escalation right away</li>
             </ul>
           </div>
 
@@ -247,15 +247,15 @@
               <div class="transparency-bar"><div class="transparency-fill" style="width:100%;"></div></div>
             </div>
             <ul style="list-style:none;padding:0;margin:0;font-size:var(--font-size-xs);display:flex;flex-direction:column;gap:var(--space-1);color:var(--color-text-secondary);">
-              <li><strong>Perspective:</strong> Security architect &amp; lead auditor</li>
-              <li><strong>Tester Given:</strong> Full source code, API docs, root configs</li>
-              <li><strong>Simulation:</strong> Deepest audit with 100% code path coverage</li>
+              <li><strong>Perspective:</strong> Security architect &amp; code auditor</li>
+              <li><strong>Tester Given:</strong> Full source code, configs, and architecture docs</li>
+              <li><strong>Trade-off:</strong> Deepest audit with maximum code path coverage</li>
             </ul>
           </div>
         </div>
 
         <!-- 5 Testing Domains Grid -->
-        <h3>The 5 Penetration Testing Domains</h3>
+        <h3 id="testing-domains">The 5 Penetration Testing Domains</h3>
         <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(190px, 1fr));gap:var(--space-3);margin:var(--space-4) 0;">
           <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:var(--space-3);text-align:center;">
             <div style="font-size:1.75rem;margin-bottom:4px;">🌐</div>
@@ -287,8 +287,8 @@
 
       <!-- Section 2 -->
       <section>
-        <h2>2. The 5 Core Phases of Penetration Testing</h2>
-        <p>Standardized methodologies (NIST SP 800-115, PTES, OWASP) structure engagements into five sequential stages:</p>
+        <h2 id="pentest-phases">2. The 5 Core Phases of Penetration Testing</h2>
+        <p>Standard methodologies (NIST SP 800-115, PTES, OWASP) structure engagements into five sequential stages so you don't miss anything:</p>
 
         <!-- Visual Pipeline SVG Diagram -->
         <div class="diagram-card">
@@ -313,7 +313,7 @@
               <rect x="5" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
               <text x="80" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 01</text>
               <text x="80" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">🔍 Recon</text>
-              <text x="80" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">OSINT &amp; Intelligence</text>
+              <text x="80" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">OSINT &amp; Target Info</text>
             </g>
 
             <!-- Connector 1->2 -->
@@ -325,7 +325,7 @@
               <rect x="195" y="15" width="150" height="4" rx="2" fill="var(--color-cyan)" />
               <text x="270" y="42" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 02</text>
               <text x="270" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📡 Scanning</text>
-              <text x="270" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Ports &amp; Services (Nmap)</text>
+              <text x="270" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Ports &amp; Enumeration</text>
             </g>
 
             <!-- Connector 2->3 -->
@@ -337,7 +337,7 @@
               <rect x="385" y="15" width="150" height="4" rx="2" fill="var(--color-warn)" />
               <text x="460" y="42" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 03</text>
               <text x="460" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">⚠️ Vuln Analysis</text>
-              <text x="460" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Identify CVE Flaws</text>
+              <text x="460" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Identify Flaws &amp; CVEs</text>
             </g>
 
             <!-- Connector 3->4 -->
@@ -349,7 +349,7 @@
               <rect x="575" y="15" width="150" height="4" rx="2" fill="var(--color-danger)" />
               <text x="650" y="42" fill="var(--color-danger)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 04</text>
               <text x="650" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">💥 Exploitation</text>
-              <text x="650" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Initial Foothold &amp; PoC</text>
+              <text x="650" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Foothold &amp; Post-Ex</text>
             </g>
 
             <!-- Connector 4->5 -->
@@ -361,7 +361,7 @@
               <rect x="765" y="15" width="150" height="4" rx="2" fill="var(--color-accent)" />
               <text x="840" y="42" fill="var(--color-accent)" font-family="var(--font-mono)" font-size="11" font-weight="700" text-anchor="middle">PHASE 05</text>
               <text x="840" y="62" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="13" font-weight="700" text-anchor="middle">📝 Reporting</text>
-              <text x="840" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Remediation Roadmap</text>
+              <text x="840" y="80" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Findings &amp; Fixes</text>
             </g>
           </svg>
         </div>
@@ -371,19 +371,19 @@
           <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
             <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 1–2: DISCOVERY</strong>
             <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Map attack surface via OSINT, passive queries, and Nmap port scanning to identify open doors (ports 80, 443, 22).
+              Map the attack surface via OSINT, passive lookups, and port scanning (Nmap) to see which hosts and ports (80, 443, 22, 445) are open and what software versions are running.
             </p>
           </div>
           <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
             <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 3–4: ATTACK</strong>
             <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Correlate running software versions with known CVEs, craft weaponized payloads in Metasploit, and secure shell access.
+              Match exposed versions and endpoints to known flaws (SQLi, XSS, broken access control, or CVEs), confirm exploitability, gain a foothold, and test privilege escalation.
             </p>
           </div>
           <div style="background:var(--color-surface);border:1px solid var(--color-border);padding:var(--space-3);border-radius:var(--radius-md);">
             <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-xs);">PHASE 5: REMEDIATION</strong>
             <p style="margin:var(--space-1) 0 0;font-size:var(--font-size-xs);color:var(--color-text-secondary);">
-              Erase artifacts and deliver clear CVSS risk ratings with actionable mitigation code to prevent black-hat breach.
+              Remove any test files you dropped on the target and deliver reproducible steps, CVSS risk ratings, and code-level fixes the engineering team can ship.
             </p>
           </div>
         </div>
@@ -391,14 +391,14 @@
 
       <!-- Section 3: Networking Architecture, Ports & Handshake Dynamics -->
       <section id="section-3">
-        <h2>3. Networking, Ports &amp; Handshake Dynamics</h2>
+        <h2 id="networking-primitives">3. Networking, Ports &amp; Handshake Dynamics</h2>
         <p class="lab-lead">
-          Every network connection follows the same path: locate a host (IP), reach a service (Port), and open a session (TCP/UDP). The four steps:
+          Every network connection follows the same path: resolve local MAC neighbors, route to a host IP, reach a service port, and exchange application payloads. When a tool fails, knowing this stack tells you where it broke in 10 seconds.
         </p>
 
         <!-- 3.1 Network Layers & Triage Table -->
-        <h3>3.1 The Hacker's 4-Layer Stack &amp; Triage</h3>
-        <p>Textbooks teach 7 OSI layers; the real world runs on <strong>TCP/IP</strong>. When a scan or exploit fails, diagnose down the stack in seconds:</p>
+        <h3 id="four-layer-stack">3.1 The Hacker's 4-Layer Stack &amp; Triage</h3>
+        <p>Textbooks teach 7 OSI layers; the real world runs on <strong>TCP/IP</strong>. Work bottom-up when a command times out or fails so you don't debug an exploit against a closed port:</p>
 
         <div class="cheat-table-container" style="margin:var(--space-3) 0 var(--space-5);">
           <table class="cheat-table">
@@ -440,20 +440,21 @@
         </div>
 
         <!-- 3.2 Ports & The Apartment Analogy -->
-        <h3>3.2 Ports Demystified: The Apartment Analogy</h3>
+        <h3 id="ports-and-services">3.2 Ports Demystified: The Apartment Analogy</h3>
+        <p>An IP address gets packets to the right machine (Layer 3), and the <strong>port number</strong> (<code>0–65535</code>) tells the OS kernel which listening program gets them (Layer 4):</p>
         
         <div class="port-card" style="padding:var(--space-4);">
           <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:var(--space-3);margin-bottom:var(--space-3);">
             <div style="background:var(--color-bg);border-left:4px solid #3b82f6;border-radius:var(--radius-md);padding:var(--space-3);">
               <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:#3b82f6;font-weight:700;">🏢 IP ADDRESS = BUILDING STREET ADDRESS</div>
               <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:2px;">
-                <code>192.168.56.101</code> gets packets to the machine. There is only 1 IP per server.
+                <code>192.168.56.101</code> gets packets to the machine itself (Layer 3).
               </div>
             </div>
             <div style="background:var(--color-bg);border-left:4px solid var(--color-cyan);border-radius:var(--radius-md);padding:var(--space-3);">
               <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-cyan);font-weight:700;">🚪 PORT (0–65,535) = SPECIFIC ROOM DOOR</div>
               <div style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:2px;">
-                65,536 doors. The OS kernel routes packets to whichever program is listening inside!
+                65,536 doors. The OS kernel routes incoming packets to whichever daemon is listening on that port.
               </div>
             </div>
           </div>
@@ -485,7 +486,7 @@
         </div>
 
         <!-- 3.3 TCP vs. UDP & Handshake -->
-        <h3>3.3 TCP vs. UDP &amp; The 3-Way Handshake</h3>
+        <h3 id="tcp-vs-udp">3.3 TCP vs. UDP &amp; The 3-Way Handshake</h3>
         
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card comparison-card--accent">
@@ -494,7 +495,7 @@
               <span class="comparison-badge" style="color:var(--color-accent);">100% RELIABLE</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
-              Like a certified phone call. Packets are acknowledged; lost bytes are resent. <strong>Mandatory for interactive reverse shells.</strong> Cannot spoof IP.
+              Both sides sync sequence numbers with a 3-way handshake before sending data, and lost bytes are resent. <strong>Mandatory for interactive reverse shells.</strong> You can't spoof your IP through a full TCP handshake because the server sends its <code>SYN-ACK</code> sequence number back to the spoofed IP, so you never see it to reply with <code>ACK</code>.
             </p>
           </div>
           <div class="comparison-card comparison-card--cyan">
@@ -503,7 +504,7 @@
               <span class="comparison-badge" style="color:var(--color-cyan);">FIRE-AND-FORGET</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
-              Like a megaphone in a stadium. Zero receipts, zero state. <strong>Trivial IP spoofing (DDoS amplification).</strong> Agonizingly slow to port-scan.
+              No handshake, no delivery receipts, no connection state. Because there's no <code>SYN-ACK</code> step, <strong>IP spoofing is trivial</strong> (which powers DNS/NTP amplification DDoS). It's also agonizingly slow to port-scan because open UDP ports often stay completely silent.
             </p>
           </div>
         </div>
@@ -563,7 +564,7 @@
             </div>
             <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--color-text-muted);">SYN ➔ <span style="color:var(--color-accent);">[SYN-ACK]</span></div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
-              Service daemon is actively listening. <strong>Primary attack target!</strong>
+              A service daemon is actively listening on this port and wants to talk.
             </p>
           </div>
 
@@ -574,7 +575,7 @@
             </div>
             <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--color-text-muted);">SYN ➔ <span style="color:var(--color-danger);">[RST]</span></div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
-              Host is alive, but no program is bound to this port. Move on.
+              The host is alive at Layer 3, but its kernel confirmed no program is bound to this port at Layer 4.
             </p>
           </div>
 
@@ -585,41 +586,53 @@
             </div>
             <div style="font-family:var(--font-mono);font-size:0.72rem;color:var(--color-text-muted);">SYN ➔ <span style="color:var(--color-warn);">Timeout</span></div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:var(--space-1) 0 0;line-height:1.4;">
-              Firewall (iptables/ACL) dropped the packet silently.
+              A firewall (iptables/ACL) dropped your packet silently, so you don't know if a service is behind it or not.
             </p>
           </div>
         </div>
 
-        <div class="callout callout--tip" style="margin:var(--space-3) 0 var(--space-5);">
+        <div class="callout callout--tip" style="margin:var(--space-3) 0 var(--space-4);">
           <span class="callout__icon">💡</span>
           <div class="callout__content">
-            <div class="callout__title">The SYN Stealth Scan ("Ding-Dong Ditch")</div>
+            <div class="callout__title">The SYN Stealth Scan ("Half-Open" Scan: <code>nmap -sS</code>)</div>
             <p style="font-size:var(--font-size-xs);margin:var(--space-1) 0 0;line-height:1.5;">
-              When target returns <code>SYN-ACK</code>, Kali instantly sends <code>RST</code> instead of completing the handshake. The port is confirmed <strong>OPEN</strong> without writing a connection entry into web server logs!
+              You send <code>SYN</code>, the target replies <code>SYN-ACK</code>, and instead of sending the final <code>ACK</code> to finish the handshake, your scanner immediately sends <code>RST</code> to tear it down. You confirmed the port is <strong>OPEN</strong> without completing a full connection, so many older servers never log it.
             </p>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-bottom:var(--space-5);">
+          <div class="prediction-prompt__question">🤔 You run <code>ping 192.168.56.101</code> and get 0% packet loss. Next, <code>nc -zv 192.168.56.101 80</code> returns an instant <code>Connection refused</code> (<code>RST</code>), while port <code>445</code> just hangs until timeout. What is happening at Layer 3 and Layer 4 on each port?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;"><strong>Layer 3 routing works fine</strong> (the ping proved the host is reachable). At <strong>Layer 4</strong>, port 80 is <strong>closed</strong> (the target's OS kernel sent back an active <code>RST</code> because nothing is listening on port 80), while port 445 is <strong>filtered</strong> (a firewall silently dropped your <code>SYN</code> packet so nothing came back).</p>
           </div>
         </div>
 
         <!-- 3.4 Web Protocols: GET vs POST & Headers -->
-        <h3>3.4 Web Protocols: GET vs. POST &amp; Header Leaks</h3>
+        <h3 id="http-get-post-headers">3.4 Web Protocols: GET vs. POST &amp; Header Leaks</h3>
 
         <div class="comparison-grid" style="margin-bottom:var(--space-4);">
           <div class="comparison-card">
             <div class="comparison-card__header">
               <span class="http-badge http-badge--get">HTTP GET</span>
-              <span class="comparison-badge">Postcard</span>
+              <span class="comparison-badge">In the URL</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
-              Parameters in URL bar (<code>?user=admin</code>). Logged in browser history and proxy access logs. Never put credentials in a GET!
+              Parameters sit in the URL query string (<code>?user=admin</code>), so they end up in browser history, bookmarks, and server access logs. Never put passwords or tokens in a GET URL.
             </p>
           </div>
           <div class="comparison-card">
             <div class="comparison-card__header">
               <span class="http-badge http-badge--post">HTTP POST</span>
-              <span class="comparison-badge">Sealed Envelope</span>
+              <span class="comparison-badge">In the Body</span>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;line-height:1.5;">
-              Payload tucked inside request body. Hidden from URL and default access logs. Used for logins and state modifications.
+              Payload moves out of the URL bar and into the request body (keeping it out of browser history and URL logs). <strong>Note: POST isn't encryption</strong>; on plain HTTP, anyone sniffing the wire still reads the body in cleartext.
             </p>
           </div>
         </div>
@@ -659,7 +672,7 @@
         </div>
 
         <!-- Subsection 3.5: The Web Request Lifecycle -->
-        <h3>3.5 The Web Request Lifecycle: From Click to Response</h3>
+        <h3 id="web-request-lifecycle">3.5 The Web Request Lifecycle: From Click to Response</h3>
         <p>What actually happens when a user clicks a link or submits a form? Here's the full trip, and where an attacker can sit on each hop:</p>
 
         <!-- SVG Lifecycle Pipeline Diagram -->
@@ -776,10 +789,32 @@
 
       <!-- Section 4 (previously 5) -->
       <section>
-        <h2>4. Interactive Hands-on: Browser DevTools Guide</h2>
-        <p>
-          Before deploying heavy interception proxies like Burp Suite, pentesters utilize browser Developer Tools (<code>F12</code>) to intercept traffic, cookies, and tokens.
+        <h2 id="browser-devtools">4. Interactive Hands-on: Browser DevTools Guide</h2>
+        <p class="lab-lead">
+          Before opening a proxy like Burp Suite, you already have a built-in traffic inspector inside every browser: Developer Tools (<kbd>F12</kbd>). Here are the four tabs you'll live in across the web labs:
         </p>
+
+        <div class="info-dense-card info-dense-card--cyan" style="margin-bottom:var(--space-4);">
+          <div class="info-dense-card__title">DevTools Quick Map (F12)</div>
+          <div class="info-dense-card__grid">
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Elements</span>
+              <code>Live DOM HTML (spot injected tags)</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Console</span>
+              <code>Run JS, read localStorage &amp; cookies</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Network</span>
+              <code>Every HTTP request, header &amp; status</code>
+            </div>
+            <div class="info-dense-card__cell">
+              <span class="info-dense-card__label">Application</span>
+              <code>Cookies (HttpOnly), session &amp; storage</code>
+            </div>
+          </div>
+        </div>
 
         <!-- DevTools Mockup UI -->
         <div class="devtools-mock">
@@ -823,11 +858,23 @@
           <div class="callout__content">
             <div class="callout__title">DevTools Console Security Check: The HttpOnly Flag</div>
             <p style="margin:var(--space-1) 0;">
-              Open the <strong>Console</strong> tab and execute: <code>document.cookie</code>.
+              Open the <strong>Console</strong> tab and run: <code>document.cookie</code>.
             </p>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              If a session cookie has the <code>HttpOnly</code> attribute set by the server, JavaScript returns an empty string, neutralizing Cross-Site Scripting (XSS) cookie theft!
+              When a server sends <code>Set-Cookie: session=...; HttpOnly</code>, the browser still attaches that cookie to every HTTP request automatically, <strong>but hides it from JavaScript</strong>. That stops an XSS payload from reading the session cookie out of <code>document.cookie</code>.
             </p>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You open DevTools → <strong>Application → Cookies</strong> and clearly see a <code>session_id</code> cookie saved for the site. Then you switch to <strong>Console</strong>, type <code>document.cookie</code>, and it's missing from the output. Why?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">The server set the <code>HttpOnly</code> flag on <code>session_id</code>. The browser still owns the cookie (so it shows up in the <strong>Application</strong> inspector and goes out on HTTP requests), while blocking JavaScript (<code>document.cookie</code>) from reading it.</p>
           </div>
         </div>
 
@@ -860,7 +907,7 @@
 
       <!-- Section 5 -->
       <section>
-        <h2>5. Classroom Hands-On Exercises</h2>
+        <h2 id="hands-on-exercises">5. Classroom Hands-On Exercises</h2>
 
         <!-- Exercise 5.1 -->
         <div class="bento-card" style="margin:var(--space-4) 0;">
@@ -869,7 +916,7 @@
             <span class="comparison-badge" style="color:var(--color-accent);">SNIFFED AUTH HEADER</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            You captured an HTTP Basic Auth header: <code>Authorization: Basic dGVhY2hpbmc6aGFja2luZzEyMw==</code>. Decode it:
+            You captured an HTTP Basic Auth header: <code>Authorization: Basic dGVhY2hpbmc6aGFja2luZzEyMw==</code>. Notice the <code>==</code> padding at the end, a classic Base64 tell. Decode it:
           </p>
           <div class="terminal-window" style="margin:var(--space-2) 0;">
             <div class="terminal-window__header">
@@ -889,7 +936,7 @@
             <summary>Core Principle: Is Base64 an encryption algorithm?</summary>
             <div class="thought-accordion__content">
               <p>
-                <strong>No!</strong> Base64 is an encoding scheme, not encryption. It provides zero confidentiality. Any attacker intercepting cleartext HTTP can decode credentials in a fraction of a second (<code>teaching:hacking123</code>).
+                <strong>No!</strong> Base64 is encoding, not encryption. There's no secret key, and it gives you zero confidentiality. Anyone sniffing plain HTTP traffic (or reading a captured header) decodes <code>dGVhY2hpbmc6aGFja2luZzEyMw==</code> straight back to <code>teaching:hacking123</code> in a millisecond.
               </p>
             </div>
           </details>
@@ -902,7 +949,7 @@
             <span class="comparison-badge" style="color:var(--color-cyan);">RECONNAISSANCE</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            Extract HTTP response banners without downloading web page bodies:
+            Send an HTTP <code>HEAD</code> request with <code>-I</code> to grab the response headers (banners) without downloading the HTML page body:
           </p>
           <div class="terminal-window" style="margin:var(--space-2) 0;">
             <div class="terminal-window__header">
@@ -922,7 +969,7 @@
             <summary>Why is Server Banner leakage dangerous?</summary>
             <div class="thought-accordion__content">
               <p>
-                Disclosing web server versions (e.g. <code>Apache/2.2.14</code>) allows adversaries to query the CVE vulnerability database and execute targeted, off-the-shelf exploits in minutes.
+                Printing exact software versions in headers like <code>Server: Apache/2.2.14</code> or <code>X-Powered-By: Express</code> lets an attacker look up known CVEs for that exact version in seconds instead of guessing blindly.
               </p>
             </div>
           </details>
@@ -932,7 +979,7 @@
       <!-- Interactive Quiz Section -->
       <section class="quiz-section">
         <div class="quiz-section__header">
-          <h2 class="quiz-section__title">Lab 01 Self-Assessment Quiz</h2>
+          <h2 class="quiz-section__title" id="self-assessment">Lab 01 Self-Assessment Quiz</h2>
         </div>
 
         <!-- Question 1: Multiple Choice -->
@@ -981,7 +1028,7 @@
 
         <!-- Question 3: Terminal Command Challenge -->
         <div class="quiz-card" data-question-id="lab01-q3"
-             data-expected-regex="^echo\s+[\"']?dGVhY2hpbmc6aGFja2luZzEyMw==[\"']?\s*\|\s*base64\s+(-d|--decode)"
+             data-expected-regex="^echo\s+[&quot;']?dGVhY2hpbmc6aGFja2luZzEyMw==[&quot;']?\s*\|\s*base64\s+(-d|--decode)"
              data-solution-rationale="Decoded credentials: 'teaching:hacking123'."
              data-hint="Pipe the base64 string into 'base64 -d' (e.g. echo 'dGVhY2hpbmc6aGFja2luZzEyMw==' | base64 -d).">
           <div class="quiz-question">
@@ -1043,6 +1090,7 @@
   <div data-site-footer></div>
 
   <script data-site-root=".." src="../assets/js/site.js"></script>
+  <script src="../assets/js/vendor/qrcode.js"></script>
   <script src="../assets/js/lab-common.js"></script>
   <script src="../assets/js/quiz.js"></script>
 </body>
