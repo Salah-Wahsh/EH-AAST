@@ -19,7 +19,7 @@
         { id: 'lab03', name: 'Lab 03: SQL Injection', href: 'labs/lab03.html', time: '60m' },
         { id: 'lab04', name: 'Lab 04: Cross-Site Scripting (XSS)', href: 'labs/lab04.html', time: '60m' },
         { id: 'lab05', name: 'Lab 05: Broken Access Control', href: 'labs/lab05.html', time: '60m' },
-        { id: 'lab06', name: 'Lab 06: File Upload to Web Shell & Command Injection', href: 'labs/lab06.html', time: '60m' }
+        { id: 'lab06', name: 'Lab 06: File Upload Vulnerabilities & Web Shells', href: 'labs/lab06.html', time: '60m' }
       ]
     }
   ];

